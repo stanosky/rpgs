@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 var gulp = require('gulp'),
     sass = require('gulp-sass'),
@@ -14,7 +14,7 @@ var gulp = require('gulp'),
     babelify = require('babelify'),
     source = require('vinyl-source-stream'),
     buffer = require('vinyl-buffer'),
-    package = require('./package.json');
+    _package = require('./package.json');
 
 
 var banner = [
@@ -37,7 +37,7 @@ gulp.task('css', function () {
     .pipe(gulp.dest('app/assets/css'))
     .pipe(cssnano())
     .pipe(rename({ suffix: '.min' }))
-    .pipe(header(banner, { package : package }))
+    .pipe(header(banner, { package : _package }))
     .pipe(sourcemaps.write())
     .pipe(gulp.dest('app/assets/css'))
     .pipe(browserSync.reload({stream:true}));
@@ -57,10 +57,10 @@ gulp.task('js',function(){
     .pipe(sourcemaps.init({ loadMaps: true }))
     .pipe(jshint('.jshintrc'))
     .pipe(jshint.reporter('default'))
-    .pipe(header(banner, { package : package }))
+    //.pipe(header(banner, { package : _package }))
     .pipe(gulp.dest('app/assets/js'))
-    .pipe(uglify())
-    .pipe(header(banner, { package : package }))
+    //.pipe(uglify())//this line causes error, need further investigation
+    .pipe(header(banner, { package : _package }))
     .pipe(rename({ suffix: '.min' }))
     .pipe(sourcemaps.write())
     .pipe(gulp.dest('app/assets/js'))
