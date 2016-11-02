@@ -3,6 +3,7 @@ const Utils = require('../core/Utils.js');
 const BaseNode = require('./BaseNode.js');
 
 let TalkNode = function() {
+  BaseNode.call(this);
   this._text = '';
   this._answerNodes = [];
 };

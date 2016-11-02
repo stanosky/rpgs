@@ -57,3 +57,5 @@ Quest.prototype = (function(){
     getStatus: _getStatus
   };
 })();
+Quest.prototype.constructor = Quest;
+module.exports = Quest;

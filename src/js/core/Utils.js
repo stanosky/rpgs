@@ -24,10 +24,20 @@ exports.getObjectById = function(array,id) {
 };
 
 exports.addObjectToArray = function(array,obj,expectedType) {
-  if(typeof obj !== expectedType) {
-    throw new Error('Wrong type of object passed. Expected '+expectedType+' object.');
+  if(expectedType !== undefined && expectedType !== null) {
+    if(typeof obj !== expectedType) {
+      throw new Error('Wrong type of object passed. Expected '
+      +expectedType.toString()+' object.');
+    }
   }
   if(indexOfObject(array,obj) === -1) {
     array.push(obj);
+  }
+};
+
+exports.removeObjectFromArray = function(array,obj) {
+  let index = indexOfObject(array,obj);
+  if(index !== -1) {
+    array.splice(index,1);
   }
 };
