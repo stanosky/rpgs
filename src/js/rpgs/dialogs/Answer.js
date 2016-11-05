@@ -1,37 +1,36 @@
 "use strict";
-const BaseObject = require('../core/BaseObject.js');
+import BaseObject from '../core/BaseObject';
 
-let Answer = function() {
-  BaseObject.call(this);
-  this._text = '';
-  this._link = '';
-};
+let Answer = (function() {
+  //Weak maps are new feature to JavaScript. We can store private
+  //object properties in key/value pairs using our instance as the key,
+  //and our class can capture those key/value maps in a closure.
+  let _text = new WeakMap();
+  let _link = new WeakMap();
 
-Answer.prototype = (function(){
-  let _super = new BaseObject(),
+  return class Answer extends BaseObject {
+    constructor(id) {
+      super(id);
+      _text.set(this,'');
+      _link.set(this,'');
+    }
 
-  _setText = function(value) {
-    this._text = value;
-  },
+    setText(value) {
+      _text.set(this,value);
+    }
 
-  _getText = function() {
-    return this._text;
-  },
+    getText() {
+      return _text.get(this);
+    }
 
-  _setLink = function(link) {
-    this._link = link;
-  },
+    setLink(link) {
+      _link.set(this,link);
+    }
 
-  _getLink = function() {
-    return this._link;
+    getLink() {
+      return _link.get(this);
+    }
+
   };
-
-  _super.setText = _setText;
-  _super.getText = _getText;
-  _super.setLink = _setLink;
-  _super.getLink = _getLink;
-
-  return _super;
 })();
-Answer.prototype.constructor = Answer;
 module.exports = Answer;

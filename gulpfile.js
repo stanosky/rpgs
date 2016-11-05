@@ -49,7 +49,7 @@ gulp.task('js',function(){
         entries: 'src/js/scripts.js',
         debug: true
       });
-      bundler.transform(babelify);
+      bundler.transform("babelify",{presets: ["es2015"]});
 
   bundler.bundle()
     .on('error', function (err) { console.error(err); })
@@ -81,7 +81,7 @@ gulp.task('bs-reload', function () {
 
 gulp.task('default', ['css', 'js', 'browser-sync'], function () {
     gulp.watch("src/scss/*/*.scss", ['css']);
-    gulp.watch("src/js/*.js", ['js']);
+    gulp.watch("src/js/**/*.js", ['js']);
     gulp.watch("app/*.html", ['bs-reload']);
 });
 

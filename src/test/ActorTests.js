@@ -1,5 +1,5 @@
 "use strict";
-const Actor = require('../rpgs/actors/Actor.js');
+const Actor = require('../js/rpgs/actors/Actor.js');
 const expect = require('chai').expect;
 
 describe('Actor', function() {
@@ -15,5 +15,5 @@ describe('Actor', function() {
         testActor.setName(name);
         expect(testActor.getName()).to.eql(name);
     });
-    
+
 });

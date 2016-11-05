@@ -1,48 +1,42 @@
 "use strict";
-const BaseObject = require('../core/BaseObject.js');
-const Answer = require('./Answer.js');
+import BaseObject from '../core/BaseObject';
+import Answer from './Answer';
 
-let Talk = function() {
-  BaseObject.call(this);
-  this._text = '';
-  this._answers = [];
-}
-Talk.prototype = (function(){
-  let _super = new BaseObject(),
+let Talk = (function() {
 
-  _setText = function(value) {
-    this._text = value;
-  },
+  let _text = new WeakMap();
+  let _answers = new WeakMap();
 
-  _getText = function() {
-    return this._text;
-  },
+  return class Talk extends BaseObject {
+    constructor(id) {
+      super(id);
+      _text.set(this,'');
+      _answers.set(this, []);
+    }
 
-  _addAnswer = function(answer) {
-    Utils.addObjectToArray(this._answers,answer, Answer);
-  },
+    setText(value) {
+      _text.set(this,value);
+    }
 
-  _removeAnswer = function(answerId) {
-      let index = Utils.indexOfObject(this._answers,answerId);
-      if(index > -1) this._answers.splice(index,1);
-  },
+    getText() {
+      return _text.get(this);
+    }
 
-  _getAnswer = function(answerId) {
-    return Utils.getObjectById(this._answers,answerId);
-  },
+    addAnswer(answer) {
+      _answers.set(this,Utils.addObjectToArray(_answers.get(this),answer, Answer));
+    }
 
-  _getAnswers = function() {
-    return this._answers;
-  },
+    removeAnswer(answerId) {
+      Utils.removeObjectById(_answers.get(this),answerId);
+    }
 
-  _super.setText = _setText;
-  _super.getText = _getText;
-  _super.addAnswer = _addAnswer;
-  _super.removeAnswer = _removeAnswer;
-  _super.getAnswer = _getAnswer;
-  _super.getAnswers = _getAnswer;
+    getAnswer(answerId) {
+      return Utils.getObjectById(_answers.get(this),answerId);
+    }
 
-  return _super;
+    getAnswers() {
+      return _answers.get(this);
+    }
+  };
 })();
-Talk.prototype.constructor = Talk;
 module.exports = Talk;

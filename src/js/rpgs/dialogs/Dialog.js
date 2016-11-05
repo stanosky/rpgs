@@ -1,42 +1,44 @@
 "use strict";
-const Utils = require('../core/Utils.js');
-const Talk = require('./Talk.js');
+import BaseObject from '../core/BaseObject';
+import Utils from '../core/Utils';
+import Talk from './Talk';
 
-let Dialog = function() {
-  let _start = '';
-  let _talks = [];
+let Dialog = (function() {
+  let _start = new WeakMap();
+  let _talks = new WeakMap();
 
-  let _addTalk = function(talk) {
-    Utils.addObjectToArray(_talks,talk, Talk);
-  };
+  return class Dialog extends BaseObject {
 
-  let _removeTalk = function(talkId) {
-    Utils.removeObjectFromArray(_talks,talk);
-  };
+    constructor(id) {
+      super(id);
+      _start.set(this,'');
+      _talks.set(this,[]);
+    }
 
-  let _getTalk = function(talkId) {
-    return Utils.getObjectById(_talks,talkId);
-  };
+    addTalk(talk) {
+      _talks.set(this,Utils.addObjectToArray(_talks.get(this),talk, Talk));
+    }
 
-  let _getTalks = function() {
-    return _talks;
-  };
+    removeTalk(talkId) {
+      Utils.removeObjectById(_talks.get(this),talkId);
+    }
 
-  let _setStartTalk = function(talkId) {
-    _start = talkId;
-  };
+    getTalk(talkId) {
+      return Utils.getObjectById(_talks,talkId);
+    }
 
-  let _getStartTalk = function() {
-    return _start
-  };
+    getTalks() {
+      return _talks.get(this);
+    }
 
-  return {
-    addTalk:      _addTalk,
-    removeTalk:   _removeTalk,
-    getTalk:      _getTalk,
-    getTalks:     _getTalks,
-    setStartTalk: _setStartTalk,
-    getStartTalk: _getStartTalk
+    setStartTalk(talkId) {
+      _start.set(this,talkId);
+    }
+
+    getStartTalk() {
+      return _start.get(this);
+    }
   }
-};
+
+})();
 module.exports = Dialog;

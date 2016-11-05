@@ -1,61 +1,67 @@
 "use strict";
-const QuestStatus = require('./QuestStatus.js');
+import BaseObject from '../core/BaseObject';
+import QuestStatus from './QuestStatus';
+import Task from './Task';
 
-let Quest = function() {
-  this._title = '';
-  this._description = '';
-  this._status = QuestStatus.INCOMPLETE;
-  this._tasks = [];
-};
+let Quest = (function() {
+  let _title new WeakMap();
+  let _description = new WeakMap();
+  let _status = new WeakMap();//QuestStatus.INCOMPLETE;
+  let _tasks = new WeakMap();
 
-Quest.prototype = (function(){
-  let _setTitle = function(value) {
-    this._title = value;
-  },
-  _getTitle = function() {
-    return this._title;
-  },
-  _setDescription = function(value) {
-    this._description = value;
-  },
-  _getDescription = function() {
-    return this._description;
-  },
-  _addTask = function(task) {
-    //to do:
-  },
-  _getTask = function() {
-    //to do:
-  },
-  _getTasks = function() {
-    return this._tasks;
-  },
-  _setStatus = function(value) {
-    switch (value) {
-      case QuestStatus.COMPLETED:
-      case QuestStatus.FAILED:
-        this._status = value;
-      case QuestStatus.INCOMPLETE:
-      default:
-        this._status = QuestStatus.INCOMPLETE;
-        break;
-    };
-  },
-  _getStatus = function() {
-    return this._status;
+  return class Quest extends BaseObject {
+    constructor(id) {
+      super(id);
+      _title.set(this,'');
+      _description.set(this,'');
+      _status.set(this,QuestStatus.INCOMPLETE);
+      _tasks.set(this,[]);
+    }
+
+    setTitle(value) {
+      _title.set(this,value);
+    }
+
+    getTitle() {
+      return _title.get(this);
+    }
+
+    setDescription(value) {
+      _description.set(this,value);
+    }
+
+    getDescription() {
+      return _description.get(this);
+    }
+
+    addTask(task) {
+      _tasks.set(this,Utils.addObjectToArray(_tasks.get(this),task, Task));
+    }
+
+    getTask(taskId) {
+      return Utils.getObjectById(_tasks.get(this),taskId);
+    }
+
+    getTasks() {
+      return _tasks.get(this);
+    }
+
+    setStatus(value) {
+      switch (value) {
+        case QuestStatus.COMPLETED:
+        case QuestStatus.FAILED:
+          _status.set(this,value);
+        case QuestStatus.INCOMPLETE:
+        default:
+          _status.set(this,QuestStatus.INCOMPLETE);
+          break;
+      };
+    }
+
+    getStatus() {
+      return _status.get(this);
+    }
   };
 
-  return {
-    setTitle: _setTitle,
-    getTitle: _getTitle,
-    setDescription: _setDescription,
-    getDescription: _getDescription,
-    addTask: _addTask,
-    getTask: _getTask,
-    getTasks: _getTasks,
-    setStatus: _setStatus,
-    getStatus: _getStatus
-  };
 })();
-Quest.prototype.constructor = Quest;
 module.exports = Quest;

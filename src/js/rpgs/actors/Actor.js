@@ -1,44 +1,47 @@
 "use strict";
+import UniqueObject from '../core/UniqueObject';
 
-let Actor = function () {
-  this._name = '';
-  this._dialog = null;
-  this._inventory = null;
-};
+let Actor = (function() {
+  //Weak maps are new feature to JavaScript. We can store private
+  //object properties in key/value pairs using our instance as the key,
+  //and our class can capture those key/value maps in a closure.
+  let _name = new WeakMap();
+  let _dialog = new WeakMap();
+  let _inventory = new WeakMap();
 
-Actor.prototype = (function(){
-  let _setName = function(value) {
-    this._name = value;
-  },
+  return class Actor extends UniqueObject {
+    constructor(id) {
+      super(id);
+      _name.set(this,'');
+      _dialog.set(this,null);
+      _inventory.set(this,null);
+    }
 
-  _getName = function() {
-    return this._name;
-  },
+    setName(value) {
+      _name.set(this,value);
+    }
 
-  _setDialog = function(dialog) {
-    this._dialog = dialog;
-  },
+    getName() {
+      return _name.get(this);
+    }
 
-  _getDialog = function() {
-    return this._dialog;
-  },
+    setDialog(dialog) {
+      _dialog.set(this,dialog);
+    }
 
-  _setInventory = function(inventory) {
-    this._inventory = inventory;
-  },
+    getDialog() {
+      return _dialog.get(this);
+    }
 
-  _getInventory = function() {
-    return this._inventory;
-  };
+    setInventory(inventory) {
+      _inventory.set(this,inventory);
+    }
 
-  return {
-    setName: _setName,
-    getName: _getName,
-    setDialog: _setDialog,
-    getDialog: _getDialog,
-    setInventory: _setInventory,
-    getInventory: _getInventory
-  };
+    getInventory() {
+      return _inventory.get(this);
+    }
+
+  }
 })();
-Actor.prototype.constructor = Actor;
+
 module.exports = Actor;
