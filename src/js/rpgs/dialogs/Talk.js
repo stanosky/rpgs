@@ -7,11 +7,22 @@ let Talk = (function() {
   let _text = new WeakMap();
   let _answers = new WeakMap();
 
+  let _parseAnswers = function(data) {
+    return data.length ? data.map((answerData) => new Answer(answerData)) : [];
+  };
+
   return class Talk extends BaseObject {
-    constructor(id) {
-      super(id);
-      _text.set(this,'');
-      _answers.set(this, []);
+    constructor(data) {
+      super(data);
+      _text.set(this,data.text||'');
+      _answers.set(this,_parseAnswers(data.answers));
+    }
+
+    getData() {
+      let data = super.getData();
+      data.text = this.getText();
+      data.answers = this.getAnswers().map((a) => a.getData());
+      return data;
     }
 
     setText(value) {

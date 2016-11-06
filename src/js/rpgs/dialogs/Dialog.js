@@ -1,5 +1,5 @@
 "use strict";
-import BaseObject from '../core/BaseObject';
+import UniqueObject from '../core/UniqueObject';
 import Utils from '../core/Utils';
 import Talk from './Talk';
 
@@ -7,12 +7,23 @@ let Dialog = (function() {
   let _start = new WeakMap();
   let _talks = new WeakMap();
 
-  return class Dialog extends BaseObject {
+  let _parseTalks = function(data) {
+    return data.length ? data.map((talkData) => new Talk(talkData)) : [];
+  }
 
-    constructor(id) {
-      super(id);
-      _start.set(this,'');
-      _talks.set(this,[]);
+  return class Dialog extends UniqueObject {
+
+    constructor(data) {
+      super(data);
+      _start.set(this,data.startTalk||'');
+      _talks.set(this,_parseTalks(data.talks));
+    }
+
+    getData() {
+      let data = super.getData();
+      data.startTalk = this.getStartTalk();
+      data.talks = this.getTalks().map((t) => t.getData());
+      return data;
     }
 
     addTalk(talk) {

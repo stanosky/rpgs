@@ -3,8 +3,8 @@ import BaseObject from '../core/BaseObject';
 
 let Task = (function(){
   return class Task extends BaseObject {
-    constructor(id) {
-      super(id);
+    constructor(data) {
+      super(data);
     }
 
     //to do

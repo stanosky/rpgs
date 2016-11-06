@@ -14,8 +14,10 @@ var gulp = require('gulp'),
     babelify = require('babelify'),
     source = require('vinyl-source-stream'),
     buffer = require('vinyl-buffer'),
+    transform = require('vinyl-transform'),
     _package = require('./package.json'),
-    mocha = require("gulp-mocha");
+    mocha = require("gulp-mocha"),
+    concat = require('gulp-concat');
 
 
 var banner = [
@@ -83,11 +85,4 @@ gulp.task('default', ['css', 'js', 'browser-sync'], function () {
     gulp.watch("src/scss/*/*.scss", ['css']);
     gulp.watch("src/js/**/*.js", ['js']);
     gulp.watch("app/*.html", ['bs-reload']);
-});
-
-gulp.task("test", function() {
-  return gulp.src([
-      "src/test/*.js"
-    ])
-    .pipe(mocha({reporter: 'nyan'}));
 });

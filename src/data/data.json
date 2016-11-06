@@ -1,5 +1,71 @@
 {
-  "actors":{},
-  "dialogs":{},
-  
+  "actors":[
+    {
+      "uuid":"a001",
+      "name":"Adam",
+      "inventory":[],
+      "dialog": {
+        "uuid":"d001",
+        "startTalk":"t001",
+        "talks":[
+          {
+            "uuid":"t001",
+            "text":"Talk 1",
+            "answers":[
+              {
+                "uuid":"a001",
+                "text":"Answer 1"
+              },
+              {
+                "uuid":"a002",
+                "text":"Answer 2"
+              }
+            ]
+          },
+          {
+            "uuid":"t002",
+            "text":"Talk 2",
+            "answers":[
+              {
+                "uuid":"a003",
+                "text":"Answer 1"
+              },
+              {
+                "uuid":"a004",
+                "text":"Answer 2"
+              }
+            ]
+          },
+          {
+            "uuid":"t003",
+            "text":"Talk 3",
+            "answers":[
+              {
+                "uuid":"a005",
+                "text":"Answer 1"
+              },
+              {
+                "uuid":"a006",
+                "text":"Answer 2"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "uuid":"a002",
+      "name":"Eva",
+      "inventory":[],
+      "dialog":null
+    },
+    {
+      "uuid":"a003",
+      "name":"Player",
+      "inventory":[],
+      "dialog":null
+    },
+  ],
+  "quests":{},
+  "variables":{}
 }

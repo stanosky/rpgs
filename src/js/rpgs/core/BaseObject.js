@@ -9,17 +9,31 @@ let BaseObject = (function(id) {
   let _active = new WeakMap();
 
   return class BaseObject extends UniqueObject {
-    constructor(id) {
-      super(id);
-      _visible.set(this,null);
-      _active.set(this,null);
+    constructor(data) {
+      super(data);
+      _visible.set(this,data.visible||null);
+      _active.set(this,data.active||null);
     }
+
+    getData() {
+      let data = super.getData();
+      data.visible = this.getVisibleCondition() ?
+        this.getVisibleCondition().getData() : null;
+      data.active = this.getActiveCondition() ?
+        this.getActiveCondition().getData() : null;
+      return data;
+    }
+
     /**
      * Method sets condition that must be met in order to node was visible.
      * @param {Condition} condition Instance of Condition object
      */
     setVisibleCondition(condition) {
       _visible.set(this,BaseObject.isConditionInstance(condition));
+    }
+
+    getVisibleCondition() {
+      return _visible.get(this);
     }
 
     /**
@@ -36,6 +50,10 @@ let BaseObject = (function(id) {
      */
     setActiveCondition(condition) {
       _active.set(this,BaseObject.isConditionInstance(condition));
+    }
+
+    getActiveCondition() {
+      return _active.get(this);
     }
 
     /**

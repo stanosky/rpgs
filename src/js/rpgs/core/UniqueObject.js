@@ -8,9 +8,9 @@ let UniqueObject = (function(){
   let _uuid = new WeakMap();
 
   return class UniqueObject {
-    constructor(id) {
+    constructor(data) {
       //By default we assign Universally Unique ID
-      _uuid.set(this,id||UUID.generate());
+      _uuid.set(this,data.uuid||UUID.generate());
     }
 
     setId(value) {
@@ -19,6 +19,12 @@ let UniqueObject = (function(){
 
     getId() {
       return _uuid.get(this);
+    }
+
+    getData() {
+      return {
+        uuid:this.getId()
+      };
     }
   };
 })();

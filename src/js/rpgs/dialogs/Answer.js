@@ -9,10 +9,17 @@ let Answer = (function() {
   let _link = new WeakMap();
 
   return class Answer extends BaseObject {
-    constructor(id) {
-      super(id);
-      _text.set(this,'');
-      _link.set(this,'');
+    constructor(data) {
+      super(data);
+      _text.set(this,data.text||'');
+      _link.set(this,data.link||'');
+    }
+
+    getData() {
+      let data = super.getData();
+      data.text = this.getText();
+      data.link = this.getLink();
+      return data;
     }
 
     setText(value) {

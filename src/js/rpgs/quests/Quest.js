@@ -4,18 +4,31 @@ import QuestStatus from './QuestStatus';
 import Task from './Task';
 
 let Quest = (function() {
-  let _title new WeakMap();
+  let _title = new WeakMap();
   let _description = new WeakMap();
-  let _status = new WeakMap();//QuestStatus.INCOMPLETE;
+  let _status = new WeakMap();
   let _tasks = new WeakMap();
 
+  let _parseTasks = function(data) {
+    return data.length ? data.map((taskData) => new Task(taskData)) : [];
+  };
+
   return class Quest extends BaseObject {
-    constructor(id) {
-      super(id);
-      _title.set(this,'');
-      _description.set(this,'');
-      _status.set(this,QuestStatus.INCOMPLETE);
-      _tasks.set(this,[]);
+    constructor(data) {
+      super(data);
+      _title.set(this,data.title||'');
+      _description.set(this,data.description||'');
+      _status.set(this,data.status||QuestStatus.INCOMPLETE);
+      _tasks.set(this,_parseTasks(data.tasks));
+    }
+
+    getData() {
+      let data = super.getData();
+      data.title = this.getTitle();
+      data.description = this.getDescription();
+      data.status = this.getStatus();
+      data.tasks = this.getTasks().map((t) => t.getData());
+      return data;
     }
 
     setTitle(value) {

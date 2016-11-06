@@ -1,10 +1,9 @@
 "use strict";
 import Utils from './core/Utils';
-import RPGObject from './core/RPGObject';
 import Actor from './actors/Actor';
 import Quest from './quests/Quest';
 
-let RPGSystem = (function () {
+let RPGSystem = function () {
   let _quests = [],
       _actors = [],
 
@@ -32,11 +31,17 @@ let RPGSystem = (function () {
     return _actors;
   },
 
-  _parseData = function(json) {
-    //to do: should parse passed JSON
+  _parseData = function(data) {
+    _actors = data.actors.length ? data.actors.map((a) => new Actor(a)) : [];
+    _quests = data.quests.length ? data.quests.map((q) => new Quest(q)) : [];
   },
+
   _serializeData = function() {
-    //to do: should return data in JSON format
+    let data = {
+      actors: _actors.map((a) => a.getData()),
+      quests: _quests.map((q) => q.getData())
+    };
+    return JSON.stringify(data);
   };
 
   return {
@@ -47,8 +52,8 @@ let RPGSystem = (function () {
     getActor: _getActor,
     getActors: _getActors,
     parseData: _parseData,
-    serializData: _serializData
+    serializeData: _serializeData
   };
-})();
+};
 
 module.exports = RPGSystem;
