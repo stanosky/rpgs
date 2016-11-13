@@ -10,7 +10,7 @@ let UniqueObject = (function(){
   return class UniqueObject {
     constructor(data) {
       //By default we assign Universally Unique ID
-      _uuid.set(this,data.uuid||UUID.generate());
+      _uuid.set(this,data ? data.uuid : UUID.generate());
     }
 
     setId(value) {
@@ -23,8 +23,17 @@ let UniqueObject = (function(){
 
     getData() {
       return {
+        class:this.constructor.name,
         uuid:this.getId()
       };
+    }
+
+    getDependencies() {
+      let dependencies = {};
+      return dependencies;
+    }
+
+    setDependency(type,obj) {
     }
   };
 })();

@@ -3,27 +3,42 @@ import UniqueObject from '../core/UniqueObject';
 import Utils from '../core/Utils';
 import Talk from './Talk';
 
+const TALK = 'talk';
+
 let Dialog = (function() {
   let _start = new WeakMap();
   let _talks = new WeakMap();
-
-  let _parseTalks = function(data) {
-    return data.length ? data.map((talkData) => new Talk(talkData)) : [];
-  }
 
   return class Dialog extends UniqueObject {
 
     constructor(data) {
       super(data);
-      _start.set(this,data.startTalk||'');
-      _talks.set(this,_parseTalks(data.talks));
+      _start.set(this,data ? data.startTalk : '');
+      _talks.set(this,[]);
     }
 
     getData() {
       let data = super.getData();
       data.startTalk = this.getStartTalk();
-      data.talks = this.getTalks().map((t) => t.getData());
       return data;
+    }
+
+    getDependencies() {
+      let dependencies = {};
+      if(this.getTalks()) {
+        dependencies[TALK] = this.getTalks().map((t) => t.getId());
+      }
+      return dependencies;
+    }
+
+    setDependency(type,obj) {
+      switch (type) {
+        case TALK:
+          this.addTalk(obj);
+          break;
+        default:
+          break;
+      };
     }
 
     addTalk(talk) {

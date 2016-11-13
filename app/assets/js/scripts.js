@@ -1,149 +1,346 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
-module.exports={
-  "actors":[
-    {
-      "uuid":"a001",
-      "name":"Adam",
-      "inventory":[],
-      "dialog": {
-        "uuid":"d001",
-        "startTalk":"t001",
-        "talks":[
-          {
-            "uuid":"t001",
-            "text":"Talk 1",
-            "answers":[
-              {
-                "uuid":"a001",
-                "text":"Answer 1"
-              },
-              {
-                "uuid":"a002",
-                "text":"Answer 2"
-              }
-            ]
-          },
-          {
-            "uuid":"t002",
-            "text":"Talk 2",
-            "answers":[
-              {
-                "uuid":"a003",
-                "text":"Answer 1"
-              },
-              {
-                "uuid":"a004",
-                "text":"Answer 2"
-              }
-            ]
-          },
-          {
-            "uuid":"t003",
-            "text":"Talk 3",
-            "answers":[
-              {
-                "uuid":"a005",
-                "text":"Answer 1"
-              },
-              {
-                "uuid":"a006",
-                "text":"Answer 2"
-              }
-            ]
-          }
-        ]
-      }
-    },
-    {
-      "uuid":"a002",
-      "name":"Eva",
-      "inventory":[],
-      "dialog":null
-    },
-    {
-      "uuid":"a003",
-      "name":"Player",
-      "inventory":[],
-      "dialog":null
-    },
-  ],
-  "quests":{},
-  "variables":{}
+'use strict'
+
+module.exports = {
+  compileCode,
+  compileExpression
+}
+
+function compileExpression (src, sandbox) {
+  if (typeof src !== 'string') {
+    throw new TypeError('first argument must be a string')
+  }
+  if (typeof sandbox !== 'object') {
+    throw new TypeError('second argument must be an object')
+  }
+
+  sandbox = new Proxy(sandbox, {get, has})
+  const expression = `
+  try { with (sandbox) { return ${src} } } catch (err) {
+    if (!(err instanceof ReferenceError || err instanceof TypeError)) throw err
+  }`
+  return new Function('sandbox', expression).bind(sandbox, sandbox) // eslint-disable-line
+}
+
+function compileCode (src, sandbox) {
+  if (typeof src !== 'string') {
+    throw new TypeError('first argument must be a string')
+  }
+  if (typeof sandbox !== 'object') {
+    throw new TypeError('second argument must be an object')
+  }
+
+  sandbox = new Proxy(sandbox, {get, has})
+  return new Function('sandbox', `with (sandbox) { ${src} }`).bind(sandbox, sandbox) // eslint-disable-line
+}
+
+function get (target, key, receiver) {
+  if (key === Symbol.unscopables) {
+    return undefined
+  }
+  return Reflect.get(target, key, receiver)
+}
+
+function has (target, key) {
+  return true
 }
 
 },{}],2:[function(require,module,exports){
+module.exports={
+  "objects":[
+    {
+      "class":"Actor",
+      "uuid":"a1",
+      "name":"Adam"
+    },
+    {
+      "class":"Actor",
+      "uuid":"a2",
+      "name":"Eva"
+    },
+    {
+      "class":"Dialog",
+      "uuid":"d1",
+      "startTalk":"t1"
+    },
+    {
+      "class":"Dialog",
+      "uuid":"d2",
+      "startTalk":"t4"
+    },
+    {
+      "class":"Talk",
+      "uuid":"t1",
+      "text":"Talk 1"
+    },
+    {
+      "class":"Talk",
+      "uuid":"t2",
+      "text":"Talk 2"
+    },
+    {
+      "class":"Talk",
+      "uuid":"t3",
+      "text":"Talk 3"
+    },
+    {
+      "class":"Talk",
+      "uuid":"t4",
+      "text":"Talk 4"
+    },
+    {
+      "class":"Talk",
+      "uuid":"t5",
+      "text":"Talk 5"
+    },
+    {
+      "class":"Talk",
+      "uuid":"t6",
+      "text":"Talk 6"
+    },
+    {
+      "class":"Answer",
+      "uuid":"a1",
+      "text":"Answer 1"
+    },
+    {
+      "class":"Answer",
+      "uuid":"a2",
+      "text":"Answer 2"
+    },
+    {
+      "class":"Answer",
+      "uuid":"a3",
+      "text":"Answer 3"
+    },
+    {
+      "class":"Answer",
+      "uuid":"a4",
+      "text":"Answer 4"
+    },
+    {
+      "class":"Answer",
+      "uuid":"a5",
+      "text":"Answer 5"
+    },
+    {
+      "class":"Answer",
+      "uuid":"a6",
+      "text":"Answer 6"
+    }
+  ],
+  "dependencies":[
+    {
+      "dependent":"a1",
+      "dependencies": {
+        "dialog": "d1"
+      }
+    },
+    {
+      "dependent":"a2",
+      "dependencies": {
+        "dialog": "d2"
+      }
+    },
+    {
+      "dependent":"d1",
+      "dependencies": {
+        "talk":["t1","t2","t3"]
+      }
+    },
+    {
+      "dependent":"d2",
+      "dependencies": {
+        "talk":["t4","t5","t6"]
+      }
+    },
+    {
+      "dependent":"t1",
+      "dependencies": {
+        "answer": ["a1"]
+      }
+    },
+    {
+      "dependent":"t2",
+      "dependencies": {
+        "answer": ["a2"]
+      }
+    },
+    {
+      "dependent":"t3",
+      "dependencies": {
+        "answer": ["a3"]
+      }
+    },
+    {
+      "dependent":"t4",
+      "dependencies": {
+        "answer": ["a4"]
+      }
+    },
+    {
+      "dependent":"t5",
+      "dependencies": {
+        "answer": ["a5"]
+      }
+    },
+    {
+      "dependent":"t6",
+      "dependencies": {
+        "answer": ["a6"]
+      }
+    },
+    {
+      "dependent":"a1",
+      "dependencies": {
+        "talk":"t2"
+      }
+    },
+    {
+      "dependent":"a2",
+      "dependencies": {
+        "talk":"t3"
+      }
+    },
+    {
+      "dependent":"a4",
+      "dependencies": {
+        "talk":"t4"
+      }
+    },
+    {
+      "dependent":"a5",
+      "dependencies": {
+        "talk":"t5"
+      }
+    }
+  ]
+}
+
+},{}],3:[function(require,module,exports){
 "use strict";
 
 var _Utils = require('./core/Utils');
 
 var _Utils2 = _interopRequireDefault(_Utils);
 
+var _UniqueObject = require('./core/UniqueObject');
+
+var _UniqueObject2 = _interopRequireDefault(_UniqueObject);
+
+var _BaseObject = require('./core/BaseObject');
+
+var _BaseObject2 = _interopRequireDefault(_BaseObject);
+
 var _Actor = require('./actors/Actor');
 
 var _Actor2 = _interopRequireDefault(_Actor);
+
+var _Condition = require('./conditions/Condition');
+
+var _Condition2 = _interopRequireDefault(_Condition);
+
+var _Answer = require('./dialogs/Answer');
+
+var _Answer2 = _interopRequireDefault(_Answer);
+
+var _Dialog = require('./dialogs/Dialog');
+
+var _Dialog2 = _interopRequireDefault(_Dialog);
+
+var _Talk = require('./dialogs/Talk');
+
+var _Talk2 = _interopRequireDefault(_Talk);
 
 var _Quest = require('./quests/Quest');
 
 var _Quest2 = _interopRequireDefault(_Quest);
 
+var _Task = require('./quests/Task');
+
+var _Task2 = _interopRequireDefault(_Task);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-var RPGSystem = function RPGSystem() {
-  var _quests = [],
-      _actors = [],
-      _addQuest = function _addQuest(quest) {
-    _quests = _Utils2.default.addObjectToArray(_quests, quest, _Quest2.default);
-  },
-      _getQuest = function _getQuest(id) {
-    return _Utils2.default.getObjectById(_quests, id);
-  },
-      _getQuests = function _getQuests() {
-    return _quests;
-  },
-      _addActor = function _addActor(actor) {
-    _actors = _Utils2.default.addObjectToArray(_actors, actor, _Actor2.default);
-  },
-      _getActor = function _getActor(id) {
-    return _Utils2.default.getObjectById(_actors, id);
-  },
-      _getActors = function _getActors() {
-    return _actors;
-  },
-      _parseData = function _parseData(data) {
-    _actors = data.actors.length ? data.actors.map(function (a) {
-      return new _Actor2.default(a);
-    }) : [];
-    _quests = data.quests.length ? data.quests.map(function (q) {
-      return new _Quest2.default(q);
-    }) : [];
-  },
-      _serializeData = function _serializeData() {
-    var data = {
-      actors: _actors.map(function (a) {
-        return a.getData();
-      }),
-      quests: _quests.map(function (q) {
-        return q.getData();
-      })
-    };
-    return JSON.stringify(data);
-  };
+//import Inventory from './actors/Invenotry';
+var RPGSystem = function RPGSystem(data) {
+  var _data = data || { objects: [], dependencies: [] };
+  var _objects = _data.objects ? Object.values(_data.objects) : [];
+  var _dependencies = _data.dependencies ? Object.values(_data.dependencies) : [];
+  var _objectPool = _objects.map(function (obj) {
+    switch (obj.class) {
+      case 'Actor':
+        return new _Actor2.default(obj);
+      case 'Condition':
+        return new _Condition2.default(obj);
+      case 'Answer':
+        return new _Answer2.default(obj);
+      case 'Dialog':
+        return new _Dialog2.default(obj);
+      case 'Talk':
+        return new _Talk2.default(obj);
+      case 'Quest':
+        return new _Quest2.default(obj);
+      case 'Task':
+        return new _Task2.default(obj);
+      default:
+        return new _UniqueObject2.default(obj);
+    }
+  });
 
+  for (var i = 0, dependentId, dependent, dependencies; i < _dependencies.length; i++) {
+    dependentId = _dependencies[i]['dependent'];
+    dependent = _Utils2.default.getObjectById(_objectPool, dependentId);
+    dependencies = _dependencies[i]['dependencies'];
+    if (dependent && dependencies) {
+      setDependencies(dependent, dependencies);
+    }
+  }
+
+  function setDependencies(dependent, dependencies) {
+    for (var type in dependencies) {
+      if (dependencies.hasOwnProperty(type)) {
+        if (dependencies[type] instanceof Array) {
+          for (var _i = 0; _i < dependencies[type].length; _i++) {
+            setDependency(dependent, type, dependencies[type][_i]);
+          }
+        } else {
+          setDependency(dependent, type, dependencies[type]);
+        }
+      }
+    }
+  }
+
+  function setDependency(dependent, type, uuid) {
+    var dependency = _Utils2.default.getObjectById(_objectPool, uuid);
+    console.log('dependency', dependency);
+    if (dependency) {
+      dependent.setDependency(type, dependency);
+    }
+  }
+
+  var _serializeData = function _serializeData() {
+    var objects = [];
+    var dependencies = [];
+    for (var i = 0, obj, dep; i < _objectPool.length; i++) {
+      obj = _objectPool[i].getData();
+      dep = _objectPool[i].getDependencies();
+      objects.push(obj);
+      if (Object.keys(dep).length !== 0) {
+        dependencies.push(dep);
+      }
+    }
+    return JSON.stringify({ objects: objects, dependencies: dependencies });
+  };
+  console.log(_serializeData());
   return {
-    addQuest: _addQuest,
-    getQuest: _getQuest,
-    getQuests: _getQuests,
-    addActor: _addActor,
-    getActor: _getActor,
-    getActors: _getActors,
-    parseData: _parseData,
     serializeData: _serializeData
   };
 };
 
 module.exports = RPGSystem;
 
-},{"./actors/Actor":3,"./core/Utils":6,"./quests/Quest":10}],3:[function(require,module,exports){
+},{"./actors/Actor":4,"./conditions/Condition":5,"./core/BaseObject":6,"./core/UniqueObject":7,"./core/Utils":8,"./dialogs/Answer":9,"./dialogs/Dialog":10,"./dialogs/Talk":11,"./quests/Quest":12,"./quests/Task":14}],4:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -154,10 +351,6 @@ var _UniqueObject2 = require('../core/UniqueObject');
 
 var _UniqueObject3 = _interopRequireDefault(_UniqueObject2);
 
-var _Dialog = require('../dialogs/Dialog');
-
-var _Dialog2 = _interopRequireDefault(_Dialog);
-
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -165,6 +358,8 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var DIALOG = 'dialog';
 
 var Actor = function () {
   //Weak maps are new feature to JavaScript. We can store private
@@ -174,9 +369,6 @@ var Actor = function () {
   var _dialog = new WeakMap();
   //let _inventory = new WeakMap();
 
-  var _parseDialog = function _parseDialog(data) {
-    return data ? new _Dialog2.default(data) : null;
-  };
 
   return function (_UniqueObject) {
     _inherits(Actor, _UniqueObject);
@@ -186,8 +378,8 @@ var Actor = function () {
 
       var _this = _possibleConstructorReturn(this, (Actor.__proto__ || Object.getPrototypeOf(Actor)).call(this, data));
 
-      _name.set(_this, data.name || '');
-      _dialog.set(_this, _parseDialog(data.dialog));
+      _name.set(_this, data ? data.name : '');
+      _dialog.set(_this, null);
       //_inventory.set(this,data.inventory ? );
       return _this;
     }
@@ -197,8 +389,28 @@ var Actor = function () {
       value: function getData() {
         var data = _get(Actor.prototype.__proto__ || Object.getPrototypeOf(Actor.prototype), 'getData', this).call(this);
         data.name = this.getName();
-        data.dialog = this.getDialog() ? this.getDialog().getData() : null;
         return data;
+      }
+    }, {
+      key: 'getDependencies',
+      value: function getDependencies() {
+        var dependencies = _get(Actor.prototype.__proto__ || Object.getPrototypeOf(Actor.prototype), 'getDependencies', this).call(this);
+        if (this.getDialog()) {
+          dependencies[DIALOG] = this.getDialog().getId();
+        }
+        return dependencies;
+      }
+    }, {
+      key: 'setDependency',
+      value: function setDependency(type, obj) {
+        _get(Actor.prototype.__proto__ || Object.getPrototypeOf(Actor.prototype), 'setDependency', this).call(this, type, obj);
+        switch (type) {
+          case DIALOG:
+            this.setDialog(obj);
+            break;
+          default:
+            break;
+        };
       }
     }, {
       key: 'setName',
@@ -236,14 +448,96 @@ var Actor = function () {
 
 module.exports = Actor;
 
-},{"../core/UniqueObject":5,"../dialogs/Dialog":8}],4:[function(require,module,exports){
+},{"../core/UniqueObject":7}],5:[function(require,module,exports){
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _UniqueObject2 = require('../core/UniqueObject');
+
+var _UniqueObject3 = _interopRequireDefault(_UniqueObject2);
+
+var _nxCompile = require('@risingstack/nx-compile');
+
+var _nxCompile2 = _interopRequireDefault(_nxCompile);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Condition = function () {
+  var _label = new WeakMap();
+  var _code = new WeakMap();
+  var _compiled = new WeakMap();
+  var _sandbox = new WeakMap();
+
+  return function (_UniqueObject) {
+    _inherits(Condition, _UniqueObject);
+
+    function Condition(data, sandbox) {
+      _classCallCheck(this, Condition);
+
+      var _this = _possibleConstructorReturn(this, (Condition.__proto__ || Object.getPrototypeOf(Condition)).call(this, data));
+
+      _label.set(_this, data ? data.label : '');
+      _code.set(_this, data ? data.code : 'return true');
+      _sandbox.set(_this, sandbox || {});
+      _compiled.set(_this, _nxCompile2.default.compileExpression(_code.get(_this), _sandbox.get(_this)));
+      return _this;
+    }
+
+    _createClass(Condition, [{
+      key: 'setLabel',
+      value: function setLabel(text) {
+        _label.set(this, text);
+      }
+    }, {
+      key: 'getLabel',
+      value: function getLabel() {
+        return _label.get(this);
+      }
+    }, {
+      key: 'setCode',
+      value: function setCode(code) {
+        _code.set(this, code);
+        _compiled.set(this, _nxCompile2.default.compileExpression(_code.get(this), _sandbox.get(this)));
+      }
+    }, {
+      key: 'getCode',
+      value: function getCode() {
+        return _code.get(this);
+      }
+    }, {
+      key: 'check',
+      value: function check() {
+        return _compiled.get(this)();
+      }
+    }, {
+      key: 'getData',
+      value: function getData() {
+        var data = _get(Condition.prototype.__proto__ || Object.getPrototypeOf(Condition.prototype), 'getData', this).call(this);
+        data.label = this.getLabel();
+        data.code = this.getCode();
+        return data;
+      }
+    }]);
+
+    return Condition;
+  }(_UniqueObject3.default);
+}();
+
+},{"../core/UniqueObject":7,"@risingstack/nx-compile":1}],6:[function(require,module,exports){
 "use strict";
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 var _UniqueObject2 = require('./UniqueObject');
 
@@ -257,7 +551,10 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-var BaseObject = function (id) {
+var VISIBLE = 'visible';
+var ACTIVE = 'active';
+
+var BaseObject = function () {
   //Weak maps are new feature to JavaScript. We can store private
   //object properties in key/value pairs using our instance as the key,
   //and our class can capture those key/value maps in a closure.
@@ -272,18 +569,36 @@ var BaseObject = function (id) {
 
       var _this = _possibleConstructorReturn(this, (BaseObject.__proto__ || Object.getPrototypeOf(BaseObject)).call(this, data));
 
-      _visible.set(_this, data.visible || null);
-      _active.set(_this, data.active || null);
+      _visible.set(_this, null);
+      _active.set(_this, null);
       return _this;
     }
 
     _createClass(BaseObject, [{
-      key: 'getData',
-      value: function getData() {
-        var data = _get(BaseObject.prototype.__proto__ || Object.getPrototypeOf(BaseObject.prototype), 'getData', this).call(this);
-        data.visible = this.getVisibleCondition() ? this.getVisibleCondition().getData() : null;
-        data.active = this.getActiveCondition() ? this.getActiveCondition().getData() : null;
-        return data;
+      key: 'getDependencies',
+      value: function getDependencies() {
+        var dependencies = {};
+        if (this.getVisibleCondition()) {
+          dependencies[VISIBLE] = this.getVisibleCondition().getId();
+        }
+        if (this.getActiveCondition()) {
+          dependencies[ACTIVE] = this.getActiveCondition().getId();
+        }
+        return dependencies;
+      }
+    }, {
+      key: 'setDependency',
+      value: function setDependency(type, obj) {
+        switch (type) {
+          case VISIBLE:
+            this.setVisibleCondition(obj);
+            break;
+          case ACTIVE:
+            this.setActiveCondition(obj);
+            break;
+          default:
+            break;
+        };
       }
 
       /**
@@ -361,7 +676,7 @@ var BaseObject = function (id) {
 }();
 module.exports = BaseObject;
 
-},{"./UniqueObject":5}],5:[function(require,module,exports){
+},{"./UniqueObject":7}],7:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -381,7 +696,7 @@ var UniqueObject = function () {
       _classCallCheck(this, UniqueObject);
 
       //By default we assign Universally Unique ID
-      _uuid.set(this, data.uuid || _Utils.UUID.generate());
+      _uuid.set(this, data ? data.uuid : _Utils.UUID.generate());
     }
 
     _createClass(UniqueObject, [{
@@ -398,9 +713,19 @@ var UniqueObject = function () {
       key: "getData",
       value: function getData() {
         return {
+          class: this.constructor.name,
           uuid: this.getId()
         };
       }
+    }, {
+      key: "getDependencies",
+      value: function getDependencies() {
+        var dependencies = {};
+        return dependencies;
+      }
+    }, {
+      key: "setDependency",
+      value: function setDependency(type, obj) {}
     }]);
 
     return UniqueObject;
@@ -408,7 +733,7 @@ var UniqueObject = function () {
 }();
 module.exports = UniqueObject;
 
-},{"./Utils":6}],6:[function(require,module,exports){
+},{"./Utils":8}],8:[function(require,module,exports){
 "use strict";
 
 /**
@@ -417,8 +742,6 @@ module.exports = UniqueObject;
  * @license MIT license
  * @link http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript/21963136#21963136
  **/
-
-var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
 var UUID = function () {
   var self = {};
@@ -463,8 +786,8 @@ exports.getIndexById = getIndexById;
 
 exports.addObjectToArray = function (array, obj, expectedType) {
   if (expectedType !== undefined && expectedType !== null) {
-    if ((typeof obj === 'undefined' ? 'undefined' : _typeof(obj)) !== expectedType) {
-      throw new Error('Wrong type of object passed. Expected ' + expectedType.toString() + ' object.');
+    if (expectedType.isPrototypeOf(obj)) {
+      throw new Error('Wrong type of object passed. Expected ' + expectedType.constructor.name + ' object.');
     }
   }
   if (indexOfObject(array, obj) === -1) {
@@ -478,6 +801,7 @@ exports.removeObjectById = function (array, id) {
   if (index !== -1) {
     array.splice(index, 1);
   }
+  return array;
 };
 
 exports.removeObjectFromArray = function (array, obj) {
@@ -485,9 +809,10 @@ exports.removeObjectFromArray = function (array, obj) {
   if (index !== -1) {
     array.splice(index, 1);
   }
+  return array;
 };
 
-},{}],7:[function(require,module,exports){
+},{}],9:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -506,12 +831,14 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var TALK = 'talk';
+
 var Answer = function () {
   //Weak maps are new feature to JavaScript. We can store private
   //object properties in key/value pairs using our instance as the key,
   //and our class can capture those key/value maps in a closure.
   var _text = new WeakMap();
-  var _link = new WeakMap();
+  var _talk = new WeakMap();
 
   return function (_BaseObject) {
     _inherits(Answer, _BaseObject);
@@ -521,8 +848,8 @@ var Answer = function () {
 
       var _this = _possibleConstructorReturn(this, (Answer.__proto__ || Object.getPrototypeOf(Answer)).call(this, data));
 
-      _text.set(_this, data.text || '');
-      _link.set(_this, data.link || '');
+      _text.set(_this, data ? data.text : '');
+      _talk.set(_this, data ? data.talk : '');
       return _this;
     }
 
@@ -531,8 +858,28 @@ var Answer = function () {
       value: function getData() {
         var data = _get(Answer.prototype.__proto__ || Object.getPrototypeOf(Answer.prototype), 'getData', this).call(this);
         data.text = this.getText();
-        data.link = this.getLink();
         return data;
+      }
+    }, {
+      key: 'getDependencies',
+      value: function getDependencies() {
+        var dependencies = _get(Answer.prototype.__proto__ || Object.getPrototypeOf(Answer.prototype), 'getDependencies', this).call(this);
+        if (this.getTalk()) {
+          dependencies[TALK] = this.getTalk().getId();
+        }
+        return dependencies;
+      }
+    }, {
+      key: 'setDependency',
+      value: function setDependency(type, obj) {
+        _get(Answer.prototype.__proto__ || Object.getPrototypeOf(Answer.prototype), 'setDependency', this).call(this, type, obj);
+        switch (type) {
+          case TALK:
+            this.setTalk(obj);
+            break;
+          default:
+            break;
+        };
       }
     }, {
       key: 'setText',
@@ -545,14 +892,14 @@ var Answer = function () {
         return _text.get(this);
       }
     }, {
-      key: 'setLink',
-      value: function setLink(link) {
-        _link.set(this, link);
+      key: 'setTalk',
+      value: function setTalk(talk) {
+        _talk.set(this, talk);
       }
     }, {
-      key: 'getLink',
-      value: function getLink() {
-        return _link.get(this);
+      key: 'getTalk',
+      value: function getTalk() {
+        return _talk.get(this);
       }
     }]);
 
@@ -561,7 +908,7 @@ var Answer = function () {
 }();
 module.exports = Answer;
 
-},{"../core/BaseObject":4}],8:[function(require,module,exports){
+},{"../core/BaseObject":6}],10:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -588,15 +935,11 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var TALK = 'talk';
+
 var Dialog = function () {
   var _start = new WeakMap();
   var _talks = new WeakMap();
-
-  var _parseTalks = function _parseTalks(data) {
-    return data.length ? data.map(function (talkData) {
-      return new _Talk2.default(talkData);
-    }) : [];
-  };
 
   return function (_UniqueObject) {
     _inherits(Dialog, _UniqueObject);
@@ -606,8 +949,8 @@ var Dialog = function () {
 
       var _this = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this, data));
 
-      _start.set(_this, data.startTalk || '');
-      _talks.set(_this, _parseTalks(data.talks));
+      _start.set(_this, data ? data.startTalk : '');
+      _talks.set(_this, []);
       return _this;
     }
 
@@ -616,10 +959,29 @@ var Dialog = function () {
       value: function getData() {
         var data = _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'getData', this).call(this);
         data.startTalk = this.getStartTalk();
-        data.talks = this.getTalks().map(function (t) {
-          return t.getData();
-        });
         return data;
+      }
+    }, {
+      key: 'getDependencies',
+      value: function getDependencies() {
+        var dependencies = {};
+        if (this.getTalks()) {
+          dependencies[TALK] = this.getTalks().map(function (t) {
+            return t.getId();
+          });
+        }
+        return dependencies;
+      }
+    }, {
+      key: 'setDependency',
+      value: function setDependency(type, obj) {
+        switch (type) {
+          case TALK:
+            this.addTalk(obj);
+            break;
+          default:
+            break;
+        };
       }
     }, {
       key: 'addTalk',
@@ -658,12 +1020,16 @@ var Dialog = function () {
 }();
 module.exports = Dialog;
 
-},{"../core/UniqueObject":5,"../core/Utils":6,"./Talk":9}],9:[function(require,module,exports){
+},{"../core/UniqueObject":7,"../core/Utils":8,"./Talk":11}],11:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _Utils = require('../core/Utils');
+
+var _Utils2 = _interopRequireDefault(_Utils);
 
 var _BaseObject2 = require('../core/BaseObject');
 
@@ -681,16 +1047,12 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var ANSWER = 'answer';
+
 var Talk = function () {
 
   var _text = new WeakMap();
   var _answers = new WeakMap();
-
-  var _parseAnswers = function _parseAnswers(data) {
-    return data.length ? data.map(function (answerData) {
-      return new _Answer2.default(answerData);
-    }) : [];
-  };
 
   return function (_BaseObject) {
     _inherits(Talk, _BaseObject);
@@ -700,8 +1062,8 @@ var Talk = function () {
 
       var _this = _possibleConstructorReturn(this, (Talk.__proto__ || Object.getPrototypeOf(Talk)).call(this, data));
 
-      _text.set(_this, data.text || '');
-      _answers.set(_this, _parseAnswers(data.answers));
+      _text.set(_this, data ? data.text : '');
+      _answers.set(_this, []);
       return _this;
     }
 
@@ -710,10 +1072,30 @@ var Talk = function () {
       value: function getData() {
         var data = _get(Talk.prototype.__proto__ || Object.getPrototypeOf(Talk.prototype), 'getData', this).call(this);
         data.text = this.getText();
-        data.answers = this.getAnswers().map(function (a) {
-          return a.getData();
-        });
         return data;
+      }
+    }, {
+      key: 'getDependencies',
+      value: function getDependencies() {
+        var dependencies = _get(Talk.prototype.__proto__ || Object.getPrototypeOf(Talk.prototype), 'getDependencies', this).call(this);
+        if (this.getAnswers()) {
+          dependencies[ANSWER] = this.getAnswers().map(function (a) {
+            return a.getId();
+          });
+        }
+        return dependencies;
+      }
+    }, {
+      key: 'setDependency',
+      value: function setDependency(type, obj) {
+        _get(Talk.prototype.__proto__ || Object.getPrototypeOf(Talk.prototype), 'setDependency', this).call(this, type, obj);
+        switch (type) {
+          case ANSWER:
+            this.addAnswer(obj);
+            break;
+          default:
+            break;
+        };
       }
     }, {
       key: 'setText',
@@ -728,17 +1110,17 @@ var Talk = function () {
     }, {
       key: 'addAnswer',
       value: function addAnswer(answer) {
-        _answers.set(this, Utils.addObjectToArray(_answers.get(this), answer, _Answer2.default));
+        _answers.set(this, _Utils2.default.addObjectToArray(_answers.get(this), answer, _Answer2.default));
       }
     }, {
       key: 'removeAnswer',
       value: function removeAnswer(answerId) {
-        Utils.removeObjectById(_answers.get(this), answerId);
+        _Utils2.default.removeObjectById(_answers.get(this), answerId);
       }
     }, {
       key: 'getAnswer',
       value: function getAnswer(answerId) {
-        return Utils.getObjectById(_answers.get(this), answerId);
+        return _Utils2.default.getObjectById(_answers.get(this), answerId);
       }
     }, {
       key: 'getAnswers',
@@ -752,7 +1134,7 @@ var Talk = function () {
 }();
 module.exports = Talk;
 
-},{"../core/BaseObject":4,"./Answer":7}],10:[function(require,module,exports){
+},{"../core/BaseObject":6,"../core/Utils":8,"./Answer":9}],12:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -779,17 +1161,13 @@ function _possibleConstructorReturn(self, call) { if (!self) { throw new Referen
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
+var TASK = 'task';
+
 var Quest = function () {
   var _title = new WeakMap();
   var _description = new WeakMap();
   var _status = new WeakMap();
   var _tasks = new WeakMap();
-
-  var _parseTasks = function _parseTasks(data) {
-    return data.length ? data.map(function (taskData) {
-      return new _Task2.default(taskData);
-    }) : [];
-  };
 
   return function (_BaseObject) {
     _inherits(Quest, _BaseObject);
@@ -799,10 +1177,10 @@ var Quest = function () {
 
       var _this = _possibleConstructorReturn(this, (Quest.__proto__ || Object.getPrototypeOf(Quest)).call(this, data));
 
-      _title.set(_this, data.title || '');
-      _description.set(_this, data.description || '');
-      _status.set(_this, data.status || _QuestStatus2.default.INCOMPLETE);
-      _tasks.set(_this, _parseTasks(data.tasks));
+      _title.set(_this, data ? data.title : '');
+      _description.set(_this, data ? data.description : '');
+      _status.set(_this, data ? data.status : _QuestStatus2.default.INCOMPLETE);
+      _tasks.set(_this, []);
       return _this;
     }
 
@@ -813,10 +1191,30 @@ var Quest = function () {
         data.title = this.getTitle();
         data.description = this.getDescription();
         data.status = this.getStatus();
-        data.tasks = this.getTasks().map(function (t) {
-          return t.getData();
-        });
         return data;
+      }
+    }, {
+      key: 'getDependencies',
+      value: function getDependencies() {
+        var dependencies = _get(Quest.prototype.__proto__ || Object.getPrototypeOf(Quest.prototype), 'getDependencies', this).call(this);
+        if (this.getTasks()) {
+          dependencies[TASK] = this.getTasks().map(function (t) {
+            return t.getId();
+          });
+        }
+        return dependencies;
+      }
+    }, {
+      key: 'setDependency',
+      value: function setDependency(type, obj) {
+        _get(Quest.prototype.__proto__ || Object.getPrototypeOf(Quest.prototype), 'setDependency', this).call(this, type, obj);
+        switch (type) {
+          case TASK:
+            this.setTask(obj);
+            break;
+          default:
+            break;
+        };
       }
     }, {
       key: 'setTitle',
@@ -878,7 +1276,7 @@ var Quest = function () {
 }();
 module.exports = Quest;
 
-},{"../core/BaseObject":4,"./QuestStatus":11,"./Task":12}],11:[function(require,module,exports){
+},{"../core/BaseObject":6,"./QuestStatus":13,"./Task":14}],13:[function(require,module,exports){
 "use strict";
 
 var INCOMPLETE = 'questIncomplete';
@@ -889,7 +1287,7 @@ exports.INCOMPLETE = INCOMPLETE;
 exports.COMPLETED = COMPLETED;
 exports.FAILED = FAILED;
 
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 "use strict";
 
 var _BaseObject2 = require("../core/BaseObject");
@@ -923,27 +1321,32 @@ var Task = function () {
 
 module.exports = Task;
 
-},{"../core/BaseObject":4}],13:[function(require,module,exports){
+},{"../core/BaseObject":6}],15:[function(require,module,exports){
 "use strict";
-
-var _RPGSystem = require('./rpgs/RPGSystem');
-
-var _RPGSystem2 = _interopRequireDefault(_RPGSystem);
 
 var _data = require('../data/data.json');
 
 var _data2 = _interopRequireDefault(_data);
 
+var _RPGSystem = require('./rpgs/RPGSystem');
+
+var _RPGSystem2 = _interopRequireDefault(_RPGSystem);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+//import UniqueObject from './rpgs/core/UniqueObject';
+//import BaseObject from './rpgs/core/BaseObject';
+
 
 (function ($, window, document, undefined) {
   $(function () {
-    var rpg = new _RPGSystem2.default();
     //console.log(data);
-    rpg.parseData(_data2.default);
-    console.log('data', rpg.serializeData());
+    var rpg = new _RPGSystem2.default(_data2.default);
+
+    //let uo = new UniqueObject();
+    //console.log(uo.getData());
   });
 })(jQuery, window, document);
 
-},{"../data/data.json":1,"./rpgs/RPGSystem":2}]},{},[13])
+},{"../data/data.json":2,"./rpgs/RPGSystem":3}]},{},[15])
 

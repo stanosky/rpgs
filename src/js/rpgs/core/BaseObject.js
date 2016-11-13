@@ -1,7 +1,10 @@
 "use strict";
 import UniqueObject from './UniqueObject';
 
-let BaseObject = (function(id) {
+const VISIBLE = 'visible';
+const ACTIVE = 'active';
+
+let BaseObject = (function() {
   //Weak maps are new feature to JavaScript. We can store private
   //object properties in key/value pairs using our instance as the key,
   //and our class can capture those key/value maps in a closure.
@@ -11,17 +14,32 @@ let BaseObject = (function(id) {
   return class BaseObject extends UniqueObject {
     constructor(data) {
       super(data);
-      _visible.set(this,data.visible||null);
-      _active.set(this,data.active||null);
+      _visible.set(this, null);
+      _active.set(this, null);
     }
 
-    getData() {
-      let data = super.getData();
-      data.visible = this.getVisibleCondition() ?
-        this.getVisibleCondition().getData() : null;
-      data.active = this.getActiveCondition() ?
-        this.getActiveCondition().getData() : null;
-      return data;
+    getDependencies() {
+      let dependencies = {};
+      if(this.getVisibleCondition()) {
+        dependencies[VISIBLE] = this.getVisibleCondition().getId();
+      }
+      if(this.getActiveCondition()) {
+        dependencies[ACTIVE] = this.getActiveCondition().getId();
+      }
+      return dependencies;
+    }
+
+    setDependency(type,obj) {
+      switch (type) {
+        case VISIBLE:
+          this.setVisibleCondition(obj);
+          break;
+        case ACTIVE:
+          this.setActiveCondition(obj);
+          break;
+        default:
+          break;
+      };
     }
 
     /**

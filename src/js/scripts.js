@@ -1,12 +1,17 @@
 "use strict";
-import RPGSystem from './rpgs/RPGSystem';
 import data from '../data/data.json';
+import RPGSystem from './rpgs/RPGSystem';
+//import UniqueObject from './rpgs/core/UniqueObject';
+//import BaseObject from './rpgs/core/BaseObject';
+
+
 (function ($, window, document, undefined) {
   $(function () {
-    let rpg = new RPGSystem();
     //console.log(data);
-    rpg.parseData(data);
-    console.log('data',rpg.serializeData());
+    let rpg = new RPGSystem(data);
+
+    //let uo = new UniqueObject();
+    //console.log(uo.getData());
   });
 
 })(jQuery, window, document);

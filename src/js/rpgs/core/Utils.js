@@ -51,9 +51,9 @@ exports.getIndexById = getIndexById;
 
 exports.addObjectToArray = function(array,obj,expectedType) {
   if(expectedType !== undefined && expectedType !== null) {
-    if(typeof obj !== expectedType) {
+    if(expectedType.isPrototypeOf(obj)) {
       throw new Error('Wrong type of object passed. Expected '
-      +expectedType.toString()+' object.');
+      +expectedType.constructor.name+' object.');
     }
   }
   if(indexOfObject(array,obj) === -1) {
@@ -67,6 +67,7 @@ exports.removeObjectById = function(array,id) {
   if(index !== -1) {
     array.splice(index,1);
   }
+  return array;
 }
 
 exports.removeObjectFromArray = function(array,obj) {
@@ -74,4 +75,5 @@ exports.removeObjectFromArray = function(array,obj) {
   if(index !== -1) {
     array.splice(index,1);
   }
+  return array;
 };

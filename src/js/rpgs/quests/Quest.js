@@ -3,23 +3,21 @@ import BaseObject from '../core/BaseObject';
 import QuestStatus from './QuestStatus';
 import Task from './Task';
 
+const TASK = 'task';
+
 let Quest = (function() {
   let _title = new WeakMap();
   let _description = new WeakMap();
   let _status = new WeakMap();
   let _tasks = new WeakMap();
 
-  let _parseTasks = function(data) {
-    return data.length ? data.map((taskData) => new Task(taskData)) : [];
-  };
-
   return class Quest extends BaseObject {
     constructor(data) {
       super(data);
-      _title.set(this,data.title||'');
-      _description.set(this,data.description||'');
-      _status.set(this,data.status||QuestStatus.INCOMPLETE);
-      _tasks.set(this,_parseTasks(data.tasks));
+      _title.set(this,data ? data.title : '');
+      _description.set(this,data ? data.description : '');
+      _status.set(this,data ? data.status : QuestStatus.INCOMPLETE);
+      _tasks.set(this,[]);
     }
 
     getData() {
@@ -27,8 +25,26 @@ let Quest = (function() {
       data.title = this.getTitle();
       data.description = this.getDescription();
       data.status = this.getStatus();
-      data.tasks = this.getTasks().map((t) => t.getData());
       return data;
+    }
+
+    getDependencies() {
+      let dependencies = super.getDependencies();
+      if(this.getTasks()) {
+        dependencies[TASK] = this.getTasks().map((t) => t.getId());
+      }
+      return dependencies;
+    }
+
+    setDependency(type,obj) {
+      super.setDependency(type,obj);
+      switch (type) {
+        case TASK:
+          this.setTask(obj);
+          break;
+        default:
+          break;
+      };
     }
 
     setTitle(value) {

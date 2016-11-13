@@ -1,71 +1,170 @@
 {
-  "actors":[
+  "objects":[
     {
-      "uuid":"a001",
-      "name":"Adam",
-      "inventory":[],
-      "dialog": {
-        "uuid":"d001",
-        "startTalk":"t001",
-        "talks":[
-          {
-            "uuid":"t001",
-            "text":"Talk 1",
-            "answers":[
-              {
-                "uuid":"a001",
-                "text":"Answer 1"
-              },
-              {
-                "uuid":"a002",
-                "text":"Answer 2"
-              }
-            ]
-          },
-          {
-            "uuid":"t002",
-            "text":"Talk 2",
-            "answers":[
-              {
-                "uuid":"a003",
-                "text":"Answer 1"
-              },
-              {
-                "uuid":"a004",
-                "text":"Answer 2"
-              }
-            ]
-          },
-          {
-            "uuid":"t003",
-            "text":"Talk 3",
-            "answers":[
-              {
-                "uuid":"a005",
-                "text":"Answer 1"
-              },
-              {
-                "uuid":"a006",
-                "text":"Answer 2"
-              }
-            ]
-          }
-        ]
+      "class":"Actor",
+      "uuid":"a1",
+      "name":"Adam"
+    },
+    {
+      "class":"Actor",
+      "uuid":"a2",
+      "name":"Eva"
+    },
+    {
+      "class":"Dialog",
+      "uuid":"d1",
+      "startTalk":"t1"
+    },
+    {
+      "class":"Dialog",
+      "uuid":"d2",
+      "startTalk":"t4"
+    },
+    {
+      "class":"Talk",
+      "uuid":"t1",
+      "text":"Talk 1"
+    },
+    {
+      "class":"Talk",
+      "uuid":"t2",
+      "text":"Talk 2"
+    },
+    {
+      "class":"Talk",
+      "uuid":"t3",
+      "text":"Talk 3"
+    },
+    {
+      "class":"Talk",
+      "uuid":"t4",
+      "text":"Talk 4"
+    },
+    {
+      "class":"Talk",
+      "uuid":"t5",
+      "text":"Talk 5"
+    },
+    {
+      "class":"Talk",
+      "uuid":"t6",
+      "text":"Talk 6"
+    },
+    {
+      "class":"Answer",
+      "uuid":"a1",
+      "text":"Answer 1"
+    },
+    {
+      "class":"Answer",
+      "uuid":"a2",
+      "text":"Answer 2"
+    },
+    {
+      "class":"Answer",
+      "uuid":"a3",
+      "text":"Answer 3"
+    },
+    {
+      "class":"Answer",
+      "uuid":"a4",
+      "text":"Answer 4"
+    },
+    {
+      "class":"Answer",
+      "uuid":"a5",
+      "text":"Answer 5"
+    },
+    {
+      "class":"Answer",
+      "uuid":"a6",
+      "text":"Answer 6"
+    }
+  ],
+  "dependencies":[
+    {
+      "dependent":"a1",
+      "dependencies": {
+        "dialog": "d1"
       }
     },
     {
-      "uuid":"a002",
-      "name":"Eva",
-      "inventory":[],
-      "dialog":null
+      "dependent":"a2",
+      "dependencies": {
+        "dialog": "d2"
+      }
     },
     {
-      "uuid":"a003",
-      "name":"Player",
-      "inventory":[],
-      "dialog":null
+      "dependent":"d1",
+      "dependencies": {
+        "talk":["t1","t2","t3"]
+      }
     },
-  ],
-  "quests":{},
-  "variables":{}
+    {
+      "dependent":"d2",
+      "dependencies": {
+        "talk":["t4","t5","t6"]
+      }
+    },
+    {
+      "dependent":"t1",
+      "dependencies": {
+        "answer": ["a1"]
+      }
+    },
+    {
+      "dependent":"t2",
+      "dependencies": {
+        "answer": ["a2"]
+      }
+    },
+    {
+      "dependent":"t3",
+      "dependencies": {
+        "answer": ["a3"]
+      }
+    },
+    {
+      "dependent":"t4",
+      "dependencies": {
+        "answer": ["a4"]
+      }
+    },
+    {
+      "dependent":"t5",
+      "dependencies": {
+        "answer": ["a5"]
+      }
+    },
+    {
+      "dependent":"t6",
+      "dependencies": {
+        "answer": ["a6"]
+      }
+    },
+    {
+      "dependent":"a1",
+      "dependencies": {
+        "talk":"t2"
+      }
+    },
+    {
+      "dependent":"a2",
+      "dependencies": {
+        "talk":"t3"
+      }
+    },
+    {
+      "dependent":"a4",
+      "dependencies": {
+        "talk":"t4"
+      }
+    },
+    {
+      "dependent":"a5",
+      "dependencies": {
+        "talk":"t5"
+      }
+    }
+  ]
 }

@@ -1,6 +1,7 @@
 "use strict";
 import UniqueObject from '../core/UniqueObject';
-import Dialog from '../dialogs/Dialog';
+
+const DIALOG = 'dialog';
 
 let Actor = (function() {
   //Weak maps are new feature to JavaScript. We can store private
@@ -10,23 +11,38 @@ let Actor = (function() {
   let _dialog = new WeakMap();
   //let _inventory = new WeakMap();
 
-  let _parseDialog = function(data) {
-    return data ? new Dialog(data) : null;
-  };
 
   return class Actor extends UniqueObject {
     constructor(data) {
       super(data);
-      _name.set(this,data.name||'');
-      _dialog.set(this,_parseDialog(data.dialog));
+      _name.set(this,data ? data.name : '');
+      _dialog.set(this,null);
       //_inventory.set(this,data.inventory ? );
     }
 
     getData() {
       let data = super.getData();
       data.name = this.getName();
-      data.dialog = this.getDialog() ? this.getDialog().getData() : null;
       return data;
+    }
+
+    getDependencies() {
+      let dependencies = super.getDependencies();
+      if(this.getDialog()) {
+        dependencies[DIALOG] = this.getDialog().getId();
+      }
+      return dependencies;
+    }
+
+    setDependency(type,obj) {
+      super.setDependency(type,obj);
+      switch (type) {
+        case DIALOG:
+          this.setDialog(obj);
+          break;
+        default:
+          break;
+      };
     }
 
     setName(value) {
