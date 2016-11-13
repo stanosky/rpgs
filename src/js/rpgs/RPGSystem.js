@@ -12,32 +12,28 @@ import Talk from './dialogs/Talk'
 import Quest from './quests/Quest';
 import Task from './quests/Task';
 
+let nodeFactory = function(type,params) {
+  switch (type) {
+    case 'Actor':     return new Actor(params);
+    case 'Condition': return new Condition(params);
+    case 'Answer':    return new Answer(params);
+    case 'Dialog':    return new Dialog(params);
+    case 'Talk':      return new Talk(params);
+    case 'Quest':     return new Quest(params);
+    case 'Task':      return new Task(params);
+    default:          return new UniqueObject(params);
+  }
+};
 
+let dataParser = function(objects,dependencies) {
+  let _objectPool = objects.map((obj) => nodeFactory(obj.class,obj));
 
-let RPGSystem = function (data) {
-  let _data = data||{objects:[],dependencies:[]};
-  let _objects = _data.objects ? Object.values(_data.objects) : [];
-  let _dependencies = _data.dependencies ? Object.values(_data.dependencies) : [];
-  let _objectPool = _objects.map((obj) => {
-      switch (obj.class) {
-        case 'Actor':     return new Actor(obj);
-        case 'Condition': return new Condition(obj);
-        case 'Answer':    return new Answer(obj);
-        case 'Dialog':    return new Dialog(obj);
-        case 'Talk':      return new Talk(obj);
-        case 'Quest':     return new Quest(obj);
-        case 'Task':      return new Task(obj);
-        default:          return new UniqueObject(obj);
-      }
-    });
-
-  for (let i = 0, dependentId, dependent, dependencies;
-    i < _dependencies.length; i++) {
-    dependentId = _dependencies[i]['dependent'];
-    dependent = Utils.getObjectById(_objectPool,dependentId);
-    dependencies = _dependencies[i]['dependencies'];
-    if(dependent && dependencies) {
-      setDependencies(dependent,dependencies)
+  for (let i = 0, dId, depObj, toInject; i < dependencies.length; i++) {
+    dId = dependencies[i]['dependent'];
+    depObj = Utils.getObjectById(_objectPool,dId);
+    toInject = dependencies[i]['dependencies'];
+    if(depObj && toInject) {
+      setDependencies(depObj,toInject)
     }
   }
 
@@ -57,11 +53,59 @@ let RPGSystem = function (data) {
 
   function setDependency(dependent,type,uuid) {
     let dependency = Utils.getObjectById(_objectPool,uuid);
-    console.log('dependency',dependency);
+    //console.log('dependency',dependency);
     if(dependency) {
       dependent.setDependency(type,dependency);
     }
   }
+
+  return _objectPool;
+};
+
+let RPGSystem = function (data) {
+  let _data = data||{objects:[],dependencies:[]};
+  let _objects = _data.objects ? Object.values(_data.objects) : [];
+  let _dependencies = _data.dependencies ? Object.values(_data.dependencies) : [];
+  let _objectPool = dataParser(_objects,_dependencies);
+
+  let _rpgSystem = this;
+
+  let _createNode = (function(type,params,parent) {
+    let _parent = parent||null;
+    let obj = nodeFactory(type,params);
+
+    if(parent !== null){
+      //parent.getObj().addChild(obj);
+      //setDependency...
+    } else {
+      _objectPool.push(obj);
+    }
+
+    let _creator = {
+
+      setParam:function(param,value) {
+        obj.setParam(param,value);
+        return _creator;
+      },
+
+      addNode: function(nodeType,nodeParams) {
+        return _createNode(nodeType,nodeParams,_parent);
+      },
+
+      getObj: function() {
+        return obj;
+      },
+
+      back: function() {
+        return _parent||this.done();
+      },
+
+      done: function() {
+        return _rpgSystem
+      }
+    }
+    return _creator;
+  })();
 
   let _serializeData = function() {
     let objects = [];
@@ -70,13 +114,13 @@ let RPGSystem = function (data) {
       obj = _objectPool[i].getData();
       dep = _objectPool[i].getDependencies();
       objects.push(obj);
-      if(Object.keys(dep).length !== 0) {
+      if(Object.keys(dep).length > 0) {
         dependencies.push(dep);
       }
     }
     return JSON.stringify({objects,dependencies});
   };
-  console.log(_serializeData());
+
   return {
     serializeData: _serializeData
   };

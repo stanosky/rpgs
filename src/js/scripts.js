@@ -9,7 +9,7 @@ import RPGSystem from './rpgs/RPGSystem';
   $(function () {
     //console.log(data);
     let rpg = new RPGSystem(data);
-
+    console.log(rpg.serializeData());
     //let uo = new UniqueObject();
     //console.log(uo.getData());
   });

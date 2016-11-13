@@ -263,37 +263,38 @@ var _Task2 = _interopRequireDefault(_Task);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 //import Inventory from './actors/Invenotry';
-var RPGSystem = function RPGSystem(data) {
-  var _data = data || { objects: [], dependencies: [] };
-  var _objects = _data.objects ? Object.values(_data.objects) : [];
-  var _dependencies = _data.dependencies ? Object.values(_data.dependencies) : [];
-  var _objectPool = _objects.map(function (obj) {
-    switch (obj.class) {
-      case 'Actor':
-        return new _Actor2.default(obj);
-      case 'Condition':
-        return new _Condition2.default(obj);
-      case 'Answer':
-        return new _Answer2.default(obj);
-      case 'Dialog':
-        return new _Dialog2.default(obj);
-      case 'Talk':
-        return new _Talk2.default(obj);
-      case 'Quest':
-        return new _Quest2.default(obj);
-      case 'Task':
-        return new _Task2.default(obj);
-      default:
-        return new _UniqueObject2.default(obj);
-    }
+var nodeFactory = function nodeFactory(type, params) {
+  switch (type) {
+    case 'Actor':
+      return new _Actor2.default(params);
+    case 'Condition':
+      return new _Condition2.default(params);
+    case 'Answer':
+      return new _Answer2.default(params);
+    case 'Dialog':
+      return new _Dialog2.default(params);
+    case 'Talk':
+      return new _Talk2.default(params);
+    case 'Quest':
+      return new _Quest2.default(params);
+    case 'Task':
+      return new _Task2.default(params);
+    default:
+      return new _UniqueObject2.default(params);
+  }
+};
+
+var dataParser = function dataParser(objects, dependencies) {
+  var _objectPool = objects.map(function (obj) {
+    return nodeFactory(obj.class, obj);
   });
 
-  for (var i = 0, dependentId, dependent, dependencies; i < _dependencies.length; i++) {
-    dependentId = _dependencies[i]['dependent'];
-    dependent = _Utils2.default.getObjectById(_objectPool, dependentId);
-    dependencies = _dependencies[i]['dependencies'];
-    if (dependent && dependencies) {
-      setDependencies(dependent, dependencies);
+  for (var i = 0, dId, depObj, toInject; i < dependencies.length; i++) {
+    dId = dependencies[i]['dependent'];
+    depObj = _Utils2.default.getObjectById(_objectPool, dId);
+    toInject = dependencies[i]['dependencies'];
+    if (depObj && toInject) {
+      setDependencies(depObj, toInject);
     }
   }
 
@@ -313,11 +314,59 @@ var RPGSystem = function RPGSystem(data) {
 
   function setDependency(dependent, type, uuid) {
     var dependency = _Utils2.default.getObjectById(_objectPool, uuid);
-    console.log('dependency', dependency);
+    //console.log('dependency',dependency);
     if (dependency) {
       dependent.setDependency(type, dependency);
     }
   }
+
+  return _objectPool;
+};
+
+var RPGSystem = function RPGSystem(data) {
+  var _data = data || { objects: [], dependencies: [] };
+  var _objects = _data.objects ? Object.values(_data.objects) : [];
+  var _dependencies = _data.dependencies ? Object.values(_data.dependencies) : [];
+  var _objectPool = dataParser(_objects, _dependencies);
+
+  var _rpgSystem = this;
+
+  var _createNode = function (type, params, parent) {
+    var _parent = parent || null;
+    var obj = nodeFactory(type, params);
+
+    if (parent !== null) {
+      //parent.getObj().addChild(obj);
+      //setDependency...
+    } else {
+      _objectPool.push(obj);
+    }
+
+    var _creator = {
+
+      setParam: function setParam(param, value) {
+        obj.setParam(param, value);
+        return _creator;
+      },
+
+      addNode: function addNode(nodeType, nodeParams) {
+        return _createNode(nodeType, nodeParams, _parent);
+      },
+
+      getObj: function getObj() {
+        return obj;
+      },
+
+      back: function back() {
+        return _parent || this.done();
+      },
+
+      done: function done() {
+        return _rpgSystem;
+      }
+    };
+    return _creator;
+  }();
 
   var _serializeData = function _serializeData() {
     var objects = [];
@@ -326,13 +375,13 @@ var RPGSystem = function RPGSystem(data) {
       obj = _objectPool[i].getData();
       dep = _objectPool[i].getDependencies();
       objects.push(obj);
-      if (Object.keys(dep).length !== 0) {
+      if (Object.keys(dep).length > 0) {
         dependencies.push(dep);
       }
     }
     return JSON.stringify({ objects: objects, dependencies: dependencies });
   };
-  console.log(_serializeData());
+
   return {
     serializeData: _serializeData
   };
@@ -1342,7 +1391,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
   $(function () {
     //console.log(data);
     var rpg = new _RPGSystem2.default(_data2.default);
-
+    console.log(rpg.serializeData());
     //let uo = new UniqueObject();
     //console.log(uo.getData());
   });
