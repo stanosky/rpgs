@@ -1,57 +1,43 @@
 "use strict";
-import UniqueObject from './UniqueObject';
+import {UUID}   from './Utils';
+import LinkType from './LinkType';
 
-const VISIBLE = 'visible';
-const ACTIVE = 'active';
+const KEY_LINKS = 'links';
+const KEY_CONDITIONS = 'conditions';
 
-let BaseObject = (function() {
+let BaseObject = (function(){
   //Weak maps are new feature to JavaScript. We can store private
   //object properties in key/value pairs using our instance as the key,
   //and our class can capture those key/value maps in a closure.
-  let _visible = new WeakMap();
-  let _active = new WeakMap();
+  let _rpgs = new WeakMap();
+  let _uuid = new WeakMap();
+  let _input = new WeakMap();
+  let _output = new WeakMap();
 
-  return class BaseObject extends UniqueObject {
-    constructor(data) {
-      super(data);
-      _visible.set(this, null);
-      _active.set(this, null);
+  return class BaseObject {
+    constructor(data,rpgs) {
+      _rpgs.set(this,rpgs);
+      //By default we assign Universally Unique ID
+      _uuid.set(this,data ? data.uuid : UUID.generate());
+      _input.set(this,data ? data.input : {});
+      _output.set(this,data ? data.output : {});
     }
 
-    getDependencies() {
-      let dependencies = {};
-      if(this.getVisibleCondition()) {
-        dependencies[VISIBLE] = this.getVisibleCondition().getId();
-      }
-      if(this.getActiveCondition()) {
-        dependencies[ACTIVE] = this.getActiveCondition().getId();
-      }
-      return dependencies;
+    getRPGS() {
+      return this.getRPGS();
     }
 
-    setDependency(type,obj) {
-      switch (type) {
-        case VISIBLE:
-          this.setVisibleCondition(obj);
-          break;
-        case ACTIVE:
-          this.setActiveCondition(obj);
-          break;
-        default:
-          break;
-      };
+    setId(value) {
+      _uuid.set(this,value);
     }
 
-    /**
-     * Method sets condition that must be met in order to node was visible.
-     * @param {Condition} condition Instance of Condition object
-     */
-    setVisibleCondition(condition) {
-      _visible.set(this,BaseObject.isConditionInstance(condition));
+    getId() {
+      return _uuid.get(this);
     }
 
-    getVisibleCondition() {
-      return _visible.get(this);
+    checkCondition(conditionId) {
+      let condition = this.getRPGS().getObjectByKey(KEY_CONDITIONS,conditionId);
+      return condition ? condition.check() : true;
     }
 
     /**
@@ -59,19 +45,8 @@ let BaseObject = (function() {
      * @return {Boolean} Visibility state
      */
     isVisible() {
-      return BaseObject.checkCondition(_visible.get(this));
-    }
-
-    /**
-     * Method sets condition that must be met in order to node was active.
-     * @param {Condition} condition Instance of Condition object
-     */
-    setActiveCondition(condition) {
-      _active.set(this,BaseObject.isConditionInstance(condition));
-    }
-
-    getActiveCondition() {
-      return _active.get(this);
+      let conditions = getInputConnections(LinkType.VISIBILITY);
+      return conditions ? this.checkCondition(conditions[0]) : true;
     }
 
     /**
@@ -79,20 +54,93 @@ let BaseObject = (function() {
      * @return {Boolean} Active state
      */
     isActive() {
-      return BaseObject.checkCondition(_active.get(this));
+      let conditions = getInputConnections(LinkType.ACTIVITY);
+      return conditions ? this.checkCondition(conditions[0]) : true;
     }
 
-    static checkCondition(condition) {
-      if(condition === null) return true;
-      return condition.check();
+    getData() {
+      return {
+        class:this.constructor.name,
+        uuid:this.getId(),
+        input:this.getInputConnections(),
+        output:this.getOutputConnections()
+      };
     }
 
-    static isConditionInstance(obj) {
-      if(typeof obj !== Condition) {
-        throw new Error('Wrong type of object passed. Expected "Condition" object.');
-        return null;
+    canCreateInputConnection(type) {
+      return false;
+    }
+
+    canCreateOutputConnection(type) {
+      return false;
+    }
+
+    _setConnection(obj,type,linkId) {
+      if(!obj.hasOwnProperty(type)) {
+        obj[type] = [];
+      }
+      obj[type].push(linkId);
+      return obj;
+    }
+
+    setOutputConnection(type,linkId) {
+      _output.set(this,_setConnection(_output.get(this),type,linkId));
+    }
+
+    setInputConnection(type,linkId) {
+      _input.set(this,_setConnection(_input.get(this),type,linkId));
+    }
+
+    _getConnections(obj,type) {
+      if(type) return !obj.hasOwnProperty(type) ? [] : obj[type];
+      else return obj;
+    }
+
+    getOutputConnections(type) {
+      return this._getConnections(_output.get(this),type);
+    }
+
+    getInputConnections(type) {
+      return this._getConnections(_input.get(this),type);
+    }
+
+    _removeConnection(obj,type,linkId) {
+      if(obj.hasOwnProperty(type)) {
+        obj[type] = Utils.removeObjectFromArray(obj[type],linkId);
       }
       return obj;
+    }
+
+    removeOutputConnection(type,linkId) {
+      _output.set(this,this._removeConnection(_output.get(this),type,linkId));
+    }
+
+    removeInputConnection(type,linkId) {
+      _input.set(this,this._removeConnection(_input.get(this),type,linkId));
+    }
+
+    removeChildrenFrom(obj,key) {
+      obj.filter((childId, index, arr) => {
+        this.getRPGS().removeObject(key,childId);
+        return true;
+      });
+    }
+
+    _removeLinksFrom(obj) {
+      for (var type in obj) {
+        if (obj.hasOwnProperty(type)) {
+          removeChildrenFrom(obj[type],KEY_LINKS);
+        }
+      }
+    }
+
+    dispose() {
+      this._removeLinksFrom(_output.get(this));
+      this._removeLinksFrom(_input.get(this));
+      _rpgs.delete(this);
+      _uuid.delete(this);
+      _input.delete(this);
+      _output.delete(this);
     }
   };
 })();

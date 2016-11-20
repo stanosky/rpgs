@@ -1,170 +1,232 @@
 {
-  "objects":[
+  "actors":[
     {
       "class":"Actor",
-      "uuid":"a1",
-      "name":"Adam"
+      "uuid":"ac1",
+      "name":"Adam",
+      "input":{
+        "dialog":["d1"],
+      },
+      "output":{}
     },
     {
       "class":"Actor",
-      "uuid":"a2",
-      "name":"Eva"
-    },
-    {
-      "class":"Dialog",
-      "uuid":"d1",
-      "startTalk":"t1"
-    },
-    {
-      "class":"Dialog",
-      "uuid":"d2",
-      "startTalk":"t4"
-    },
-    {
-      "class":"Talk",
-      "uuid":"t1",
-      "text":"Talk 1"
-    },
-    {
-      "class":"Talk",
-      "uuid":"t2",
-      "text":"Talk 2"
-    },
-    {
-      "class":"Talk",
-      "uuid":"t3",
-      "text":"Talk 3"
-    },
-    {
-      "class":"Talk",
-      "uuid":"t4",
-      "text":"Talk 4"
-    },
-    {
-      "class":"Talk",
-      "uuid":"t5",
-      "text":"Talk 5"
-    },
-    {
-      "class":"Talk",
-      "uuid":"t6",
-      "text":"Talk 6"
-    },
+      "uuid":"ac2",
+      "name":"Eva",
+      "input":{
+        "dialog":["d2"],
+      },
+      "output":{}
+    }
+  ],
+  "answers":[
     {
       "class":"Answer",
       "uuid":"a1",
-      "text":"Answer 1"
+      "text":"Answer 1",
+      "input":{
+        "visibility":[],
+        "activity":[]
+      },
+      "output":{
+        "goto":["t2"]
+      }
     },
     {
       "class":"Answer",
       "uuid":"a2",
-      "text":"Answer 2"
+      "text":"Answer 2",
+      "input":{
+        "visibility":[],
+        "activity":[]
+      },
+      "output":{
+        "goto":["t3"]
+      }
     },
     {
       "class":"Answer",
       "uuid":"a3",
-      "text":"Answer 3"
+      "text":"Answer 3",
+      "input":{
+        "visibility":[],
+        "activity":[]
+      },
+      "output":{
+        "goto":[]
+      }
     },
     {
       "class":"Answer",
       "uuid":"a4",
-      "text":"Answer 4"
+      "text":"Answer 4",
+      "input":{
+        "visibility":[],
+        "activity":[]
+      },
+      "output":{
+        "goto":["t5"]
+      }
     },
     {
       "class":"Answer",
       "uuid":"a5",
-      "text":"Answer 5"
+      "text":"Answer 5",
+      "input":{
+        "visibility":[],
+        "activity":[]
+      },
+      "output":{
+        "goto":["t6"]
+      }
     },
     {
       "class":"Answer",
       "uuid":"a6",
-      "text":"Answer 6"
+      "text":"Answer 6",
+      "input":{
+        "visibility":[],
+        "activity":[]
+      },
+      "output":{
+        "goto":[]
+      }
     }
   ],
-  "dependencies":[
+  "talks":[
     {
-      "dependent":"a1",
-      "dependencies": {
-        "dialog": "d1"
+      "class":"Talk",
+      "uuid":"t1",
+      "text":"Talk 1",
+      "answers":["a1"],
+      "input":{
+        "goto":[]
+      },
+      "output":{}
+    },
+    {
+      "class":"Talk",
+      "uuid":"t2",
+      "text":"Talk 2",
+      "answers":["a2"],
+      "input":{
+        "goto":[]
+      },
+      "output":{}
+    },
+    {
+      "class":"Talk",
+      "uuid":"t3",
+      "text":"Talk 3",
+      "answers":["a3"],
+      "input":{
+        "goto":[]
+      },
+      "output":{}
+    },
+    {
+      "class":"Talk",
+      "uuid":"t4",
+      "text":"Talk 4",
+      "answers":["a4"],
+      "input":{
+        "goto":[]
+      },
+      "output":{}
+    },
+    {
+      "class":"Talk",
+      "uuid":"t5",
+      "text":"Talk 5",
+      "answers":["a5"],
+      "input":{
+        "goto":[]
+      },
+      "output":{}
+    },
+    {
+      "class":"Talk",
+      "uuid":"t6",
+      "text":"Talk 6",
+      "answers":["a6"],
+      "input":{
+        "goto":[]
+      },
+      "output":{}
+    }
+  ],
+  "dialogs":[
+    {
+      "class":"Dialog",
+      "uuid":"d1",
+      "startTalk":"t1",
+      "talks":["t1","t2","t3"],
+      "input":{
+        "visibility":[],
+        "activity":[]
+      },
+      "output":{
+        "dialog":[]
       }
     },
     {
-      "dependent":"a2",
-      "dependencies": {
-        "dialog": "d2"
+      "class":"Dialog",
+      "uuid":"d2",
+      "startTalk":"t4",
+      "talks":["t4","t5","t6"],
+      "input":{
+        "visibility":[],
+        "activity":[]
+      },
+      "output":{
+        "dialog":[]
       }
+    }
+  ],
+  "conditions":[],
+  "variables":[],
+  "links":[
+    {
+      "class":"Link",
+      "uuid":"d1->ac1",
+      "type":"dialog",
+      "linkStart":"d1",
+      "linkEnd":"ac1"
     },
     {
-      "dependent":"d1",
-      "dependencies": {
-        "talk":["t1","t2","t3"]
-      }
+      "class":"Link",
+      "uuid":"d2->ac2",
+      "type":"dialog",
+      "linkStart":"d2",
+      "linkEnd":"ac2"
     },
     {
-      "dependent":"d2",
-      "dependencies": {
-        "talk":["t4","t5","t6"]
-      }
+      "class":"Link",
+      "uuid":"a1->t2",
+      "type":"goto",
+      "linkStart":"a1",
+      "linkEnd":"t2"
     },
     {
-      "dependent":"t1",
-      "dependencies": {
-        "answer": ["a1"]
-      }
+      "class":"Link",
+      "uuid":"a2->t3",
+      "type":"goto",
+      "linkStart":"a2",
+      "linkEnd":"t3"
     },
     {
-      "dependent":"t2",
-      "dependencies": {
-        "answer": ["a2"]
-      }
+      "class":"Link",
+      "uuid":"a4->t5",
+      "type":"goto",
+      "linkStart":"a4",
+      "linkEnd":"t5"
     },
     {
-      "dependent":"t3",
-      "dependencies": {
-        "answer": ["a3"]
-      }
-    },
-    {
-      "dependent":"t4",
-      "dependencies": {
-        "answer": ["a4"]
-      }
-    },
-    {
-      "dependent":"t5",
-      "dependencies": {
-        "answer": ["a5"]
-      }
-    },
-    {
-      "dependent":"t6",
-      "dependencies": {
-        "answer": ["a6"]
-      }
-    },
-    {
-      "dependent":"a1",
-      "dependencies": {
-        "talk":"t2"
-      }
-    },
-    {
-      "dependent":"a2",
-      "dependencies": {
-        "talk":"t3"
-      }
-    },
-    {
-      "dependent":"a4",
-      "dependencies": {
-        "talk":"t4"
-      }
-    },
-    {
-      "dependent":"a5",
-      "dependencies": {
-        "talk":"t5"
-      }
+      "class":"Link",
+      "uuid":"a5->t6",
+      "type":"goto",
+      "linkStart":"a5",
+      "linkEnd":"t6"
     }
   ]
 }

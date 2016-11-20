@@ -62,10 +62,21 @@ exports.addObjectToArray = function(array,obj,expectedType) {
   return array;
 };
 
+exports.getObjectsByType = function(array,type) {
+  let out = [];
+  for (var i = 0; i < array.length; i++) {
+    if(type.isPrototypeOf(array[i])) {
+      out.push(array[i]);
+    }
+  }
+  return out;
+};
+
 exports.removeObjectById = function(array,id) {
   let index = getIndexById(array,id);
   if(index !== -1) {
-    array.splice(index,1);
+    let spliced = array.splice(index,1);
+    if(spliced.dispose) spliced.dispose();
   }
   return array;
 }
@@ -73,7 +84,8 @@ exports.removeObjectById = function(array,id) {
 exports.removeObjectFromArray = function(array,obj) {
   let index = indexOfObject(array,obj);
   if(index !== -1) {
-    array.splice(index,1);
+    let spliced = array.splice(index,1);
+    if(spliced.dispose) spliced.dispose();
   }
   return array;
 };

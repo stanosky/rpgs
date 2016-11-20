@@ -1,7 +1,8 @@
 "use strict";
 
-import UniqueObject from '../core/UniqueObject';
-import compiler from '@risingstack/nx-compile';
+import BaseObject from '../core/BaseObject';
+import LinkType   from '../core/LinkType';
+import compiler   from '@risingstack/nx-compile';
 
 let Condition = (function(){
   let _label = new WeakMap();
@@ -9,12 +10,12 @@ let Condition = (function(){
   let _compiled = new WeakMap();
   let _sandbox = new WeakMap();
 
-  return class Condition extends UniqueObject {
-    constructor(data,sandbox) {
-      super(data);
+  return class Condition extends BaseObject {
+    constructor(data,rpgs) {
+      super(data,rpgs);
       _label.set(this,data ? data.label : '');
       _code.set(this,data ? data.code : 'return true');
-      _sandbox.set(this,sandbox||{});
+      _sandbox.set(this,{rpgs});
       _compiled.set(this,compiler.compileExpression(_code.get(this), _sandbox.get(this)));
     }
 
@@ -44,6 +45,27 @@ let Condition = (function(){
       data.label = this.getLabel();
       data.code = this.getCode();
       return data;
+    }
+
+    canCreateOutputConnection(type) {
+      switch (type) {
+        case LinkType.VISIBILITY:
+        case LinkType.ACTIVITY:
+        return true;
+        default: return false;
+      }
+    }
+
+    setInputConnection(type,linkId) {}
+    getInputConnections(type) {}
+    removeInputConnection(type,linkId) {}
+
+    dispose() {
+      _label.delete(this);
+      _code.delete(this);
+      _sandbox.delete(this);
+      _compiled.delete(this);
+      super.dispose();
     }
 
   };

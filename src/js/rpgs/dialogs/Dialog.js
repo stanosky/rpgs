@@ -1,60 +1,53 @@
 "use strict";
-import UniqueObject from '../core/UniqueObject';
-import Utils from '../core/Utils';
-import Talk from './Talk';
+import BaseObject from '../core/BaseObject';
+import LinkType   from '../core/LinkType';
+import Utils      from '../core/Utils';
+import Talk       from './Talk';
 
-const TALK = 'talk';
+const KEY_TALKS = 'talks';
 
 let Dialog = (function() {
   let _start = new WeakMap();
   let _talks = new WeakMap();
 
-  return class Dialog extends UniqueObject {
+  return class Dialog extends BaseObject {
 
-    constructor(data) {
-      super(data);
+    constructor(data,rpgs) {
+      super(data,rpgs);
       _start.set(this,data ? data.startTalk : '');
-      _talks.set(this,[]);
+      /*_talks.set(this,data ? data.talks.map((params) => {
+        let talk = new Talk(params,rpgs);
+        rpgs.setObject(KEY_TALKS,talk);
+        return talk.getId();
+      }):[]);*/
+      _talks.set(this,data ? data.talks : []);
     }
 
     getData() {
       let data = super.getData();
       data.startTalk = this.getStartTalk();
+      data.talks = this.getTalks();
       return data;
     }
 
-    getDependencies() {
-      let dependencies = {};
-      if(this.getTalks()) {
-        dependencies[TALK] = this.getTalks().map((t) => t.getId());
-      }
-      return dependencies;
-    }
-
-    setDependency(type,obj) {
-      switch (type) {
-        case TALK:
-          this.addTalk(obj);
-          break;
-        default:
-          break;
-      };
-    }
-
     addTalk(talk) {
-      _talks.set(this,Utils.addObjectToArray(_talks.get(this),talk, Talk));
+      this.getRPGS().setObject(KEY_TALKS,talk);
+      _talks.set(this,talk.getId());
     }
 
     removeTalk(talkId) {
-      Utils.removeObjectById(_talks.get(this),talkId);
+      this.getRPGS().removeObject(KEY_TALKS,talkId);
+      _talks.set(this,Utils.removeObjectFromArray(_talks.get(this),talkId));
     }
 
     getTalk(talkId) {
-      return Utils.getObjectById(_talks,talkId);
+      return this.getRPGS().getObjectByKey(KEY_TALKS,talkId);
     }
 
     getTalks() {
-      return _talks.get(this);
+      return _talks.get(this);/*.map((t) => {
+        return this.getRPGS().getObjectByKey(KEY_TALKS,t);
+      });*/
     }
 
     setStartTalk(talkId) {
@@ -63,6 +56,31 @@ let Dialog = (function() {
 
     getStartTalk() {
       return _start.get(this);
+    }
+
+    canCreateInputConnection(type) {
+      switch (type) {
+        case LinkType.VISIBILITY:
+          return this.getInputConnections(LinkType.VISIBILITY).length === 0;
+        case LinkType.ACTIVITY:
+          return this.getInputConnections(LinkType.ACTIVITY).length === 0;
+        default: return false;
+      }
+    }
+
+    canCreateOutputConnection(type) {
+      switch (type) {
+        case LinkType.DIALOG:
+          return true;
+        default: return false;
+      }
+    }
+
+    dispose() {
+      this.removeChildrenFrom(_talks.get(this),KEY_TALKS);
+      _start.delete(this);
+      _talks.delete(this);
+      super.dispose();
     }
   }
 

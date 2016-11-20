@@ -1,6 +1,6 @@
 "use strict";
 import Utils from '../core/Utils';
-import UniqueObject from '../core/UniqueObject';
+import BaseObject from '../core/BaseObject';
 
 let DataContainer = (function(){
   let _data = new WeakMap();
@@ -8,10 +8,10 @@ let DataContainer = (function(){
 
   return class DataContainer {
     constructor(type,data) {
-      if(UniqueObject.isPrototypeOf(type)) {
+      if(BaseObject.isPrototypeOf(type)) {
         _type.set(this,type);
       } else {
-        throw new Error('Wrong type of object passed. Expected ancestor of UniqueObject object.');
+        throw new Error('Wrong type of object passed. Expected ancestor of BaseObject object.');
       }
       _data.set(this,data ? data.map((d) => new type(d)) : []);
     }

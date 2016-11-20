@@ -1,129 +1,246 @@
 "use strict";
-import Utils from './core/Utils';
+import Utils        from './core/Utils';
+import BaseObject   from './core/BaseObject';
+import ErrorHandler from './core/ErrorHandler'
+import ErrorCode    from './core/ErrorCode';
+import Link         from './core/Link';
+import Actor        from './actors/Actor';
+//import Inventory    from './actors/Invenotry';
+import Condition    from './conditions/Condition';
+import Answer       from './dialogs/Answer';
+import Dialog       from './dialogs/Dialog';
+import Talk         from './dialogs/Talk';
+import Quest        from './quests/Quest';
+import Task         from './quests/Task';
 
-import UniqueObject from './core/UniqueObject';
-import BaseObject from './core/BaseObject';
-import Actor from './actors/Actor';
-//import Inventory from './actors/Invenotry';
-import Condition from './conditions/Condition';
-import Answer from './dialogs/Answer';
-import Dialog from './dialogs/Dialog';
-import Talk from './dialogs/Talk'
-import Quest from './quests/Quest';
-import Task from './quests/Task';
 
-let nodeFactory = function(type,params) {
-  switch (type) {
-    case 'Actor':     return new Actor(params);
-    case 'Condition': return new Condition(params);
-    case 'Answer':    return new Answer(params);
-    case 'Dialog':    return new Dialog(params);
-    case 'Talk':      return new Talk(params);
-    case 'Quest':     return new Quest(params);
-    case 'Task':      return new Task(params);
-    default:          return new UniqueObject(params);
-  }
-};
+const KEY_LINKS = 'links';
 
-let dataParser = function(objects,dependencies) {
-  let _objectPool = objects.map((obj) => nodeFactory(obj.class,obj));
+let RPGSystem = function (editor) {
 
-  for (let i = 0, dId, depObj, toInject; i < dependencies.length; i++) {
-    dId = dependencies[i]['dependent'];
-    depObj = Utils.getObjectById(_objectPool,dId);
-    toInject = dependencies[i]['dependencies'];
-    if(depObj && toInject) {
-      setDependencies(depObj,toInject)
+  let _objectPool = {},
+  _editor = editor||null,
+  _errorHandler = new ErrorHandler(_editor);
+
+  let _objectFactory = function(data,rpgs) {
+    let className = data.class;
+    switch (className) {
+      case 'Actor':     return new Actor(data,rpgs);
+      case 'Condition': return new Condition(data,rpgs);
+      case 'Answer':    return new Answer(data,rpgs);
+      case 'Dialog':    return new Dialog(data,rpgs);
+      case 'Talk':      return new Talk(data,rpgs);
+      case 'Quest':     return new Quest(data,rpgs);
+      case 'Task':      return new Task(data,rpgs);
+      case 'Link':      return new Link(data,rpgs);
+      default:
+        _errorHandler.showMsg(ErrorCode.CLASS_NOT_DEFINED,{class:className});
+        return null;
     }
-  }
+  },
 
-  function setDependencies(dependent,dependencies) {
-    for (let type in dependencies) {
-      if (dependencies.hasOwnProperty(type)) {
-        if(dependencies[type] instanceof Array) {
-          for (let i = 0; i < dependencies[type].length; i++) {
-            setDependency(dependent,type,dependencies[type][i]);
-          }
-        } else {
-          setDependency(dependent,type,dependencies[type]);
-        }
+  _findObject = function(objId) {
+    for (var key in _objectPool) {
+      if (_objectPool.hasOwnProperty(key)) {
+        let obj = Utils.getObjectById(_objectPool[key],objId);
+        if(obj !== null) return obj;
       }
     }
-  }
+    this._errorHandler(ErrorCode.OBJECT_NOT_FOUND,{id:objId});
+    return null;
+  },
 
-  function setDependency(dependent,type,uuid) {
-    let dependency = Utils.getObjectById(_objectPool,uuid);
-    //console.log('dependency',dependency);
-    if(dependency) {
-      dependent.setDependency(type,dependency);
+  _getObjectByKey = function(key,objId) {
+    let obj = Utils.getObjectById(_objectPool[key],objId);
+    return obj;
+  },
+
+  _setObject = function(key,obj) {
+    _objectPool[key].push(obj);
+  },
+
+  _removeObject = function(key,id) {
+    _objectPool[key] = Utils.removeObjectById(_objectPool[key],id);
+  },
+
+  _setConnection = function(type,nodeId1,nodeId2) {
+    if(nodeId1 === nodeId2) {
+      this._handleError(ErrorCode.CONNECTION_TO_ITSELF,{node:nodeId1});
+      return false;
     }
-  }
-
-  return _objectPool;
-};
-
-let RPGSystem = function (data) {
-  let _data = data||{objects:[],dependencies:[]};
-  let _objects = _data.objects ? Object.values(_data.objects) : [];
-  let _dependencies = _data.dependencies ? Object.values(_data.dependencies) : [];
-  let _objectPool = dataParser(_objects,_dependencies);
-
-  let _rpgSystem = this;
-
-  let _createNode = (function(type,params,parent) {
-    let _parent = parent||null;
-    let obj = nodeFactory(type,params);
-
-    if(parent !== null){
-      //parent.getObj().addChild(obj);
-      //setDependency...
+    let node1 = this._findObject(nodeId1);
+    let node2 = this._findObject(nodeId2);
+    if(node1 === null || node2 === null) return;
+    if(node1.canCreateOutputConnection(type) && node2.canCreateInputConnection(type)) {
+      let link = new Link({type:type,output:nodeId1,input:nodeId2});
+      let linkId = link.getId();
+      this._setObjectByKey(KEY_LINKS,link);
+      node1.setOutputConnection(type,linkId);
+      node2.setInputConnection(type,linkId);
+      return linkId;
     } else {
-      _objectPool.push(obj);
+      this._handleError(ErrorCode.IMPROPER_CONNECTION,{type:type,node1:nodeId1,node2:nodeId2});
+      return false;
     }
+  },
 
-    let _creator = {
+  _getConnection = function(linkId) {
+    return this._getObjectByKey(KEY_LINKS,linkId);
+  },
 
-      setParam:function(param,value) {
-        obj.setParam(param,value);
-        return _creator;
-      },
+  _getConnections = function() {
+    return _objectPool[KEY_LINKS];
+  },
 
-      addNode: function(nodeType,nodeParams) {
-        return _createNode(nodeType,nodeParams,_parent);
-      },
+  _removeConnection = function(linkId) {
+    this._removeObject(KEY_LINKS,linkId);
+  },
 
-      getObj: function() {
-        return obj;
-      },
+  _addActor = function(params) {
+    return _objectPool.actors.push(new Actor(params));
+  },
 
-      back: function() {
-        return _parent||this.done();
-      },
+  _removeActor = function(actorId) {
+    _objectPool.actors = Utils.removeObjectById(_objectPool.actors,actorId);
+  },
 
-      done: function() {
-        return _rpgSystem
+  _getActors = function() {
+    return _objectPool.actors;
+  },
+
+  _addQuest = function(params) {
+    return _objectPool.quests.push(new Quest(params));
+  },
+
+  _removeQuest = function(questId) {
+    _objectPool.quests = Utils.removeObjectById(_objectPool.quests,questId);
+  },
+
+  _getQuests = function() {
+    return _objectPool.quests;
+  },
+
+  _addDialog = function(params) {
+    return _objectPool.dialogs.push(new Dialog(params));
+  },
+
+  _removeDialog = function(dialogId) {
+    _objectPool.dialogs = Utils.removeObjectById(_objectPool.dialogs,dialogId);
+  },
+
+  _getDialogs = function() {
+    return _objectPool.dialogs;
+  },
+
+  _addCondition = function(params) {
+    return _objectPool.conditions.push(new Condition(params));
+  },
+
+  _removeCondition = function(conditionId) {
+    _objectPool.conditions = Utils.removeObjectById(_objectPool.conditions,conditionId);
+  },
+
+  _getConditions = function() {
+    return _objectPool.conditions;
+  },
+
+  _addVariable = function(params) {
+    //return _objectPool.variables.push(new Variable(params));
+  },
+
+  _removeVariable = function(variableId) {
+    //_objectPool.variables = Utils.removeObjectById(_objectPool.variables,variableId);
+  },
+
+  _getVariables = function() {
+    //return _objectPool.variables;
+  },
+
+  /*_nodeHistory = [],
+  _addRootNode = function(type,params) {
+    this._done();
+    //zmień switch w classFactory!
+    let newNode = classFactory(type,params);
+    if(newNode) {
+      _nodeHistory.push(newNode);
+      _objectPool.push(newNode);
+    } else {
+      _errorHandler.showMsg(ErrorCode.NODE_NOT_EXISTS);
+    }
+    return this;
+  },
+
+  _addChildNode = function(type,params) {
+    let len = _nodeHistory.length;
+    if(len > 0) {
+      let currNode = _nodeHistory[len-1];
+      let newNode = classFactory(type,params);
+    } else {
+      return _addRootNode(type,params);
+    }
+  },
+
+  //zastanowić się czy przekazywać id czy obiekty
+  _connectNodes = function(parentNode,childNode) {
+    return this;
+  },
+
+  _prevNode = function() {
+    if(_nodeHistory.length > 0) _nodeHistory.pop();
+    return this;
+  },
+
+  _done = function() {
+    _nodeHistory = [];
+    return this;
+  },*/
+
+  _setData = function(data) {
+    for (var key in data) {
+      if (data.hasOwnProperty(key)) {
+        _objectPool[key] = data[key].map((d) => _objectFactory(d,this));
       }
     }
-    return _creator;
-  })();
+  },
 
-  let _serializeData = function() {
-    let objects = [];
-    let dependencies = [];
-    for (var i = 0, obj,dep; i < _objectPool.length; i++) {
-      obj = _objectPool[i].getData();
-      dep = _objectPool[i].getDependencies();
-      objects.push(obj);
-      if(Object.keys(dep).length > 0) {
-        dependencies.push(dep);
+  _serializeData = function() {
+    let data = {};
+    for (var key in _objectPool) {
+      if (_objectPool.hasOwnProperty(key)) {
+        data[key] = _objectPool[key].map((obj) => {
+          return obj.getData ? obj.getData() : obj;
+        });
       }
     }
-    return JSON.stringify({objects,dependencies});
+    return JSON.stringify(data);
   };
 
   return {
-    serializeData: _serializeData
+    setData:          _setData,
+    findObject:       _findObject,
+    getObjectByKey:   _getObjectByKey,
+    setObject:        _setObject,
+    removeObject:     _removeObject,
+    setConnection:    _setConnection,
+    getConnection:    _getConnection,
+    getConnections:   _getConnections,
+    removeConnection: _removeConnection,
+    addActor:         _addActor,
+    removeActor:      _removeActor,
+    getActors:        _getActors,
+    addQuest:         _addQuest,
+    removeQuest:      _removeQuest,
+    getQuests:        _getQuests,
+    addDialog:        _addDialog,
+    removeDialog:     _removeDialog,
+    getDialogs:       _getDialogs,
+    addCondition:     _addCondition,
+    removeCondition:  _removeCondition,
+    getConditions:    _getConditions,
+    addVariable:      _addVariable,
+    removeVariable:   _removeVariable,
+    getVariables:     _getVariables,
+    serializeData:    _serializeData
   };
 };
-
 module.exports = RPGSystem;

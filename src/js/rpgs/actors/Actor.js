@@ -1,7 +1,6 @@
 "use strict";
-import UniqueObject from '../core/UniqueObject';
-
-const DIALOG = 'dialog';
+import BaseObject from '../core/BaseObject';
+import LinkType   from '../core/LinkType';
 
 let Actor = (function() {
   //Weak maps are new feature to JavaScript. We can store private
@@ -12,37 +11,19 @@ let Actor = (function() {
   //let _inventory = new WeakMap();
 
 
-  return class Actor extends UniqueObject {
+  return class Actor extends BaseObject {
     constructor(data) {
       super(data);
       _name.set(this,data ? data.name : '');
-      _dialog.set(this,null);
+      _dialog.set(this,data ? data.dialog : '');
       //_inventory.set(this,data.inventory ? );
     }
 
     getData() {
       let data = super.getData();
       data.name = this.getName();
+      data.dialog = this.getDialog();
       return data;
-    }
-
-    getDependencies() {
-      let dependencies = super.getDependencies();
-      if(this.getDialog()) {
-        dependencies[DIALOG] = this.getDialog().getId();
-      }
-      return dependencies;
-    }
-
-    setDependency(type,obj) {
-      super.setDependency(type,obj);
-      switch (type) {
-        case DIALOG:
-          this.setDialog(obj);
-          break;
-        default:
-          break;
-      };
     }
 
     setName(value) {
@@ -53,21 +34,32 @@ let Actor = (function() {
       return _name.get(this);
     }
 
-    setDialog(dialog) {
-      _dialog.set(this,dialog);
-    }
-
     getDialog() {
       return _dialog.get(this);
     }
 
-    /*setInventory(inventory) {
-      _inventory.set(this,inventory);
-    }
-
-    getInventory() {
+    /*getInventory() {
       return _inventory.get(this);
     }*/
+
+    canCreateInputConnection(type) {
+      switch (type) {
+        case LinkType.DIALOG:
+          return this.getInputConnections(LinkType.DIALOG).length === 0;
+        default: return false;
+      }
+    }
+
+    setOutputConnection(type,linkId) {}
+    getOutputConnections(type) {}
+    removeOutputConnection(type,linkId) {}
+
+    dispose() {
+      _name.delete(this);
+      _dialog.delete(this);
+      //_inventory.delete(this);
+      super.dispose();
+    }
 
   }
 })();
