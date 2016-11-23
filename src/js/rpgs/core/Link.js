@@ -46,8 +46,8 @@ let Link = (function() {
     dispose() {
       let linkStart = this.getStart();
       let linkEnd = this.getEnd();
-      let inputObj = this.getRPGS().findObject(linkStart);
-      let outputObj = this.getRPGS().findObject(linkEnd);
+      let inputObj = this.getRPGS().findNode(linkStart);
+      let outputObj = this.getRPGS().findNode(linkEnd);
       if(inputObj) inputObj.removeInputConnection(this.getType(),linkStart);
       if(outputObj) outputObj.removeOutputConnection(this.getType(),linkEnd);
       _type.delete(this);

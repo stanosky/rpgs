@@ -9,8 +9,8 @@ let Answer = (function() {
   let _text = new WeakMap();
 
   return class Answer extends BaseObject {
-    constructor(data) {
-      super(data);
+    constructor(data,rpgs) {
+      super(data,rpgs);
       _text.set(this,data ? data.text : '');
     }
 

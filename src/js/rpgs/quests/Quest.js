@@ -19,7 +19,7 @@ let Quest = (function() {
       _status.set(this,data ? data.status : QuestStatus.INCOMPLETE);
       _tasks.set(this,data ? data.tasks.map((params) => {
         let task = new Task(params,rpgs);
-        rpgs.setObjectByKey(KEY_TASKS,task);
+        rpgs.addNode(KEY_TASKS,task);
         return task.getId();
       }):[]);
     }
@@ -50,22 +50,22 @@ let Quest = (function() {
     }
 
     addTask(task) {
-      this.getRPGS().setObject(KEY_TASKS,task);
+      this.getRPGS().addNode(KEY_TASKS,task);
       _tasks.set(this,task.getId());
     }
 
     removeTask(taskId) {
-      this.getRPGS().removeObject(KEY_TASKS,taskId);
+      this.getRPGS().removeNode(KEY_TASKS,taskId);
       _tasks.set(this,Utils.removeObjectFromArray(_tasks.get(this),taskId));
     }
 
     getTask(taskId) {
-      return this.getRPGS().getObjectByKey(KEY_TASKS,taskId);
+      return this.getRPGS().getNode(KEY_TASKS,taskId);
     }
 
     getTasks() {
       return _tasks.get(this).map((a) => {
-        this.getRPGS().getObjectByKey(KEY_TASKS,a.getId())
+        this.getRPGS().getNode(KEY_TASKS,a.getId())
       });
     }
 

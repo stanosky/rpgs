@@ -17,7 +17,7 @@ let Dialog = (function() {
       _start.set(this,data ? data.startTalk : '');
       /*_talks.set(this,data ? data.talks.map((params) => {
         let talk = new Talk(params,rpgs);
-        rpgs.setObject(KEY_TALKS,talk);
+        rpgs.addNode(KEY_TALKS,talk);
         return talk.getId();
       }):[]);*/
       _talks.set(this,data ? data.talks : []);
@@ -31,22 +31,22 @@ let Dialog = (function() {
     }
 
     addTalk(talk) {
-      this.getRPGS().setObject(KEY_TALKS,talk);
+      this.getRPGS().addNode(KEY_TALKS,talk);
       _talks.set(this,talk.getId());
     }
 
     removeTalk(talkId) {
-      this.getRPGS().removeObject(KEY_TALKS,talkId);
+      this.getRPGS().removeNode(KEY_TALKS,talkId);
       _talks.set(this,Utils.removeObjectFromArray(_talks.get(this),talkId));
     }
 
     getTalk(talkId) {
-      return this.getRPGS().getObjectByKey(KEY_TALKS,talkId);
+      return this.getRPGS().getNode(KEY_TALKS,talkId);
     }
 
     getTalks() {
       return _talks.get(this);/*.map((t) => {
-        return this.getRPGS().getObjectByKey(KEY_TALKS,t);
+        return this.getRPGS().getNode(KEY_TALKS,t);
       });*/
     }
 

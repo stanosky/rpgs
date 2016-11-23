@@ -20,9 +20,10 @@ let RPGSystem = function (editor) {
 
   let _objectPool = {},
   _editor = editor||null,
-  _errorHandler = new ErrorHandler(_editor);
+  _errorHandler = new ErrorHandler(_editor),
+  _currContext = null,
 
-  let _objectFactory = function(data,rpgs) {
+  _objectFactory = function(data,rpgs) {
     let className = data.class;
     switch (className) {
       case 'Actor':     return new Actor(data,rpgs);
@@ -39,7 +40,7 @@ let RPGSystem = function (editor) {
     }
   },
 
-  _findObject = function(objId) {
+  _findNode = function(objId) {
     for (var key in _objectPool) {
       if (_objectPool.hasOwnProperty(key)) {
         let obj = Utils.getObjectById(_objectPool[key],objId);
@@ -50,16 +51,16 @@ let RPGSystem = function (editor) {
     return null;
   },
 
-  _getObjectByKey = function(key,objId) {
+  _getNode = function(key,objId) {
     let obj = Utils.getObjectById(_objectPool[key],objId);
     return obj;
   },
 
-  _setObject = function(key,obj) {
+  _addNode = function(key,obj) {
     _objectPool[key].push(obj);
   },
 
-  _removeObject = function(key,id) {
+  _removeNode = function(key,id) {
     _objectPool[key] = Utils.removeObjectById(_objectPool[key],id);
   },
 
@@ -68,13 +69,13 @@ let RPGSystem = function (editor) {
       this._handleError(ErrorCode.CONNECTION_TO_ITSELF,{node:nodeId1});
       return false;
     }
-    let node1 = this._findObject(nodeId1);
-    let node2 = this._findObject(nodeId2);
+    let node1 = this._findNode(nodeId1);
+    let node2 = this._findNode(nodeId2);
     if(node1 === null || node2 === null) return;
     if(node1.canCreateOutputConnection(type) && node2.canCreateInputConnection(type)) {
       let link = new Link({type:type,output:nodeId1,input:nodeId2});
       let linkId = link.getId();
-      this._setObjectByKey(KEY_LINKS,link);
+      this._addNode(KEY_LINKS,link);
       node1.setOutputConnection(type,linkId);
       node2.setInputConnection(type,linkId);
       return linkId;
@@ -85,7 +86,7 @@ let RPGSystem = function (editor) {
   },
 
   _getConnection = function(linkId) {
-    return this._getObjectByKey(KEY_LINKS,linkId);
+    return this._getNode(KEY_LINKS,linkId);
   },
 
   _getConnections = function() {
@@ -93,10 +94,11 @@ let RPGSystem = function (editor) {
   },
 
   _removeConnection = function(linkId) {
-    this._removeObject(KEY_LINKS,linkId);
+    this._removeNode(KEY_LINKS,linkId);
   },
 
-  _addActor = function(params) {
+  _addActor = function(id,params) {
+
     return _objectPool.actors.push(new Actor(params));
   },
 
@@ -217,10 +219,10 @@ let RPGSystem = function (editor) {
 
   return {
     setData:          _setData,
-    findObject:       _findObject,
-    getObjectByKey:   _getObjectByKey,
-    setObject:        _setObject,
-    removeObject:     _removeObject,
+    findNode:         _findNode,
+    getNode:          _getNode,
+    addNode:          _addNode,
+    removeNode:       _removeNode,
     setConnection:    _setConnection,
     getConnection:    _getConnection,
     getConnections:   _getConnections,

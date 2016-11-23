@@ -17,7 +17,7 @@ let Talk = (function() {
       _text.set(this,data ? data.text : '');
       /*_answers.set(this,data ? data.answers.map((params) => {
         let answer = new Answer(params,rpgs);
-        rpgs.setObject(KEY_ANSWERS,answer);
+        rpgs.addNode(KEY_ANSWERS,answer);
         return answer.getId();
       }):[]);*/
       _answers.set(this,data ? data.answers : []);
@@ -39,22 +39,22 @@ let Talk = (function() {
     }
 
     addAnswer(answer) {
-      this.getRPGS().setObject(KEY_ANSWERS,answer);
+      this.getRPGS().addNode(KEY_ANSWERS,answer);
       _answers.set(this,answer.getId());
     }
 
     removeAnswer(answerId) {
-      this.getRPGS().removeObject(KEY_ANSWERS,answerId);
+      this.getRPGS().removeNode(KEY_ANSWERS,answerId);
       _answers.set(this,Utils.removeObjectFromArray(_answers.get(this),answerId));
     }
 
     getAnswer(answerId) {
-      return this.getRPGS().getObjectByKey(KEY_ANSWERS,answerId);
+      return this.getRPGS().getNode(KEY_ANSWERS,answerId);
     }
 
     getAnswers() {
       return _answers.get(this);/*.map((a) => {
-        this.getRPGS().getObjectByKey(KEY_ANSWERS,a.getId())
+        this.getRPGS().getNode(KEY_ANSWERS,a.getId())
       });*/
     }
 

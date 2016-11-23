@@ -36,7 +36,7 @@ let BaseObject = (function(){
     }
 
     checkCondition(conditionId) {
-      let condition = this.getRPGS().getObjectByKey(KEY_CONDITIONS,conditionId);
+      let condition = this.getRPGS().getNode(KEY_CONDITIONS,conditionId);
       return condition ? condition.check() : true;
     }
 
@@ -121,7 +121,7 @@ let BaseObject = (function(){
 
     removeChildrenFrom(obj,key) {
       obj.filter((childId, index, arr) => {
-        this.getRPGS().removeObject(key,childId);
+        this.getRPGS().removeNode(key,childId);
         return true;
       });
     }
