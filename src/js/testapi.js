@@ -19,3 +19,9 @@ rpgs
 
   .addTalk('tlk3',{text:'This is talk 3.'})
     .addAnswer('tlk3ans1',{text:'Answer1'})
+
+
+//_parentHistory = [talk2,dialog1]
+//_lastChild = answer3
+_parentHistory = [dialog1]
+_lastChild = talk2

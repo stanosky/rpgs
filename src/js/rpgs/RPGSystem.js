@@ -13,17 +13,27 @@ import Talk         from './dialogs/Talk';
 import Quest        from './quests/Quest';
 import Task         from './quests/Task';
 
-
+const KEY_ACTORS = 'actors';
+const KEY_ANSWERS = 'answers';
+const KEY_CONDITIONS = 'conditions';
+const KEY_DIALOGS = 'dialogs';
 const KEY_LINKS = 'links';
+const KEY_SCRIPTS = 'scripts';
+const KEY_TALKS = 'talks';
+const KEY_TASKS = 'tasks';
+const KEY_QUESTS = 'quests';
+const KEY_VARIABLES = 'variables';
 
 let RPGSystem = function (editor) {
 
   let _objectPool = {},
   _editor = editor||null,
   _errorHandler = new ErrorHandler(_editor),
-  _currContext = null,
+  _context = null,
+  _lastChild = null,
+  _parentHistory = [],
 
-  _objectFactory = function(data,rpgs) {
+  _nodeFactory = function(data,rpgs) {
     let className = data.class;
     switch (className) {
       case 'Actor':     return new Actor(data,rpgs);
@@ -80,7 +90,8 @@ let RPGSystem = function (editor) {
       node2.setInputConnection(type,linkId);
       return linkId;
     } else {
-      this._handleError(ErrorCode.IMPROPER_CONNECTION,{type:type,node1:nodeId1,node2:nodeId2});
+      this._handleError(ErrorCode.IMPROPER_CONNECTION,
+        {type:type,node1:nodeId1,node2:nodeId2});
       return false;
     }
   },
@@ -97,110 +108,202 @@ let RPGSystem = function (editor) {
     this._removeNode(KEY_LINKS,linkId);
   },
 
-  _addActor = function(id,params) {
+  ////////////////////////////////////////////////////////////////
+  //METHOD CHAINING
+  ////////////////////////////////////////////////////////////////
 
-    return _objectPool.actors.push(new Actor(params));
+  /**
+   * Method used to check passed parameters and later merge them into
+   * single object.
+   * @param  {string} id      Mandatory id of node.
+   * @param  {object} params  Optional parameters.
+   * @return {object} Parameters merged into object.
+   */
+  _checkAndMergeParams(id = this._handleError(ErrorCode.MANDATORY_PARAM,{param:'id'}),
+                          params) {
+      if(typeof id !== 'string')
+        this._handleError(ErrorCode.INCORRECT_TYPE,{type:'string'});
+      if(params !== undefined && typeof params !== 'object')
+        this._handleError(ErrorCode.INCORRECT_TYPE,{type:'object'});
+      else params = {};
+      params.uuid = id;
+      return params;
+  },
+
+  /**
+   * This method helps in the creation of nodes. Its focus on proper
+   * placement of nodes in tree.
+   * @param  {string} id      Mandatory id of newly created node.
+   * @param  {object} params  Parameters of created node.
+   * @param  {boolean} asChild Determines if node should be added as child
+   * of another node or as an independent node.
+   * @param  {string} class   Name of class that will be used to create node.
+   * @param  {string} storage Name of node group inside which node will be added.
+   */
+  _chainNodeCreator = function(id,params,asChild,class,storage) {
+    params = this._checkAndMergeParams(id,params);
+    params.class = class;
+
+    if(asChild) {
+      if(_lastChild !== null) {
+        if(_lastChild.constructor.name === class) {
+          _lastChild = _nodeFactory(params,this);
+          _parentHistory[0].addChild(_lastChild.getId());
+          this._addNode(storage,_lastChild);
+        } else if(_lastChild.canAddChild(class)) {
+          _parentHistory.unshift(_lastChild);
+          _lastChild = _nodeFactory(params,this);
+          _parentHistory[0].addChild(_lastChild.getId());
+          this._addNode(storage,_lastChild);
+        } else {
+          _lastChild = _parentHistory.shift();//czy to ma sens?
+          this._chainNodeCreator(id,params,asChild,class,storage);
+        }
+      } else if(_parentHistory[0].canAddChild(class)) {
+        _lastChild = _nodeFactory(params,this);
+        _parentHistory[0].addChild(_lastChild.getId());
+        this._addNode(storage,node);
+      } else {
+        //_errorHandler.showMsg(ErrorCode.INCOMPATIBLE_CHILD,{});
+      }
+    } else {
+      _lastChild = null;
+      _parentHistory.length = 0;
+      let node = _nodeFactory(params,this);
+      _parentHistory = [node];
+      this._addNode(storage,node);
+    }
+  },
+
+  /**
+   * Helper method that is used to remove nodes from object pool
+   * and reset context of "method chaining" algorithm.
+   * @param  {string} id  Id of node to be removed.
+   * @param  {string} key Name of node group which contains node to remove.
+   */
+  _chainNodeRemover = function(id,key) {
+    _lastChild = null;
+    _parentHistory.length = 0;
+    this._removeNode(key,id);
+  },
+
+  _addActor = function(id,params) {
+    this._chainNodeCreator(id,params,false,'Actor',KEY_ACTORS);
+    return this;
   },
 
   _removeActor = function(actorId) {
-    _objectPool.actors = Utils.removeObjectById(_objectPool.actors,actorId);
+    this._chainNodeRemover(actorId,KEY_ACTORS);
+    return this;
   },
 
-  _getActors = function() {
-    return _objectPool.actors;
-  },
-
-  _addQuest = function(params) {
-    return _objectPool.quests.push(new Quest(params));
+  _addQuest = function(id,params) {
+    this._chainNodeCreator(id,params,false,'Quest',KEY_QUESTS);
+    return this;
   },
 
   _removeQuest = function(questId) {
-    _objectPool.quests = Utils.removeObjectById(_objectPool.quests,questId);
+    this._chainNodeRemover(questId,KEY_QUESTS);
+    return this;
   },
 
-  _getQuests = function() {
-    return _objectPool.quests;
-  },
-
-  _addDialog = function(params) {
-    return _objectPool.dialogs.push(new Dialog(params));
+  _addDialog = function(id,params) {
+    this._chainNodeCreator(id,params,false,'Dialog',KEY_DIALOGS);
+    return this;
   },
 
   _removeDialog = function(dialogId) {
-    _objectPool.dialogs = Utils.removeObjectById(_objectPool.dialogs,dialogId);
+    this._chainNodeRemover(dialogId,KEY_DIALOGS);
+    return this;
   },
 
-  _getDialogs = function() {
-    return _objectPool.dialogs;
-  },
-
-  _addCondition = function(params) {
-    return _objectPool.conditions.push(new Condition(params));
+  _addCondition = function(id,params) {
+    this._chainNodeCreator(id,params,false,'Condition',KEY_CONDITIONS);
+    return this;
   },
 
   _removeCondition = function(conditionId) {
-    _objectPool.conditions = Utils.removeObjectById(_objectPool.conditions,conditionId);
+    this._chainNodeRemover(conditionId,KEY_CONDITIONS);
+    return this;
   },
 
-  _getConditions = function() {
-    return _objectPool.conditions;
-  },
-
-  _addVariable = function(params) {
-    //return _objectPool.variables.push(new Variable(params));
+  _addVariable = function(id,params) {
+    this._chainNodeCreator(id,params,false,'Variable',KEY_VARIABLES);
+    return this;
   },
 
   _removeVariable = function(variableId) {
-    //_objectPool.variables = Utils.removeObjectById(_objectPool.variables,variableId);
+    this._chainNodeRemover(variableId,KEY_VARIABLES);
+    return this;
+  },
+
+  _addTalk = function(id,params) {
+    this._chainNodeCreator(id,params,true,'Talk',KEY_TALKS);
+    return this;
+  },
+
+  _removeTalk = function(id) {
+    this._chainNodeRemover(id,KEY_TALKS);
+    return this;
+  },
+
+  _addAnswer = function(id,params) {
+    this._chainNodeCreator(id,params,true,'Answer',KEY_ANSWERS);
+    return this;
+  },
+
+  _removeAnswer = function(id) {
+    this._chainNodeRemover(id,KEY_ANSWERS);
+    return this;
+  },
+
+  ////////////////////////////////////////////////////////////////
+  //GETTERS
+  ////////////////////////////////////////////////////////////////
+  _getActor = function(actorId) {
+    return this._getNode(KEY_ACTORS,actorId);
+  },
+
+  _getActors = function() {
+    return _objectPool[KEY_ACTORS];
+  },
+
+  _getCondition = function(conditionId) {
+    return this._getNode(KEY_CONDITIONS,conditionId);
+  },
+
+  _getConditions = function() {
+    return _objectPool[KEY_CONDITIONS];
+  },
+
+  _getDialog = function(dialogId) {
+    return this._getNode(KEY_DIALOGS,dialogId);
+  },
+
+  _getDialogs = function() {
+    return _objectPool[KEY_DIALOGS];
+  },
+
+  _getQuest = function(questId) {
+    return this._getNode(KEY_QUESTS,questId);
+  },
+
+  _getQuests = function() {
+    return _objectPool[KEY_QUESTS];
+  },
+
+  _getVariable = function(variableId) {
+    return this._getNode(KEY_VARIABLES,variableId);
   },
 
   _getVariables = function() {
-    //return _objectPool.variables;
+    return _objectPool[KEY_VARIABLES];
   },
-
-  /*_nodeHistory = [],
-  _addRootNode = function(type,params) {
-    this._done();
-    //zmień switch w classFactory!
-    let newNode = classFactory(type,params);
-    if(newNode) {
-      _nodeHistory.push(newNode);
-      _objectPool.push(newNode);
-    } else {
-      _errorHandler.showMsg(ErrorCode.NODE_NOT_EXISTS);
-    }
-    return this;
-  },
-
-  _addChildNode = function(type,params) {
-    let len = _nodeHistory.length;
-    if(len > 0) {
-      let currNode = _nodeHistory[len-1];
-      let newNode = classFactory(type,params);
-    } else {
-      return _addRootNode(type,params);
-    }
-  },
-
-  //zastanowić się czy przekazywać id czy obiekty
-  _connectNodes = function(parentNode,childNode) {
-    return this;
-  },
-
-  _prevNode = function() {
-    if(_nodeHistory.length > 0) _nodeHistory.pop();
-    return this;
-  },
-
-  _done = function() {
-    _nodeHistory = [];
-    return this;
-  },*/
 
   _setData = function(data) {
     for (var key in data) {
       if (data.hasOwnProperty(key)) {
-        _objectPool[key] = data[key].map((d) => _objectFactory(d,this));
+        _objectPool[key] = data[key].map((d) => _nodeFactory(d,this));
       }
     }
   },
@@ -218,15 +321,17 @@ let RPGSystem = function (editor) {
   };
 
   return {
-    setData:          _setData,
+
     findNode:         _findNode,
     getNode:          _getNode,
     addNode:          _addNode,
     removeNode:       _removeNode,
+
     setConnection:    _setConnection,
     getConnection:    _getConnection,
     getConnections:   _getConnections,
     removeConnection: _removeConnection,
+
     addActor:         _addActor,
     removeActor:      _removeActor,
     getActors:        _getActors,
@@ -242,6 +347,8 @@ let RPGSystem = function (editor) {
     addVariable:      _addVariable,
     removeVariable:   _removeVariable,
     getVariables:     _getVariables,
+
+    setData:          _setData,
     serializeData:    _serializeData
   };
 };

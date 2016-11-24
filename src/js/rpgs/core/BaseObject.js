@@ -67,6 +67,26 @@ let BaseObject = (function(){
       };
     }
 
+    canAddChild(type) {
+      return false;
+    }
+
+    addChild(childId) {
+
+    }
+
+    removeChild(index) {
+      
+    }
+
+    getChild(index) {
+      return null;
+    }
+
+    getChildren() {
+      return [];
+    }
+
     canCreateInputConnection(type) {
       return false;
     }

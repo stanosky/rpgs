@@ -23,6 +23,15 @@ let ErrorHandler = function(editor){
         case ErrorCode.OBJECT_NOT_FOUND:
           msg = `Cannot find object with id "${params.id}"`;
           break;
+        case ErrorCode.MANDATORY_PARAM:
+          msg = `Parameter "${params.param}" was expected but instead got undefined.`;
+          break;
+        case ErrorCode.INCORRECT_TYPE:
+          msg = `Wrong type of argument. Expected "${params.type}"`;
+          break;
+        case ErrorCode.INCORRECT_PARENT_NODE:
+          msg = `Node of type "${params.child}" can be added only to "${params.parent}" node.`;
+          break;
         default:
           msg = `Unknown error code passed: ${errorCode}`;
       }

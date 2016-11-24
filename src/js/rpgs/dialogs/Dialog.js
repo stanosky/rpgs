@@ -15,11 +15,6 @@ let Dialog = (function() {
     constructor(data,rpgs) {
       super(data,rpgs);
       _start.set(this,data ? data.startTalk : '');
-      /*_talks.set(this,data ? data.talks.map((params) => {
-        let talk = new Talk(params,rpgs);
-        rpgs.addNode(KEY_TALKS,talk);
-        return talk.getId();
-      }):[]);*/
       _talks.set(this,data ? data.talks : []);
     }
 
@@ -28,6 +23,26 @@ let Dialog = (function() {
       data.startTalk = this.getStartTalk();
       data.talks = this.getTalks();
       return data;
+    }
+
+    canAddChild(type) {
+      return type === 'Talk';
+    }
+
+    addChild(childId) {
+
+    }
+
+    removeChild(index) {
+
+    }
+
+    getChild(index) {
+      return null;
+    }
+
+    getChildren() {
+      return [];
     }
 
     addTalk(talk) {
