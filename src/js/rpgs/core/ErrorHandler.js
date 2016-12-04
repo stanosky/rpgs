@@ -32,6 +32,11 @@ let ErrorHandler = function(editor){
         case ErrorCode.INCORRECT_PARENT_NODE:
           msg = `Node of type "${params.child}" can be added only to "${params.parent}" node.`;
           break;
+        case ErrorCode.INCORRECT_LINK_TARGET:
+          msg = `Cannot create link connection to null node.`;
+          break;
+        case ErrorCode.INCOMPATIBLE_CHILD:
+          msg = `Cannot add child of type "${params.child}" into parent of type "${params.parent}".`;
         default:
           msg = `Unknown error code passed: ${errorCode}`;
       }
@@ -39,6 +44,7 @@ let ErrorHandler = function(editor){
         editor.showMsg(msg);
       } else {
         throw new Error(msg);
+        //add warning mode?
       }
     }
   };

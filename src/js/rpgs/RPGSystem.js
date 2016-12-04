@@ -32,6 +32,10 @@ let RPGSystem = function (editor) {
   _context = null,
   _lastChild = null,
   _parentHistory = [],
+  _halfLinks = {
+    out: [],
+    inp: []
+  },
 
   _nodeFactory = function(data,rpgs) {
     let className = data.class;
@@ -156,7 +160,7 @@ let RPGSystem = function (editor) {
           _parentHistory[0].addChild(_lastChild.getId());
           this._addNode(storage,_lastChild);
         } else {
-          _lastChild = _parentHistory.shift();//czy to ma sens?
+          _lastChild = _parentHistory.shift();
           this._chainNodeCreator(id,params,asChild,class,storage);
         }
       } else if(_parentHistory[0].canAddChild(class)) {
@@ -164,7 +168,10 @@ let RPGSystem = function (editor) {
         _parentHistory[0].addChild(_lastChild.getId());
         this._addNode(storage,node);
       } else {
-        //_errorHandler.showMsg(ErrorCode.INCOMPATIBLE_CHILD,{});
+        _errorHandler.showMsg(ErrorCode.INCOMPATIBLE_CHILD,{
+          child:class,
+          parent: _parentHistory[0] === null ? 'null' : _parentHistory[0].constructor.name
+        });
       }
     } else {
       _lastChild = null;
@@ -185,6 +192,41 @@ let RPGSystem = function (editor) {
     _lastChild = null;
     _parentHistory.length = 0;
     this._removeNode(key,id);
+  },
+
+  /**
+   * Helper method that is used for creating temporary links (half links)
+   * or complete Link nodes, when input and output counterparts are present.
+   * @param  {string} type      Defines type of connection.
+   * @param  {string} id        Id of targeted node into which connection
+   * should be made.
+   * @param  {string} startSide Defines current start side of the link.
+   * @param  {string} endSide   Defines current end side of the link.
+   */
+  _chainLinkCreator = function(type,id,startSide,endSide) {
+    let opposite = null;
+    let node = null;
+    if(_lastChild !== null) {
+      node = _lastChild;
+    } else if(_parentHistory[0] !== undefined) {
+      node = _parentHistory[0];
+    }
+    if(node !== null) {
+      for (var i = 0; i < _halfLinks[endSide].length; i++) {
+        let link = _halfLinks[endSide][i];
+        if(link.type === type && link.id === node.getId()){
+          opposite = _halfLinks[endSide].splice(i,1);
+          break;
+        }
+      }
+      if(opposite === null) {
+        _halfLinks[startSide].push({type,id});
+      } else {
+        this._setConnection(type,opposite.id,id);
+      }
+    } else {
+      _errorHandler.showMsg(ErrorCode.INCORRECT_LINK_TARGET);
+    }
   },
 
   _addActor = function(id,params) {
@@ -254,6 +296,16 @@ let RPGSystem = function (editor) {
 
   _removeAnswer = function(id) {
     this._chainNodeRemover(id,KEY_ANSWERS);
+    return this;
+  },
+
+  _inp = function(type,id) {
+    this._chainLinkCreator(type,id,'inp','out');
+    return this;
+  },
+
+  _out = function(type,id) {
+    this._chainLinkCreator(type,id,'out','inp');
     return this;
   },
 

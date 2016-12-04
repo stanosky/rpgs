@@ -12,16 +12,16 @@ let Link = (function() {
     constructor(data,rpgs){
       super(data,rpgs);
       _type.set(this,data.type);
-      _linkStart.set(this,data.linkStart);
-      _linkEnd.set(this,data.linkEnd);
+      _linkInp.set(this,data.linkInp);
+      _linkOut.set(this,data.linkOut);
     }
 
-    getStart() {
-      return _linkStart.get(this);
+    getInp() {
+      return _linkInp.get(this);
     }
 
-    getEnd() {
-      return _linkEnd.get(this);
+    getOut() {
+      return _linkOut.get(this);
     }
 
     getType() {
@@ -31,8 +31,8 @@ let Link = (function() {
     getData() {
       let data = super.getData();
       data.type = this.getType();
-      data.linkStart = this.getStart();
-      data.linkEnd = this.getEnd();
+      data.linkInp = this.getInp();
+      data.linkOut = this.getOut();
       return data;
     }
 
@@ -44,15 +44,15 @@ let Link = (function() {
     removeInputConnection(type,linkId) {}
 
     dispose() {
-      let linkStart = this.getStart();
-      let linkEnd = this.getEnd();
-      let inputObj = this.getRPGS().findNode(linkStart);
-      let outputObj = this.getRPGS().findNode(linkEnd);
-      if(inputObj) inputObj.removeInputConnection(this.getType(),linkStart);
-      if(outputObj) outputObj.removeOutputConnection(this.getType(),linkEnd);
+      let linkInp = this.getInp();
+      let linkOut = this.getOut();
+      let inpObj = this.getRPGS().findNode(linkInp);
+      let outObj = this.getRPGS().findNode(linkOut);
+      if(inpObj) inpObj.removeInputConnection(this.getType(),linkInp);
+      if(outObj) outObj.removeOutputConnection(this.getType(),linkOut);
       _type.delete(this);
-      _linkStart.delete(this);
-      _linkEnd.delete(this);
+      _linkInp.delete(this);
+      _linkOut.delete(this);
       super.dispose();
     }
   };

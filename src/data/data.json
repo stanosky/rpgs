@@ -190,43 +190,43 @@
       "class":"Link",
       "uuid":"d1->ac1",
       "type":"dialog",
-      "linkStart":"d1",
-      "linkEnd":"ac1"
+      "linkInp":"d1",
+      "linkOut":"ac1"
     },
     {
       "class":"Link",
       "uuid":"d2->ac2",
       "type":"dialog",
-      "linkStart":"d2",
-      "linkEnd":"ac2"
+      "linkInp":"d2",
+      "linkOut":"ac2"
     },
     {
       "class":"Link",
       "uuid":"a1->t2",
       "type":"goto",
-      "linkStart":"a1",
-      "linkEnd":"t2"
+      "linkInp":"a1",
+      "linkOut":"t2"
     },
     {
       "class":"Link",
       "uuid":"a2->t3",
       "type":"goto",
-      "linkStart":"a2",
-      "linkEnd":"t3"
+      "linkInp":"a2",
+      "linkOut":"t3"
     },
     {
       "class":"Link",
       "uuid":"a4->t5",
       "type":"goto",
-      "linkStart":"a4",
-      "linkEnd":"t5"
+      "linkInp":"a4",
+      "linkOut":"t5"
     },
     {
       "class":"Link",
       "uuid":"a5->t6",
       "type":"goto",
-      "linkStart":"a5",
-      "linkEnd":"t6"
+      "linkInp":"a5",
+      "linkOut":"t6"
     }
   ]
 }
