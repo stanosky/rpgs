@@ -24,7 +24,7 @@ const KEY_TASKS = 'tasks';
 const KEY_QUESTS = 'quests';
 const KEY_VARIABLES = 'variables';
 
-let RPGSystem = function (editor) {
+let RPGSystem = function (data,editor) {
 
   let _objectPool = {},
   _editor = editor||null,
@@ -35,9 +35,15 @@ let RPGSystem = function (editor) {
   _halfLinks = {
     out: [],
     inp: []
-  },
+  };
 
-  _nodeFactory = function(data,rpgs) {
+  for (var key in data) {
+    if (data.hasOwnProperty(key)) {
+      _objectPool[key] = data[key].map((d) => _nodeFactory(d,this));
+    }
+  }
+
+  function _nodeFactory(data,rpgs) {
     let className = data.class;
     switch (className) {
       case 'Actor':     return new Actor(data,rpgs);
@@ -52,16 +58,17 @@ let RPGSystem = function (editor) {
         _errorHandler.showMsg(ErrorCode.CLASS_NOT_DEFINED,{class:className});
         return null;
     }
-  },
+  }
 
-  _findNode = function(objId) {
+  let _findNode = function(objId) {
     for (var key in _objectPool) {
       if (_objectPool.hasOwnProperty(key)) {
         let obj = Utils.getObjectById(_objectPool[key],objId);
         if(obj !== null) return obj;
       }
     }
-    this._errorHandler(ErrorCode.OBJECT_NOT_FOUND,{id:objId});
+    //Is error message neccessary here? To consider.
+    //_errorHandler.showMsg(ErrorCode.OBJECT_NOT_FOUND,{id:objId});
     return null;
   },
 
@@ -71,6 +78,7 @@ let RPGSystem = function (editor) {
   },
 
   _addNode = function(key,obj) {
+    if(!_objectPool[key]) _objectPool[key] = [];
     _objectPool[key].push(obj);
   },
 
@@ -79,12 +87,13 @@ let RPGSystem = function (editor) {
   },
 
   _setConnection = function(type,nodeId1,nodeId2) {
+    console.log('_setConnection',type,nodeId1,nodeId2);
     if(nodeId1 === nodeId2) {
       this._handleError(ErrorCode.CONNECTION_TO_ITSELF,{node:nodeId1});
       return false;
     }
-    let node1 = this._findNode(nodeId1);
-    let node2 = this._findNode(nodeId2);
+    let node1 = _findNode(nodeId1);
+    let node2 = _findNode(nodeId2);
     if(node1 === null || node2 === null) return;
     if(node1.canCreateOutputConnection(type) && node2.canCreateInputConnection(type)) {
       let link = new Link({type:type,output:nodeId1,input:nodeId2});
@@ -110,7 +119,7 @@ let RPGSystem = function (editor) {
 
   _removeConnection = function(linkId) {
     this._removeNode(KEY_LINKS,linkId);
-  },
+  };
 
   ////////////////////////////////////////////////////////////////
   //METHOD CHAINING
@@ -123,8 +132,9 @@ let RPGSystem = function (editor) {
    * @param  {object} params  Optional parameters.
    * @return {object} Parameters merged into object.
    */
-  _checkAndMergeParams(id = this._handleError(ErrorCode.MANDATORY_PARAM,{param:'id'}),
-                          params) {
+  function _checkAndMergeParams(
+                id = this._handleError(ErrorCode.MANDATORY_PARAM,{param:'id'}),
+                params) {
       if(typeof id !== 'string')
         this._handleError(ErrorCode.INCORRECT_TYPE,{type:'string'});
       if(params !== undefined && typeof params !== 'object')
@@ -132,7 +142,7 @@ let RPGSystem = function (editor) {
       else params = {};
       params.uuid = id;
       return params;
-  },
+  }
 
   /**
    * This method helps in the creation of nodes. Its focus on proper
@@ -141,46 +151,74 @@ let RPGSystem = function (editor) {
    * @param  {object} params  Parameters of created node.
    * @param  {boolean} asChild Determines if node should be added as child
    * of another node or as an independent node.
-   * @param  {string} class   Name of class that will be used to create node.
+   * @param  {string} className   Name of class that will be used to create node.
    * @param  {string} storage Name of node group inside which node will be added.
    */
-  _chainNodeCreator = function(id,params,asChild,class,storage) {
-    params = this._checkAndMergeParams(id,params);
-    params.class = class;
+  function _chainNodeCreator(id,params,asChild,className,storage) {
+    //First, we check that id and params are valid.
+    params = _checkAndMergeParams(id,params);
+    //Class name for later usage.
+    params.class = className;
 
+    //Test if node should be added as child or parent.
     if(asChild) {
+      console.log('_lastChild',_lastChild,'_parentHistory[0]',_parentHistory[0],id);
+      //If last added child was not null then we must check additional conditions.
       if(_lastChild !== null) {
-        if(_lastChild.constructor.name === class) {
-          _lastChild = _nodeFactory(params,this);
-          _parentHistory[0].addChild(_lastChild.getId());
-          this._addNode(storage,_lastChild);
-        } else if(_lastChild.canAddChild(class)) {
-          _parentHistory.unshift(_lastChild);
-          _lastChild = _nodeFactory(params,this);
-          _parentHistory[0].addChild(_lastChild.getId());
-          this._addNode(storage,_lastChild);
-        } else {
-          _lastChild = _parentHistory.shift();
-          this._chainNodeCreator(id,params,asChild,class,storage);
+        //If constructor name of previous child node, is equal to name of class,
+        //whose we try to create, it means node should be added to current parent.
+        console.log('canAddChild',className,_lastChild.canAddChild(className));
+        if(_lastChild.constructor.name === className) {
+          createChildNode();
         }
-      } else if(_parentHistory[0].canAddChild(class)) {
-        _lastChild = _nodeFactory(params,this);
-        _parentHistory[0].addChild(_lastChild.getId());
-        this._addNode(storage,node);
-      } else {
+        //If names of constructors not match, then we must check if new node
+        //can be added as child to our previous child.
+        else if(_lastChild.canAddChild(className)) {
+          _parentHistory.unshift(_lastChild);
+          createChildNode();
+        }
+        //Finally if previous conditions are false we try go back to previous
+        //parent node.
+        else {
+          _lastChild = _parentHistory.shift()||null;
+          _chainNodeCreator(id,params,asChild,className,storage);
+        }
+      }
+      //If last child is null, then we check if node can be added to current
+      //parent node.
+      else if(_parentHistory.length > 0 && _parentHistory[0].canAddChild(className)) {
+        createChildNode();
+      }
+      //If last child and last parent is equal to null, then new child node
+      //cant be added, so we throw error.
+      else {
         _errorHandler.showMsg(ErrorCode.INCOMPATIBLE_CHILD,{
-          child:class,
-          parent: _parentHistory[0] === null ? 'null' : _parentHistory[0].constructor.name
+          child:className,
+          parent: _parentHistory.length > 0
+                ? _parentHistory[0].constructor.name
+                : 'null'
         });
       }
     } else {
+      //If node is added as parent, then last child is set to null
+      //and parent history is cleared.
       _lastChild = null;
       _parentHistory.length = 0;
+      //After that, new node is created.
       let node = _nodeFactory(params,this);
       _parentHistory = [node];
-      this._addNode(storage,node);
+      _addNode(storage,node);
     }
-  },
+
+    function createChildNode() {
+      //We create a new node, and then set as the last child.
+      _lastChild = _nodeFactory(params,this);
+      //Then we add our freshly created node to its parent.
+      _parentHistory[0].addChild(_lastChild.getId());
+      //Finally new node is added to main storage object.
+      _addNode(storage,_lastChild);
+    }
+  }
 
   /**
    * Helper method that is used to remove nodes from object pool
@@ -188,11 +226,11 @@ let RPGSystem = function (editor) {
    * @param  {string} id  Id of node to be removed.
    * @param  {string} key Name of node group which contains node to remove.
    */
-  _chainNodeRemover = function(id,key) {
+  function _chainNodeRemover(id,key) {
     _lastChild = null;
     _parentHistory.length = 0;
     this._removeNode(key,id);
-  },
+  }
 
   /**
    * Helper method that is used for creating temporary links (half links)
@@ -203,7 +241,7 @@ let RPGSystem = function (editor) {
    * @param  {string} startSide Defines current start side of the link.
    * @param  {string} endSide   Defines current end side of the link.
    */
-  _chainLinkCreator = function(type,id,startSide,endSide) {
+  function _chainLinkCreator(type,id,startSide,endSide) {
     let opposite = null;
     let node = null;
     if(_lastChild !== null) {
@@ -222,90 +260,90 @@ let RPGSystem = function (editor) {
       if(opposite === null) {
         _halfLinks[startSide].push({type,id});
       } else {
-        this._setConnection(type,opposite.id,id);
+        _setConnection(type,opposite.id,id);
       }
     } else {
       _errorHandler.showMsg(ErrorCode.INCORRECT_LINK_TARGET);
     }
-  },
+  }
 
-  _addActor = function(id,params) {
-    this._chainNodeCreator(id,params,false,'Actor',KEY_ACTORS);
+  let _addActor = function(id,params) {
+    _chainNodeCreator(id,params,false,'Actor',KEY_ACTORS);
     return this;
   },
 
   _removeActor = function(actorId) {
-    this._chainNodeRemover(actorId,KEY_ACTORS);
+    _chainNodeRemover(actorId,KEY_ACTORS);
     return this;
   },
 
   _addQuest = function(id,params) {
-    this._chainNodeCreator(id,params,false,'Quest',KEY_QUESTS);
+    _chainNodeCreator(id,params,false,'Quest',KEY_QUESTS);
     return this;
   },
 
   _removeQuest = function(questId) {
-    this._chainNodeRemover(questId,KEY_QUESTS);
+    _chainNodeRemover(questId,KEY_QUESTS);
     return this;
   },
 
   _addDialog = function(id,params) {
-    this._chainNodeCreator(id,params,false,'Dialog',KEY_DIALOGS);
+    _chainNodeCreator(id,params,false,'Dialog',KEY_DIALOGS);
     return this;
   },
 
   _removeDialog = function(dialogId) {
-    this._chainNodeRemover(dialogId,KEY_DIALOGS);
+    _chainNodeRemover(dialogId,KEY_DIALOGS);
     return this;
   },
 
   _addCondition = function(id,params) {
-    this._chainNodeCreator(id,params,false,'Condition',KEY_CONDITIONS);
+    _chainNodeCreator(id,params,false,'Condition',KEY_CONDITIONS);
     return this;
   },
 
   _removeCondition = function(conditionId) {
-    this._chainNodeRemover(conditionId,KEY_CONDITIONS);
+    _chainNodeRemover(conditionId,KEY_CONDITIONS);
     return this;
   },
 
   _addVariable = function(id,params) {
-    this._chainNodeCreator(id,params,false,'Variable',KEY_VARIABLES);
+    _chainNodeCreator(id,params,false,'Variable',KEY_VARIABLES);
     return this;
   },
 
   _removeVariable = function(variableId) {
-    this._chainNodeRemover(variableId,KEY_VARIABLES);
+    _chainNodeRemover(variableId,KEY_VARIABLES);
     return this;
   },
 
   _addTalk = function(id,params) {
-    this._chainNodeCreator(id,params,true,'Talk',KEY_TALKS);
+    _chainNodeCreator(id,params,true,'Talk',KEY_TALKS);
     return this;
   },
 
   _removeTalk = function(id) {
-    this._chainNodeRemover(id,KEY_TALKS);
+    _chainNodeRemover(id,KEY_TALKS);
     return this;
   },
 
   _addAnswer = function(id,params) {
-    this._chainNodeCreator(id,params,true,'Answer',KEY_ANSWERS);
+    _chainNodeCreator(id,params,true,'Answer',KEY_ANSWERS);
     return this;
   },
 
   _removeAnswer = function(id) {
-    this._chainNodeRemover(id,KEY_ANSWERS);
+    _chainNodeRemover(id,KEY_ANSWERS);
     return this;
   },
 
   _inp = function(type,id) {
-    this._chainLinkCreator(type,id,'inp','out');
+    _chainLinkCreator(type,id,'inp','out');
     return this;
   },
 
   _out = function(type,id) {
-    this._chainLinkCreator(type,id,'out','inp');
+    _chainLinkCreator(type,id,'out','inp');
     return this;
   },
 
@@ -352,14 +390,6 @@ let RPGSystem = function (editor) {
     return _objectPool[KEY_VARIABLES];
   },
 
-  _setData = function(data) {
-    for (var key in data) {
-      if (data.hasOwnProperty(key)) {
-        _objectPool[key] = data[key].map((d) => _nodeFactory(d,this));
-      }
-    }
-  },
-
   _serializeData = function() {
     let data = {};
     for (var key in _objectPool) {
@@ -373,34 +403,59 @@ let RPGSystem = function (editor) {
   };
 
   return {
-
+    ////////////////////////////////////////////
+    //General node methods
+    ////////////////////////////////////////////
     findNode:         _findNode,
     getNode:          _getNode,
     addNode:          _addNode,
     removeNode:       _removeNode,
 
+    ////////////////////////////////////////////
+    //Link creation methods
+    ////////////////////////////////////////////
     setConnection:    _setConnection,
     getConnection:    _getConnection,
     getConnections:   _getConnections,
     removeConnection: _removeConnection,
 
-    addActor:         _addActor,
-    removeActor:      _removeActor,
-    getActors:        _getActors,
-    addQuest:         _addQuest,
-    removeQuest:      _removeQuest,
-    getQuests:        _getQuests,
-    addDialog:        _addDialog,
-    removeDialog:     _removeDialog,
-    getDialogs:       _getDialogs,
-    addCondition:     _addCondition,
-    removeCondition:  _removeCondition,
-    getConditions:    _getConditions,
-    addVariable:      _addVariable,
-    removeVariable:   _removeVariable,
-    getVariables:     _getVariables,
+    ////////////////////////////////////////////
+    //Chainable methods
+    ////////////////////////////////////////////
+    addActor:        _addActor,
+    removeActor:     _removeActor,
+    addQuest:        _addQuest,
+    removeQuest:     _removeQuest,
+    addDialog:       _addDialog,
+    removeDialog:    _removeDialog,
+    addCondition:    _addCondition,
+    removeCondition: _removeCondition,
+    addVariable:     _addVariable,
+    removeVariable:  _removeVariable,
+    addTalk:         _addTalk,
+    removeTalk:      _removeTalk,
+    addAnswer:       _addAnswer,
+    removeAnswer:    _removeAnswer,
+    inp:             _inp,
+    out:             _out,
 
-    setData:          _setData,
+    ////////////////////////////////////////////
+    //Getter methods
+    ////////////////////////////////////////////
+    getActor:        _getActor,
+    getActors:       _getActors,
+    getCondition:    _getCondition,
+    getConditions:   _getConditions,
+    getDialog:       _getDialog,
+    getDialogs:      _getDialogs,
+    getQuest:        _getQuest,
+    getQuests:       _getQuests,
+    getVariable:     _getVariable,
+    getVariables:    _getVariables,
+
+    ////////////////////////////////////////////
+    //Miscalineus methods
+    ////////////////////////////////////////////
     serializeData:    _serializeData
   };
 };

@@ -37,6 +37,7 @@ let ErrorHandler = function(editor){
           break;
         case ErrorCode.INCOMPATIBLE_CHILD:
           msg = `Cannot add child of type "${params.child}" into parent of type "${params.parent}".`;
+          break;
         default:
           msg = `Unknown error code passed: ${errorCode}`;
       }

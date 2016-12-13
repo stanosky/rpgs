@@ -5,8 +5,8 @@ import BaseObject from '../core/BaseObject';
 let Link = (function() {
 
   let _type = new WeakMap();
-  let _linkStart = new WeakMap();
-  let _linkEnd = new WeakMap();
+  let _linkOut = new WeakMap();
+  let _linkInp = new WeakMap();
 
   return class Link extends BaseObject {
     constructor(data,rpgs){

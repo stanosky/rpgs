@@ -238,49 +238,53 @@ module.exports={
       "class":"Link",
       "uuid":"d1->ac1",
       "type":"dialog",
-      "linkStart":"d1",
-      "linkEnd":"ac1"
+      "linkInp":"d1",
+      "linkOut":"ac1"
     },
     {
       "class":"Link",
       "uuid":"d2->ac2",
       "type":"dialog",
-      "linkStart":"d2",
-      "linkEnd":"ac2"
+      "linkInp":"d2",
+      "linkOut":"ac2"
     },
     {
       "class":"Link",
       "uuid":"a1->t2",
       "type":"goto",
-      "linkStart":"a1",
-      "linkEnd":"t2"
+      "linkInp":"a1",
+      "linkOut":"t2"
     },
     {
       "class":"Link",
       "uuid":"a2->t3",
       "type":"goto",
-      "linkStart":"a2",
-      "linkEnd":"t3"
+      "linkInp":"a2",
+      "linkOut":"t3"
     },
     {
       "class":"Link",
       "uuid":"a4->t5",
       "type":"goto",
-      "linkStart":"a4",
-      "linkEnd":"t5"
+      "linkInp":"a4",
+      "linkOut":"t5"
     },
     {
       "class":"Link",
       "uuid":"a5->t6",
       "type":"goto",
-      "linkStart":"a5",
-      "linkEnd":"t6"
+      "linkInp":"a5",
+      "linkOut":"t6"
     }
   ]
 }
 
 },{}],3:[function(require,module,exports){
 "use strict";
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+//import Inventory    from './actors/Invenotry';
+
 
 var _Utils = require('./core/Utils');
 
@@ -332,16 +336,40 @@ var _Task2 = _interopRequireDefault(_Task);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
-//import Inventory    from './actors/Invenotry';
+var KEY_ACTORS = 'actors';
+var KEY_ANSWERS = 'answers';
+var KEY_CONDITIONS = 'conditions';
+var KEY_DIALOGS = 'dialogs';
 var KEY_LINKS = 'links';
+var KEY_SCRIPTS = 'scripts';
+var KEY_TALKS = 'talks';
+var KEY_TASKS = 'tasks';
+var KEY_QUESTS = 'quests';
+var KEY_VARIABLES = 'variables';
 
-var RPGSystem = function RPGSystem(editor) {
+var RPGSystem = function RPGSystem(data, editor) {
+  var _this = this;
 
   var _objectPool = {},
       _editor = editor || null,
-      _errorHandler = new _ErrorHandler2.default(_editor);
+      _errorHandler = new _ErrorHandler2.default(_editor),
+      _context = null,
+      _lastChild = null,
+      _parentHistory = [],
+      _halfLinks = {
+    out: [],
+    inp: []
+  };
 
-  var _objectFactory = function _objectFactory(data, rpgs) {
+  for (var key in data) {
+    if (data.hasOwnProperty(key)) {
+      _objectPool[key] = data[key].map(function (d) {
+        return _nodeFactory(d, _this);
+      });
+    }
+  }
+
+  function _nodeFactory(data, rpgs) {
     var className = data.class;
     switch (className) {
       case 'Actor':
@@ -364,39 +392,43 @@ var RPGSystem = function RPGSystem(editor) {
         _errorHandler.showMsg(_ErrorCode2.default.CLASS_NOT_DEFINED, { class: className });
         return null;
     }
-  },
-      _findObject = function _findObject(objId) {
+  }
+
+  var _findNode = function _findNode(objId) {
     for (var key in _objectPool) {
       if (_objectPool.hasOwnProperty(key)) {
         var obj = _Utils2.default.getObjectById(_objectPool[key], objId);
         if (obj !== null) return obj;
       }
     }
-    this._errorHandler(_ErrorCode2.default.OBJECT_NOT_FOUND, { id: objId });
+    //Is error message neccessary here? To consider.
+    //_errorHandler.showMsg(ErrorCode.OBJECT_NOT_FOUND,{id:objId});
     return null;
   },
-      _getObjectByKey = function _getObjectByKey(key, objId) {
+      _getNode = function _getNode(key, objId) {
     var obj = _Utils2.default.getObjectById(_objectPool[key], objId);
     return obj;
   },
-      _setObject = function _setObject(key, obj) {
+      _addNode = function _addNode(key, obj) {
+    if (!_objectPool[key]) _objectPool[key] = [];
     _objectPool[key].push(obj);
   },
-      _removeObject = function _removeObject(key, id) {
+      _removeNode = function _removeNode(key, id) {
     _objectPool[key] = _Utils2.default.removeObjectById(_objectPool[key], id);
   },
       _setConnection = function _setConnection(type, nodeId1, nodeId2) {
+    console.log('_setConnection', type, nodeId1, nodeId2);
     if (nodeId1 === nodeId2) {
       this._handleError(_ErrorCode2.default.CONNECTION_TO_ITSELF, { node: nodeId1 });
       return false;
     }
-    var node1 = this._findObject(nodeId1);
-    var node2 = this._findObject(nodeId2);
+    var node1 = _findNode(nodeId1);
+    var node2 = _findNode(nodeId2);
     if (node1 === null || node2 === null) return;
     if (node1.canCreateOutputConnection(type) && node2.canCreateInputConnection(type)) {
       var link = new _Link2.default({ type: type, output: nodeId1, input: nodeId2 });
       var linkId = link.getId();
-      this._setObjectByKey(KEY_LINKS, link);
+      this._addNode(KEY_LINKS, link);
       node1.setOutputConnection(type, linkId);
       node2.setInputConnection(type, linkId);
       return linkId;
@@ -406,106 +438,255 @@ var RPGSystem = function RPGSystem(editor) {
     }
   },
       _getConnection = function _getConnection(linkId) {
-    return this._getObjectByKey(KEY_LINKS, linkId);
+    return this._getNode(KEY_LINKS, linkId);
   },
       _getConnections = function _getConnections() {
     return _objectPool[KEY_LINKS];
   },
       _removeConnection = function _removeConnection(linkId) {
-    this._removeObject(KEY_LINKS, linkId);
-  },
-      _addActor = function _addActor(params) {
-    return _objectPool.actors.push(new _Actor2.default(params));
+    this._removeNode(KEY_LINKS, linkId);
+  };
+
+  ////////////////////////////////////////////////////////////////
+  //METHOD CHAINING
+  ////////////////////////////////////////////////////////////////
+
+  /**
+   * Method used to check passed parameters and later merge them into
+   * single object.
+   * @param  {string} id      Mandatory id of node.
+   * @param  {object} params  Optional parameters.
+   * @return {object} Parameters merged into object.
+   */
+  function _checkAndMergeParams() {
+    var id = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this._handleError(_ErrorCode2.default.MANDATORY_PARAM, { param: 'id' });
+    var params = arguments[1];
+
+    if (typeof id !== 'string') this._handleError(_ErrorCode2.default.INCORRECT_TYPE, { type: 'string' });
+    if (params !== undefined && (typeof params === 'undefined' ? 'undefined' : _typeof(params)) !== 'object') this._handleError(_ErrorCode2.default.INCORRECT_TYPE, { type: 'object' });else params = {};
+    params.uuid = id;
+    return params;
+  }
+
+  /**
+   * This method helps in the creation of nodes. Its focus on proper
+   * placement of nodes in tree.
+   * @param  {string} id      Mandatory id of newly created node.
+   * @param  {object} params  Parameters of created node.
+   * @param  {boolean} asChild Determines if node should be added as child
+   * of another node or as an independent node.
+   * @param  {string} className   Name of class that will be used to create node.
+   * @param  {string} storage Name of node group inside which node will be added.
+   */
+  function _chainNodeCreator(id, params, asChild, className, storage) {
+    //First, we check that id and params are valid.
+    params = _checkAndMergeParams(id, params);
+    //Class name for later usage.
+    params.class = className;
+
+    //Test if node should be added as child or parent.
+    if (asChild) {
+      console.log('_lastChild', _lastChild, '_parentHistory[0]', _parentHistory[0], id);
+      //If last added child was not null then we must check additional conditions.
+      if (_lastChild !== null) {
+        //If constructor name of previous child node, is equal to name of class,
+        //whose we try to create, it means node should be added to current parent.
+        console.log('canAddChild', className, _lastChild.canAddChild(className));
+        if (_lastChild.constructor.name === className) {
+          createChildNode();
+        }
+        //If names of constructors not match, then we must check if new node
+        //can be added as child to our previous child.
+        else if (_lastChild.canAddChild(className)) {
+            _parentHistory.unshift(_lastChild);
+            createChildNode();
+          }
+          //Finally if previous conditions are false we try go back to previous
+          //parent node.
+          else {
+              _lastChild = _parentHistory.shift() || null;
+              _chainNodeCreator(id, params, asChild, className, storage);
+            }
+      }
+      //If last child is null, then we check if node can be added to current
+      //parent node.
+      else if (_parentHistory.length > 0 && _parentHistory[0].canAddChild(className)) {
+          createChildNode();
+        }
+        //If last child and last parent is equal to null, then new child node
+        //cant be added, so we throw error.
+        else {
+            _errorHandler.showMsg(_ErrorCode2.default.INCOMPATIBLE_CHILD, {
+              child: className,
+              parent: _parentHistory.length > 0 ? _parentHistory[0].constructor.name : 'null'
+            });
+          }
+    } else {
+      //If node is added as parent, then last child is set to null
+      //and parent history is cleared.
+      _lastChild = null;
+      _parentHistory.length = 0;
+      //After that, new node is created.
+      var node = _nodeFactory(params, this);
+      _parentHistory = [node];
+      _addNode(storage, node);
+    }
+
+    function createChildNode() {
+      //We create a new node, and then set as the last child.
+      _lastChild = _nodeFactory(params, this);
+      //Then we add our freshly created node to its parent.
+      _parentHistory[0].addChild(_lastChild.getId());
+      //Finally new node is added to main storage object.
+      _addNode(storage, _lastChild);
+    }
+  }
+
+  /**
+   * Helper method that is used to remove nodes from object pool
+   * and reset context of "method chaining" algorithm.
+   * @param  {string} id  Id of node to be removed.
+   * @param  {string} key Name of node group which contains node to remove.
+   */
+  function _chainNodeRemover(id, key) {
+    _lastChild = null;
+    _parentHistory.length = 0;
+    this._removeNode(key, id);
+  }
+
+  /**
+   * Helper method that is used for creating temporary links (half links)
+   * or complete Link nodes, when input and output counterparts are present.
+   * @param  {string} type      Defines type of connection.
+   * @param  {string} id        Id of targeted node into which connection
+   * should be made.
+   * @param  {string} startSide Defines current start side of the link.
+   * @param  {string} endSide   Defines current end side of the link.
+   */
+  function _chainLinkCreator(type, id, startSide, endSide) {
+    var opposite = null;
+    var node = null;
+    if (_lastChild !== null) {
+      node = _lastChild;
+    } else if (_parentHistory[0] !== undefined) {
+      node = _parentHistory[0];
+    }
+    if (node !== null) {
+      for (var i = 0; i < _halfLinks[endSide].length; i++) {
+        var link = _halfLinks[endSide][i];
+        if (link.type === type && link.id === node.getId()) {
+          opposite = _halfLinks[endSide].splice(i, 1);
+          break;
+        }
+      }
+      if (opposite === null) {
+        _halfLinks[startSide].push({ type: type, id: id });
+      } else {
+        _setConnection(type, opposite.id, id);
+      }
+    } else {
+      _errorHandler.showMsg(_ErrorCode2.default.INCORRECT_LINK_TARGET);
+    }
+  }
+
+  var _addActor = function _addActor(id, params) {
+    _chainNodeCreator(id, params, false, 'Actor', KEY_ACTORS);
+    return this;
   },
       _removeActor = function _removeActor(actorId) {
-    _objectPool.actors = _Utils2.default.removeObjectById(_objectPool.actors, actorId);
+    _chainNodeRemover(actorId, KEY_ACTORS);
+    return this;
   },
-      _getActors = function _getActors() {
-    return _objectPool.actors;
-  },
-      _addQuest = function _addQuest(params) {
-    return _objectPool.quests.push(new _Quest2.default(params));
+      _addQuest = function _addQuest(id, params) {
+    _chainNodeCreator(id, params, false, 'Quest', KEY_QUESTS);
+    return this;
   },
       _removeQuest = function _removeQuest(questId) {
-    _objectPool.quests = _Utils2.default.removeObjectById(_objectPool.quests, questId);
+    _chainNodeRemover(questId, KEY_QUESTS);
+    return this;
   },
-      _getQuests = function _getQuests() {
-    return _objectPool.quests;
-  },
-      _addDialog = function _addDialog(params) {
-    return _objectPool.dialogs.push(new _Dialog2.default(params));
+      _addDialog = function _addDialog(id, params) {
+    _chainNodeCreator(id, params, false, 'Dialog', KEY_DIALOGS);
+    return this;
   },
       _removeDialog = function _removeDialog(dialogId) {
-    _objectPool.dialogs = _Utils2.default.removeObjectById(_objectPool.dialogs, dialogId);
+    _chainNodeRemover(dialogId, KEY_DIALOGS);
+    return this;
   },
-      _getDialogs = function _getDialogs() {
-    return _objectPool.dialogs;
-  },
-      _addCondition = function _addCondition(params) {
-    return _objectPool.conditions.push(new _Condition2.default(params));
+      _addCondition = function _addCondition(id, params) {
+    _chainNodeCreator(id, params, false, 'Condition', KEY_CONDITIONS);
+    return this;
   },
       _removeCondition = function _removeCondition(conditionId) {
-    _objectPool.conditions = _Utils2.default.removeObjectById(_objectPool.conditions, conditionId);
+    _chainNodeRemover(conditionId, KEY_CONDITIONS);
+    return this;
   },
-      _getConditions = function _getConditions() {
-    return _objectPool.conditions;
-  },
-      _addVariable = function _addVariable(params) {
-    //return _objectPool.variables.push(new Variable(params));
+      _addVariable = function _addVariable(id, params) {
+    _chainNodeCreator(id, params, false, 'Variable', KEY_VARIABLES);
+    return this;
   },
       _removeVariable = function _removeVariable(variableId) {
-    //_objectPool.variables = Utils.removeObjectById(_objectPool.variables,variableId);
+    _chainNodeRemover(variableId, KEY_VARIABLES);
+    return this;
+  },
+      _addTalk = function _addTalk(id, params) {
+    _chainNodeCreator(id, params, true, 'Talk', KEY_TALKS);
+    return this;
+  },
+      _removeTalk = function _removeTalk(id) {
+    _chainNodeRemover(id, KEY_TALKS);
+    return this;
+  },
+      _addAnswer = function _addAnswer(id, params) {
+    _chainNodeCreator(id, params, true, 'Answer', KEY_ANSWERS);
+    return this;
+  },
+      _removeAnswer = function _removeAnswer(id) {
+    _chainNodeRemover(id, KEY_ANSWERS);
+    return this;
+  },
+      _inp = function _inp(type, id) {
+    _chainLinkCreator(type, id, 'inp', 'out');
+    return this;
+  },
+      _out = function _out(type, id) {
+    _chainLinkCreator(type, id, 'out', 'inp');
+    return this;
+  },
+
+
+  ////////////////////////////////////////////////////////////////
+  //GETTERS
+  ////////////////////////////////////////////////////////////////
+  _getActor = function _getActor(actorId) {
+    return this._getNode(KEY_ACTORS, actorId);
+  },
+      _getActors = function _getActors() {
+    return _objectPool[KEY_ACTORS];
+  },
+      _getCondition = function _getCondition(conditionId) {
+    return this._getNode(KEY_CONDITIONS, conditionId);
+  },
+      _getConditions = function _getConditions() {
+    return _objectPool[KEY_CONDITIONS];
+  },
+      _getDialog = function _getDialog(dialogId) {
+    return this._getNode(KEY_DIALOGS, dialogId);
+  },
+      _getDialogs = function _getDialogs() {
+    return _objectPool[KEY_DIALOGS];
+  },
+      _getQuest = function _getQuest(questId) {
+    return this._getNode(KEY_QUESTS, questId);
+  },
+      _getQuests = function _getQuests() {
+    return _objectPool[KEY_QUESTS];
+  },
+      _getVariable = function _getVariable(variableId) {
+    return this._getNode(KEY_VARIABLES, variableId);
   },
       _getVariables = function _getVariables() {
-    //return _objectPool.variables;
-  },
-
-
-  /*_nodeHistory = [],
-  _addRootNode = function(type,params) {
-    this._done();
-    //zmień switch w classFactory!
-    let newNode = classFactory(type,params);
-    if(newNode) {
-      _nodeHistory.push(newNode);
-      _objectPool.push(newNode);
-    } else {
-      _errorHandler.showMsg(ErrorCode.NODE_NOT_EXISTS);
-    }
-    return this;
-  },
-    _addChildNode = function(type,params) {
-    let len = _nodeHistory.length;
-    if(len > 0) {
-      let currNode = _nodeHistory[len-1];
-      let newNode = classFactory(type,params);
-    } else {
-      return _addRootNode(type,params);
-    }
-  },
-    //zastanowić się czy przekazywać id czy obiekty
-  _connectNodes = function(parentNode,childNode) {
-    return this;
-  },
-    _prevNode = function() {
-    if(_nodeHistory.length > 0) _nodeHistory.pop();
-    return this;
-  },
-    _done = function() {
-    _nodeHistory = [];
-    return this;
-  },*/
-
-  _setData = function _setData(data) {
-    var _this = this;
-
-    for (var key in data) {
-      if (data.hasOwnProperty(key)) {
-        _objectPool[key] = data[key].map(function (d) {
-          return _objectFactory(d, _this);
-        });
-      }
-    }
+    return _objectPool[KEY_VARIABLES];
   },
       _serializeData = function _serializeData() {
     var data = {};
@@ -520,30 +701,59 @@ var RPGSystem = function RPGSystem(editor) {
   };
 
   return {
-    setData: _setData,
-    findObject: _findObject,
-    getObjectByKey: _getObjectByKey,
-    setObject: _setObject,
-    removeObject: _removeObject,
+    ////////////////////////////////////////////
+    //General node methods
+    ////////////////////////////////////////////
+    findNode: _findNode,
+    getNode: _getNode,
+    addNode: _addNode,
+    removeNode: _removeNode,
+
+    ////////////////////////////////////////////
+    //Link creation methods
+    ////////////////////////////////////////////
     setConnection: _setConnection,
     getConnection: _getConnection,
     getConnections: _getConnections,
     removeConnection: _removeConnection,
+
+    ////////////////////////////////////////////
+    //Chainable methods
+    ////////////////////////////////////////////
     addActor: _addActor,
     removeActor: _removeActor,
-    getActors: _getActors,
     addQuest: _addQuest,
     removeQuest: _removeQuest,
-    getQuests: _getQuests,
     addDialog: _addDialog,
     removeDialog: _removeDialog,
-    getDialogs: _getDialogs,
     addCondition: _addCondition,
     removeCondition: _removeCondition,
-    getConditions: _getConditions,
     addVariable: _addVariable,
     removeVariable: _removeVariable,
+    addTalk: _addTalk,
+    removeTalk: _removeTalk,
+    addAnswer: _addAnswer,
+    removeAnswer: _removeAnswer,
+    inp: _inp,
+    out: _out,
+
+    ////////////////////////////////////////////
+    //Getter methods
+    ////////////////////////////////////////////
+    getActor: _getActor,
+    getActors: _getActors,
+    getCondition: _getCondition,
+    getConditions: _getConditions,
+    getDialog: _getDialog,
+    getDialogs: _getDialogs,
+    getQuest: _getQuest,
+    getQuests: _getQuests,
+    getVariable: _getVariable,
     getVariables: _getVariables,
+
+    ////////////////////////////////////////////
+    //Miscalineus methods
+    ////////////////////////////////////////////
     serializeData: _serializeData
   };
 };
@@ -831,7 +1041,7 @@ var BaseObject = function () {
     }, {
       key: 'checkCondition',
       value: function checkCondition(conditionId) {
-        var condition = this.getRPGS().getObjectByKey(KEY_CONDITIONS, conditionId);
+        var condition = this.getRPGS().getNode(KEY_CONDITIONS, conditionId);
         return condition ? condition.check() : true;
       }
 
@@ -867,6 +1077,27 @@ var BaseObject = function () {
           input: this.getInputConnections(),
           output: this.getOutputConnections()
         };
+      }
+    }, {
+      key: 'canAddChild',
+      value: function canAddChild(type) {
+        return false;
+      }
+    }, {
+      key: 'addChild',
+      value: function addChild(childId) {}
+    }, {
+      key: 'removeChild',
+      value: function removeChild(index) {}
+    }, {
+      key: 'getChild',
+      value: function getChild(index) {
+        return null;
+      }
+    }, {
+      key: 'getChildren',
+      value: function getChildren() {
+        return [];
       }
     }, {
       key: 'canCreateInputConnection',
@@ -936,7 +1167,7 @@ var BaseObject = function () {
         var _this = this;
 
         obj.filter(function (childId, index, arr) {
-          _this.getRPGS().removeObject(key, childId);
+          _this.getRPGS().removeNode(key, childId);
           return true;
         });
       }
@@ -974,12 +1205,22 @@ var CLASS_NOT_DEFINED = 1;
 var CONNECTION_TO_ITSELF = 2;
 var IMPROPER_CONNECTION = 3;
 var OBJECT_NOT_FOUND = 4;
+var MANDATORY_PARAM = 5;
+var INCORRECT_TYPE = 6;
+var INCORRECT_PARENT_NODE = 7;
+var INCORRECT_LINK_TARGET = 8;
+var INCOMPATIBLE_CHILD = 9;
 
 exports.NODE_NOT_EXISTS = NODE_NOT_EXISTS;
 exports.CLASS_NOT_DEFINED = CLASS_NOT_DEFINED;
 exports.CONNECTION_TO_ITSELF = CONNECTION_TO_ITSELF;
 exports.IMPROPER_CONNECTION = IMPROPER_CONNECTION;
 exports.OBJECT_NOT_FOUND = OBJECT_NOT_FOUND;
+exports.MANDATORY_PARAM = MANDATORY_PARAM;
+exports.INCORRECT_TYPE = INCORRECT_TYPE;
+exports.INCORRECT_PARENT_NODE = INCORRECT_PARENT_NODE;
+exports.INCORRECT_LINK_TARGET = INCORRECT_LINK_TARGET;
+exports.INCOMPATIBLE_CHILD = INCOMPATIBLE_CHILD;
 
 },{}],8:[function(require,module,exports){
 "use strict";
@@ -1010,6 +1251,21 @@ var ErrorHandler = function ErrorHandler(editor) {
         case _ErrorCode2.default.OBJECT_NOT_FOUND:
           msg = 'Cannot find object with id "' + params.id + '"';
           break;
+        case _ErrorCode2.default.MANDATORY_PARAM:
+          msg = 'Parameter "' + params.param + '" was expected but instead got undefined.';
+          break;
+        case _ErrorCode2.default.INCORRECT_TYPE:
+          msg = 'Wrong type of argument. Expected "' + params.type + '"';
+          break;
+        case _ErrorCode2.default.INCORRECT_PARENT_NODE:
+          msg = 'Node of type "' + params.child + '" can be added only to "' + params.parent + '" node.';
+          break;
+        case _ErrorCode2.default.INCORRECT_LINK_TARGET:
+          msg = 'Cannot create link connection to null node.';
+          break;
+        case _ErrorCode2.default.INCOMPATIBLE_CHILD:
+          msg = 'Cannot add child of type "' + params.child + '" into parent of type "' + params.parent + '".';
+          break;
         default:
           msg = 'Unknown error code passed: ' + errorCode;
       }
@@ -1017,6 +1273,7 @@ var ErrorHandler = function ErrorHandler(editor) {
         editor.showMsg(msg);
       } else {
         throw new Error(msg);
+        //add warning mode?
       }
     }
   };
@@ -1045,8 +1302,8 @@ function _inherits(subClass, superClass) { if (typeof superClass !== "function" 
 var Link = function () {
 
   var _type = new WeakMap();
-  var _linkStart = new WeakMap();
-  var _linkEnd = new WeakMap();
+  var _linkOut = new WeakMap();
+  var _linkInp = new WeakMap();
 
   return function (_BaseObject) {
     _inherits(Link, _BaseObject);
@@ -1057,20 +1314,20 @@ var Link = function () {
       var _this = _possibleConstructorReturn(this, (Link.__proto__ || Object.getPrototypeOf(Link)).call(this, data, rpgs));
 
       _type.set(_this, data.type);
-      _linkStart.set(_this, data.linkStart);
-      _linkEnd.set(_this, data.linkEnd);
+      _linkInp.set(_this, data.linkInp);
+      _linkOut.set(_this, data.linkOut);
       return _this;
     }
 
     _createClass(Link, [{
-      key: "getStart",
-      value: function getStart() {
-        return _linkStart.get(this);
+      key: "getInp",
+      value: function getInp() {
+        return _linkInp.get(this);
       }
     }, {
-      key: "getEnd",
-      value: function getEnd() {
-        return _linkEnd.get(this);
+      key: "getOut",
+      value: function getOut() {
+        return _linkOut.get(this);
       }
     }, {
       key: "getType",
@@ -1082,8 +1339,8 @@ var Link = function () {
       value: function getData() {
         var data = _get(Link.prototype.__proto__ || Object.getPrototypeOf(Link.prototype), "getData", this).call(this);
         data.type = this.getType();
-        data.linkStart = this.getStart();
-        data.linkEnd = this.getEnd();
+        data.linkInp = this.getInp();
+        data.linkOut = this.getOut();
         return data;
       }
     }, {
@@ -1107,15 +1364,15 @@ var Link = function () {
     }, {
       key: "dispose",
       value: function dispose() {
-        var linkStart = this.getStart();
-        var linkEnd = this.getEnd();
-        var inputObj = this.getRPGS().findObject(linkStart);
-        var outputObj = this.getRPGS().findObject(linkEnd);
-        if (inputObj) inputObj.removeInputConnection(this.getType(), linkStart);
-        if (outputObj) outputObj.removeOutputConnection(this.getType(), linkEnd);
+        var linkInp = this.getInp();
+        var linkOut = this.getOut();
+        var inpObj = this.getRPGS().findNode(linkInp);
+        var outObj = this.getRPGS().findNode(linkOut);
+        if (inpObj) inpObj.removeInputConnection(this.getType(), linkInp);
+        if (outObj) outObj.removeOutputConnection(this.getType(), linkOut);
         _type.delete(this);
-        _linkStart.delete(this);
-        _linkEnd.delete(this);
+        _linkInp.delete(this);
+        _linkOut.delete(this);
         _get(Link.prototype.__proto__ || Object.getPrototypeOf(Link.prototype), "dispose", this).call(this);
       }
     }]);
@@ -1265,10 +1522,10 @@ var Answer = function () {
   return function (_BaseObject) {
     _inherits(Answer, _BaseObject);
 
-    function Answer(data) {
+    function Answer(data, rpgs) {
       _classCallCheck(this, Answer);
 
-      var _this = _possibleConstructorReturn(this, (Answer.__proto__ || Object.getPrototypeOf(Answer)).call(this, data));
+      var _this = _possibleConstructorReturn(this, (Answer.__proto__ || Object.getPrototypeOf(Answer)).call(this, data, rpgs));
 
       _text.set(_this, data ? data.text : '');
       return _this;
@@ -1379,11 +1636,6 @@ var Dialog = function () {
       var _this = _possibleConstructorReturn(this, (Dialog.__proto__ || Object.getPrototypeOf(Dialog)).call(this, data, rpgs));
 
       _start.set(_this, data ? data.startTalk : '');
-      /*_talks.set(this,data ? data.talks.map((params) => {
-        let talk = new Talk(params,rpgs);
-        rpgs.setObject(KEY_TALKS,talk);
-        return talk.getId();
-      }):[]);*/
       _talks.set(_this, data ? data.talks : []);
       return _this;
     }
@@ -1393,33 +1645,46 @@ var Dialog = function () {
       value: function getData() {
         var data = _get(Dialog.prototype.__proto__ || Object.getPrototypeOf(Dialog.prototype), 'getData', this).call(this);
         data.startTalk = this.getStartTalk();
-        data.talks = this.getTalks();
+        //data.talks = this.getTalks();
         return data;
       }
     }, {
-      key: 'addTalk',
-      value: function addTalk(talk) {
-        this.getRPGS().setObject(KEY_TALKS, talk);
-        _talks.set(this, talk.getId());
+      key: 'canAddChild',
+      value: function canAddChild(type) {
+        return type === 'Talk';
       }
     }, {
-      key: 'removeTalk',
-      value: function removeTalk(talkId) {
-        this.getRPGS().removeObject(KEY_TALKS, talkId);
-        _talks.set(this, _Utils2.default.removeObjectFromArray(_talks.get(this), talkId));
+      key: 'addChild',
+      value: function addChild(childId) {}
+    }, {
+      key: 'removeChild',
+      value: function removeChild(index) {}
+    }, {
+      key: 'getChild',
+      value: function getChild(index) {
+        return null;
       }
     }, {
-      key: 'getTalk',
-      value: function getTalk(talkId) {
-        return this.getRPGS().getObjectByKey(KEY_TALKS, talkId);
+      key: 'getChildren',
+      value: function getChildren() {
+        return [];
       }
-    }, {
-      key: 'getTalks',
-      value: function getTalks() {
-        return _talks.get(this); /*.map((t) => {
-                                 return this.getRPGS().getObjectByKey(KEY_TALKS,t);
-                                 });*/
+
+      /*addTalk(talk) {
+        this.getRPGS().addNode(KEY_TALKS,talk);
+        _talks.set(this,talk.getId());
       }
+        removeTalk(talkId) {
+        this.getRPGS().removeNode(KEY_TALKS,talkId);
+        _talks.set(this,Utils.removeObjectFromArray(_talks.get(this),talkId));
+      }
+        getTalk(talkId) {
+        return this.getRPGS().getNode(KEY_TALKS,talkId);
+      }
+        getTalks() {
+        return _talks.get(this);
+      }*/
+
     }, {
       key: 'setStartTalk',
       value: function setStartTalk(talkId) {
@@ -1516,7 +1781,7 @@ var Talk = function () {
       _text.set(_this, data ? data.text : '');
       /*_answers.set(this,data ? data.answers.map((params) => {
         let answer = new Answer(params,rpgs);
-        rpgs.setObject(KEY_ANSWERS,answer);
+        rpgs.addNode(KEY_ANSWERS,answer);
         return answer.getId();
       }):[]);*/
       _answers.set(_this, data ? data.answers : []);
@@ -1528,7 +1793,7 @@ var Talk = function () {
       value: function getData() {
         var data = _get(Talk.prototype.__proto__ || Object.getPrototypeOf(Talk.prototype), 'getData', this).call(this);
         data.text = this.getText();
-        data.answers = this.getAnswers();
+        //data.answers = this.getAnswers();
         return data;
       }
     }, {
@@ -1542,29 +1807,42 @@ var Talk = function () {
         return _text.get(this);
       }
     }, {
-      key: 'addAnswer',
-      value: function addAnswer(answer) {
-        this.getRPGS().setObject(KEY_ANSWERS, answer);
-        _answers.set(this, answer.getId());
+      key: 'canAddChild',
+      value: function canAddChild(type) {
+        return type === 'Answer';
       }
     }, {
-      key: 'removeAnswer',
-      value: function removeAnswer(answerId) {
-        this.getRPGS().removeObject(KEY_ANSWERS, answerId);
-        _answers.set(this, _Utils2.default.removeObjectFromArray(_answers.get(this), answerId));
+      key: 'addChild',
+      value: function addChild(childId) {}
+    }, {
+      key: 'removeChild',
+      value: function removeChild(index) {}
+    }, {
+      key: 'getChild',
+      value: function getChild(index) {
+        return null;
       }
     }, {
-      key: 'getAnswer',
-      value: function getAnswer(answerId) {
-        return this.getRPGS().getObjectByKey(KEY_ANSWERS, answerId);
+      key: 'getChildren',
+      value: function getChildren() {
+        return [];
       }
-    }, {
-      key: 'getAnswers',
-      value: function getAnswers() {
-        return _answers.get(this); /*.map((a) => {
-                                   this.getRPGS().getObjectByKey(KEY_ANSWERS,a.getId())
-                                   });*/
+
+      /*addAnswer(answer) {
+        this.getRPGS().addNode(KEY_ANSWERS,answer);
+        _answers.set(this,answer.getId());
       }
+        removeAnswer(answerId) {
+        this.getRPGS().removeNode(KEY_ANSWERS,answerId);
+        _answers.set(this,Utils.removeObjectFromArray(_answers.get(this),answerId));
+      }
+        getAnswer(answerId) {
+        return this.getRPGS().getNode(KEY_ANSWERS,answerId);
+      }
+        getAnswers() {
+        return _answers.get(this);
+      }*/
+
     }, {
       key: 'canCreateInputConnection',
       value: function canCreateInputConnection(type) {
@@ -1647,7 +1925,7 @@ var Quest = function () {
       _status.set(_this, data ? data.status : _QuestStatus2.default.INCOMPLETE);
       _tasks.set(_this, data ? data.tasks.map(function (params) {
         var task = new _Task2.default(params, rpgs);
-        rpgs.setObjectByKey(KEY_TASKS, task);
+        rpgs.addNode(KEY_TASKS, task);
         return task.getId();
       }) : []);
       return _this;
@@ -1688,19 +1966,19 @@ var Quest = function () {
     }, {
       key: 'addTask',
       value: function addTask(task) {
-        this.getRPGS().setObject(KEY_TASKS, task);
+        this.getRPGS().addNode(KEY_TASKS, task);
         _tasks.set(this, task.getId());
       }
     }, {
       key: 'removeTask',
       value: function removeTask(taskId) {
-        this.getRPGS().removeObject(KEY_TASKS, taskId);
+        this.getRPGS().removeNode(KEY_TASKS, taskId);
         _tasks.set(this, Utils.removeObjectFromArray(_tasks.get(this), taskId));
       }
     }, {
       key: 'getTask',
       value: function getTask(taskId) {
-        return this.getRPGS().getObjectByKey(KEY_TASKS, taskId);
+        return this.getRPGS().getNode(KEY_TASKS, taskId);
       }
     }, {
       key: 'getTasks',
@@ -1708,7 +1986,7 @@ var Quest = function () {
         var _this2 = this;
 
         return _tasks.get(this).map(function (a) {
-          _this2.getRPGS().getObjectByKey(KEY_TASKS, a.getId());
+          _this2.getRPGS().getNode(KEY_TASKS, a.getId());
         });
       }
     }, {
@@ -1806,8 +2084,12 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 (function ($, window, document, undefined) {
   $(function () {
     //console.log(data);
+    //let rpgs = new RPGSystem(data);
+    //console.log(rpgs.serializeData());
     var rpgs = new _RPGSystem2.default();
-    rpgs.setData(_data2.default);
+    rpgs.addActor('act1', { name: 'Adam' }).inp('dialog', 'dlg1')
+    //.addCondition('cond1',{code:`return true;`}).out('visibility','tlk0ans1');
+    .addDialog('dlg1', { startTalk: 'tlk0' }).out('dialog', 'act1').addTalk('tlk0', { text: 'This is talk 0.' }).addAnswer('tlk0ans1', { text: 'Answer1' }).out('goto', 'tlk1').inp('visibility', 'cond1').addAnswer('tlk0ans2', { text: 'Answer2' }).out('goto', 'tlk2').addAnswer('tlk0ans3', { text: 'Answer3' }).out('goto', 'tlk3').addTalk('tlk1', { text: 'This is talk 1.' }).inp('goto', 'tlk0ans1').addAnswer('tlk1ans1', { text: 'Answer1' }).addTalk('tlk2', { text: 'This is talk 2.' }).inp('goto', 'tlk0ans2').addAnswer('tlk2ans1', { text: 'Answer1' }).addTalk('tlk3', { text: 'This is talk 3.' }).inp('goto', 'tlk0ans3').addAnswer('tlk3ans1', { text: 'Answer1' });
     console.log(rpgs.serializeData());
   });
 })(jQuery, window, document);

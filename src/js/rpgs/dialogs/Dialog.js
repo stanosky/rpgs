@@ -21,7 +21,7 @@ let Dialog = (function() {
     getData() {
       let data = super.getData();
       data.startTalk = this.getStartTalk();
-      data.talks = this.getTalks();
+      //data.talks = this.getTalks();
       return data;
     }
 
@@ -45,7 +45,7 @@ let Dialog = (function() {
       return [];
     }
 
-    addTalk(talk) {
+    /*addTalk(talk) {
       this.getRPGS().addNode(KEY_TALKS,talk);
       _talks.set(this,talk.getId());
     }
@@ -60,10 +60,8 @@ let Dialog = (function() {
     }
 
     getTalks() {
-      return _talks.get(this);/*.map((t) => {
-        return this.getRPGS().getNode(KEY_TALKS,t);
-      });*/
-    }
+      return _talks.get(this);
+    }*/
 
     setStartTalk(talkId) {
       _start.set(this,talkId);

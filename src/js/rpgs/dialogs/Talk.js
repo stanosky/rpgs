@@ -26,7 +26,7 @@ let Talk = (function() {
     getData() {
       let data = super.getData();
       data.text = this.getText();
-      data.answers = this.getAnswers();
+      //data.answers = this.getAnswers();
       return data;
     }
 
@@ -38,7 +38,27 @@ let Talk = (function() {
       return _text.get(this);
     }
 
-    addAnswer(answer) {
+    canAddChild(type) {
+      return type === 'Answer';
+    }
+
+    addChild(childId) {
+
+    }
+
+    removeChild(index) {
+
+    }
+
+    getChild(index) {
+      return null;
+    }
+
+    getChildren() {
+      return [];
+    }
+
+    /*addAnswer(answer) {
       this.getRPGS().addNode(KEY_ANSWERS,answer);
       _answers.set(this,answer.getId());
     }
@@ -53,10 +73,8 @@ let Talk = (function() {
     }
 
     getAnswers() {
-      return _answers.get(this);/*.map((a) => {
-        this.getRPGS().getNode(KEY_ANSWERS,a.getId())
-      });*/
-    }
+      return _answers.get(this);
+    }*/
 
     canCreateInputConnection(type) {
       switch (type) {
