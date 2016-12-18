@@ -1,5 +1,5 @@
 "use strict";
-import BaseObject from '../core/BaseObject';
+import BaseNode from '../core/BaseNode';
 import LinkType   from '../core/LinkType';
 
 let Actor = (function() {
@@ -11,7 +11,7 @@ let Actor = (function() {
   //let _inventory = new WeakMap();
 
 
-  return class Actor extends BaseObject {
+  return class Actor extends BaseNode {
     constructor(data) {
       super(data);
       _name.set(this,data ? data.name : '');

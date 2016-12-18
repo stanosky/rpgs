@@ -1,0 +1,168 @@
+{
+    "actors":[ {
+        "class":"Actor",
+        "uuid":"act1",
+        "input": {
+            "dialog": ["1f1c969f-3d32-497e-a571-5430aab8ebfc"]
+        }
+        ,
+        "name":"Adam"
+    }
+    ],
+    "conditions":[ {
+        "class":"Condition",
+        "uuid":"cond1",
+        "output": {
+            "visibility": ["70c6b5df-91b9-4813-b9e6-18bb6b8ddc61"]
+        }
+        ,
+        "label":"",
+        "code":"\n        (function(){\n          alert(\"Condition test!\");\n          //return true;\n        })();\n      "
+    }
+    ],
+    "dialogs":[ {
+        "class":"Dialog",
+        "uuid":"dlg1",
+        "input": {}
+        ,
+        "output": {
+            "dialog": ["1f1c969f-3d32-497e-a571-5430aab8ebfc"]
+        }
+        ,
+        "children":["tlk0",
+        "tlk1",
+        "tlk2",
+        "tlk3"],
+        "startTalk":"tlk0"
+    }
+    ],
+    "links":[ {
+        "class": "Link", "uuid": "1f1c969f-3d32-497e-a571-5430aab8ebfc", "input": "act1", "output": "dlg1", "type": "dialog"
+    }
+    ,
+    {
+        "class": "Link", "uuid": "70c6b5df-91b9-4813-b9e6-18bb6b8ddc61", "input": "tlk0ans1", "output": "cond1", "type": "visibility"
+    }
+    ,
+    {
+        "class": "Link", "uuid": "03506556-83a5-47dc-a63f-73f81ef19688", "input": "tlk1", "output": "tlk0ans1", "type": "goto"
+    }
+    ,
+    {
+        "class": "Link", "uuid": "5e72e07d-38cc-489f-b490-3fcb54f3c0f0", "input": "tlk2", "output": "tlk0ans2", "type": "goto"
+    }
+    ,
+    {
+        "class": "Link", "uuid": "d365f4c7-1d35-4c6b-9309-262a7cb35901", "input": "tlk3", "output": "tlk0ans3", "type": "goto"
+    }
+    ],
+    "talks":[ {
+        "class":"Talk",
+        "uuid":"tlk0",
+        "input": {}
+        ,
+        "children": ["tlk0ans1", "tlk0ans2", "tlk0ans3"], "text": "This is talk 0."
+    }
+    ,
+    {
+        "class":"Talk",
+        "uuid":"tlk1",
+        "input": {
+            "goto": ["03506556-83a5-47dc-a63f-73f81ef19688"]
+        }
+        ,
+        "children":["tlk1ans1"],
+        "text":"This is talk 1."
+    }
+    ,
+    {
+        "class":"Talk",
+        "uuid":"tlk2",
+        "input": {
+            "goto": ["5e72e07d-38cc-489f-b490-3fcb54f3c0f0"]
+        }
+        ,
+        "children":["tlk2ans1"],
+        "text":"This is talk 2."
+    }
+    ,
+    {
+        "class":"Talk",
+        "uuid":"tlk3",
+        "input": {
+            "goto": ["d365f4c7-1d35-4c6b-9309-262a7cb35901"]
+        }
+        ,
+        "children":["tlk3ans1"],
+        "text":"This is talk 3."
+    }
+    ],
+    "answers":[ {
+        "class":"Answer",
+        "uuid":"tlk0ans1",
+        "input": {
+            "visibility": ["70c6b5df-91b9-4813-b9e6-18bb6b8ddc61"]
+        }
+        ,
+        "output": {
+            "goto": ["03506556-83a5-47dc-a63f-73f81ef19688"]
+        }
+        ,
+        "text":"Answer1"
+    }
+    ,
+    {
+        "class":"Answer",
+        "uuid":"tlk0ans2",
+        "input": {}
+        ,
+        "output": {
+            "goto": ["5e72e07d-38cc-489f-b490-3fcb54f3c0f0"]
+        }
+        ,
+        "text":"Answer2"
+    }
+    ,
+    {
+        "class":"Answer",
+        "uuid":"tlk0ans3",
+        "input": {}
+        ,
+        "output": {
+            "goto": ["d365f4c7-1d35-4c6b-9309-262a7cb35901"]
+        }
+        ,
+        "text":"Answer3"
+    }
+    ,
+    {
+        "class":"Answer",
+        "uuid":"tlk1ans1",
+        "input": {}
+        ,
+        "output": {}
+        ,
+        "text": "Answer1"
+    }
+    ,
+    {
+        "class":"Answer",
+        "uuid":"tlk2ans1",
+        "input": {}
+        ,
+        "output": {}
+        ,
+        "text": "Answer1"
+    }
+    ,
+    {
+        "class":"Answer",
+        "uuid":"tlk3ans1",
+        "input": {}
+        ,
+        "output": {}
+        ,
+        "text": "Answer1"
+    }
+    ]
+}

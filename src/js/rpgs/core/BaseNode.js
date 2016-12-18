@@ -5,7 +5,7 @@ import LinkType from './LinkType';
 const KEY_LINKS = 'links';
 const KEY_CONDITIONS = 'conditions';
 
-let BaseObject = (function(){
+let BaseNode = (function(){
   //Weak maps are new feature to JavaScript. We can store private
   //object properties in key/value pairs using our instance as the key,
   //and our class can capture those key/value maps in a closure.
@@ -14,13 +14,13 @@ let BaseObject = (function(){
   let _input = new WeakMap();
   let _output = new WeakMap();
 
-  return class BaseObject {
+  return class BaseNode {
     constructor(data,rpgs) {
       _rpgs.set(this,rpgs);
-      //By default we assign Universally Unique ID
-      _uuid.set(this,data ? data.uuid : UUID.generate());
-      _input.set(this,data ? data.input : {});
-      _output.set(this,data ? data.output : {});
+      //If uuid not present, then by default we assign Universally Unique ID.
+      _uuid.set(this,data.uuid ? data.uuid : UUID.generate());
+      _input.set(this,data.input ? data.input : {});
+      _output.set(this,data.output ? data.output : {});
     }
 
     getRPGS() {
@@ -76,7 +76,7 @@ let BaseObject = (function(){
     }
 
     removeChild(index) {
-      
+
     }
 
     getChild(index) {
@@ -85,6 +85,10 @@ let BaseObject = (function(){
 
     getChildren() {
       return [];
+    }
+
+    _removeChildren(key) {
+
     }
 
     canCreateInputConnection(type) {
@@ -104,11 +108,11 @@ let BaseObject = (function(){
     }
 
     setOutputConnection(type,linkId) {
-      _output.set(this,_setConnection(_output.get(this),type,linkId));
+      _output.set(this,this._setConnection(_output.get(this),type,linkId));
     }
 
     setInputConnection(type,linkId) {
-      _input.set(this,_setConnection(_input.get(this),type,linkId));
+      _input.set(this,this._setConnection(_input.get(this),type,linkId));
     }
 
     _getConnections(obj,type) {
@@ -164,4 +168,4 @@ let BaseObject = (function(){
     }
   };
 })();
-module.exports = BaseObject;
+module.exports = BaseNode;

@@ -1,6 +1,6 @@
 "use strict";
 
-import BaseObject from '../core/BaseObject';
+import BaseNode from '../core/BaseNode';
 import LinkType   from '../core/LinkType';
 import compiler   from '@risingstack/nx-compile';
 
@@ -10,11 +10,11 @@ let Condition = (function(){
   let _compiled = new WeakMap();
   let _sandbox = new WeakMap();
 
-  return class Condition extends BaseObject {
+  return class Condition extends BaseNode {
     constructor(data,rpgs) {
       super(data,rpgs);
-      _label.set(this,data ? data.label : '');
-      _code.set(this,data ? data.code : 'return true');
+      _label.set(this,data.label ? data.label : '');
+      _code.set(this,data.code ? data.code : `(function(){return true;})();`);
       _sandbox.set(this,{rpgs});
       _compiled.set(this,compiler.compileExpression(_code.get(this), _sandbox.get(this)));
     }
@@ -70,3 +70,4 @@ let Condition = (function(){
 
   };
 })();
+module.exports = Condition;

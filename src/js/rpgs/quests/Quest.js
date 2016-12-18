@@ -1,7 +1,6 @@
 "use strict";
-import BaseObject   from '../core/BaseObject';
+import CompoundNode from '../core/CompoundNode';
 import QuestStatus  from './QuestStatus';
-import Task         from './Task';
 
 const KEY_TASKS = 'tasks'
 
@@ -9,19 +8,13 @@ let Quest = (function() {
   let _title = new WeakMap();
   let _description = new WeakMap();
   let _status = new WeakMap();
-  let _tasks = new WeakMap();
 
-  return class Quest extends BaseObject {
+  return class Quest extends CompoundNode {
     constructor(data,rpgs) {
       super(data,rpgs);
-      _title.set(this,data ? data.title : '');
-      _description.set(this,data ? data.description : '');
-      _status.set(this,data ? data.status : QuestStatus.INCOMPLETE);
-      _tasks.set(this,data ? data.tasks.map((params) => {
-        let task = new Task(params,rpgs);
-        rpgs.addNode(KEY_TASKS,task);
-        return task.getId();
-      }):[]);
+      _title.set(this,data.title ? data.title : '');
+      _description.set(this,data.description ? data.description : '');
+      _status.set(this,data.status ? data.status : QuestStatus.INCOMPLETE);
     }
 
     getData() {
@@ -29,8 +22,11 @@ let Quest = (function() {
       data.title = this.getTitle();
       data.description = this.getDescription();
       data.status = this.getStatus();
-      data.tasks = this.getTasks().map((t) => t.getData());
       return data;
+    }
+
+    canAddChild(type) {
+      return type === 'Task';
     }
 
     setTitle(value) {
@@ -47,26 +43,6 @@ let Quest = (function() {
 
     getDescription() {
       return _description.get(this);
-    }
-
-    addTask(task) {
-      this.getRPGS().addNode(KEY_TASKS,task);
-      _tasks.set(this,task.getId());
-    }
-
-    removeTask(taskId) {
-      this.getRPGS().removeNode(KEY_TASKS,taskId);
-      _tasks.set(this,Utils.removeObjectFromArray(_tasks.get(this),taskId));
-    }
-
-    getTask(taskId) {
-      return this.getRPGS().getNode(KEY_TASKS,taskId);
-    }
-
-    getTasks() {
-      return _tasks.get(this).map((a) => {
-        this.getRPGS().getNode(KEY_TASKS,a.getId())
-      });
     }
 
     setStatus(value) {
@@ -86,11 +62,10 @@ let Quest = (function() {
     }
 
     dispose() {
-      this.removeChildrenFrom(_tasks.get(this),KEY_TASKS);
+      this._removeChildren(KEY_TASKS);
       _title.delete(this);
       _description.delete(this);
       _status.delete(this);
-      _tasks.delete(this);
     }
   };
 

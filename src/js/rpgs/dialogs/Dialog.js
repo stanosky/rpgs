@@ -1,67 +1,30 @@
 "use strict";
-import BaseObject from '../core/BaseObject';
+import CompoundNode from '../core/CompoundNode';
 import LinkType   from '../core/LinkType';
 import Utils      from '../core/Utils';
-import Talk       from './Talk';
+
 
 const KEY_TALKS = 'talks';
 
 let Dialog = (function() {
   let _start = new WeakMap();
-  let _talks = new WeakMap();
 
-  return class Dialog extends BaseObject {
+  return class Dialog extends CompoundNode {
 
     constructor(data,rpgs) {
       super(data,rpgs);
-      _start.set(this,data ? data.startTalk : '');
-      _talks.set(this,data ? data.talks : []);
+      _start.set(this,data.startTalk ? data.startTalk : '');
     }
 
     getData() {
       let data = super.getData();
       data.startTalk = this.getStartTalk();
-      //data.talks = this.getTalks();
       return data;
     }
 
     canAddChild(type) {
       return type === 'Talk';
     }
-
-    addChild(childId) {
-
-    }
-
-    removeChild(index) {
-
-    }
-
-    getChild(index) {
-      return null;
-    }
-
-    getChildren() {
-      return [];
-    }
-
-    /*addTalk(talk) {
-      this.getRPGS().addNode(KEY_TALKS,talk);
-      _talks.set(this,talk.getId());
-    }
-
-    removeTalk(talkId) {
-      this.getRPGS().removeNode(KEY_TALKS,talkId);
-      _talks.set(this,Utils.removeObjectFromArray(_talks.get(this),talkId));
-    }
-
-    getTalk(talkId) {
-      return this.getRPGS().getNode(KEY_TALKS,talkId);
-    }
-
-    getTalks() {
-      return _talks.get(this);
-    }*/
 
     setStartTalk(talkId) {
       _start.set(this,talkId);
@@ -90,9 +53,8 @@ let Dialog = (function() {
     }
 
     dispose() {
-      this.removeChildrenFrom(_talks.get(this),KEY_TALKS);
+      this._removeChildren(KEY_TALKS);
       _start.delete(this);
-      _talks.delete(this);
       super.dispose();
     }
   }

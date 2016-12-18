@@ -1,8 +1,8 @@
 "use strict";
-import BaseObject from '../core/BaseObject';
+import BaseNode from '../core/BaseNode';
 
 let Task = (function(){
-  return class Task extends BaseObject {
+  return class Task extends BaseNode {
     constructor(data) {
       super(data);
     }

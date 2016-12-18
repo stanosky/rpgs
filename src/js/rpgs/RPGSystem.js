@@ -1,6 +1,6 @@
 "use strict";
 import Utils        from './core/Utils';
-import BaseObject   from './core/BaseObject';
+import BaseNode     from './core/BaseNode';
 import ErrorHandler from './core/ErrorHandler'
 import ErrorCode    from './core/ErrorCode';
 import Link         from './core/Link';
@@ -43,17 +43,17 @@ let RPGSystem = function (data,editor) {
     }
   }
 
-  function _nodeFactory(data,rpgs) {
+  function _nodeFactory(data) {
     let className = data.class;
     switch (className) {
-      case 'Actor':     return new Actor(data,rpgs);
-      case 'Condition': return new Condition(data,rpgs);
-      case 'Answer':    return new Answer(data,rpgs);
-      case 'Dialog':    return new Dialog(data,rpgs);
-      case 'Talk':      return new Talk(data,rpgs);
-      case 'Quest':     return new Quest(data,rpgs);
-      case 'Task':      return new Task(data,rpgs);
-      case 'Link':      return new Link(data,rpgs);
+      case 'Actor':     return new Actor(data,this);
+      case 'Condition': return new Condition(data,this);
+      case 'Answer':    return new Answer(data,this);
+      case 'Dialog':    return new Dialog(data,this);
+      case 'Talk':      return new Talk(data,this);
+      case 'Quest':     return new Quest(data,this);
+      case 'Task':      return new Task(data,this);
+      case 'Link':      return new Link(data,this);
       default:
         _errorHandler.showMsg(ErrorCode.CLASS_NOT_DEFINED,{class:className});
         return null;
@@ -87,9 +87,8 @@ let RPGSystem = function (data,editor) {
   },
 
   _setConnection = function(type,nodeId1,nodeId2) {
-    console.log('_setConnection',type,nodeId1,nodeId2);
     if(nodeId1 === nodeId2) {
-      this._handleError(ErrorCode.CONNECTION_TO_ITSELF,{node:nodeId1});
+      _errorHandler.showMsg(ErrorCode.CONNECTION_TO_ITSELF,{node:nodeId1});
       return false;
     }
     let node1 = _findNode(nodeId1);
@@ -98,13 +97,16 @@ let RPGSystem = function (data,editor) {
     if(node1.canCreateOutputConnection(type) && node2.canCreateInputConnection(type)) {
       let link = new Link({type:type,output:nodeId1,input:nodeId2});
       let linkId = link.getId();
-      this._addNode(KEY_LINKS,link);
+      _addNode(KEY_LINKS,link);
       node1.setOutputConnection(type,linkId);
       node2.setInputConnection(type,linkId);
       return linkId;
     } else {
-      this._handleError(ErrorCode.IMPROPER_CONNECTION,
-        {type:type,node1:nodeId1,node2:nodeId2});
+      _errorHandler.showMsg(ErrorCode.IMPROPER_CONNECTION,{
+        type:type,
+        node1:nodeId1,
+        node2:nodeId2
+      });
       return false;
     }
   },
@@ -133,13 +135,16 @@ let RPGSystem = function (data,editor) {
    * @return {object} Parameters merged into object.
    */
   function _checkAndMergeParams(
-                id = this._handleError(ErrorCode.MANDATORY_PARAM,{param:'id'}),
+                id = _errorHandler.showMsg(ErrorCode.MANDATORY_PARAM,{param:'id'}),
                 params) {
-      if(typeof id !== 'string')
-        this._handleError(ErrorCode.INCORRECT_TYPE,{type:'string'});
-      if(params !== undefined && typeof params !== 'object')
-        this._handleError(ErrorCode.INCORRECT_TYPE,{type:'object'});
-      else params = {};
+      if(typeof id !== 'string') {
+        _errorHandler.showMsg(ErrorCode.INCORRECT_TYPE,{type:'string'});
+      }
+      if(params !== undefined && typeof params !== 'object') {
+        _errorHandler.showMsg(ErrorCode.INCORRECT_TYPE,{type:'object'});
+      } else if(params === undefined){
+        params = {};
+      }
       params.uuid = id;
       return params;
   }
@@ -162,20 +167,18 @@ let RPGSystem = function (data,editor) {
 
     //Test if node should be added as child or parent.
     if(asChild) {
-      console.log('_lastChild',_lastChild,'_parentHistory[0]',_parentHistory[0],id);
       //If last added child was not null then we must check additional conditions.
       if(_lastChild !== null) {
         //If constructor name of previous child node, is equal to name of class,
         //whose we try to create, it means node should be added to current parent.
-        console.log('canAddChild',className,_lastChild.canAddChild(className));
         if(_lastChild.constructor.name === className) {
-          createChildNode();
+          createChildNode(params);
         }
         //If names of constructors not match, then we must check if new node
         //can be added as child to our previous child.
         else if(_lastChild.canAddChild(className)) {
           _parentHistory.unshift(_lastChild);
-          createChildNode();
+          createChildNode(params);
         }
         //Finally if previous conditions are false we try go back to previous
         //parent node.
@@ -187,7 +190,7 @@ let RPGSystem = function (data,editor) {
       //If last child is null, then we check if node can be added to current
       //parent node.
       else if(_parentHistory.length > 0 && _parentHistory[0].canAddChild(className)) {
-        createChildNode();
+        createChildNode(params);
       }
       //If last child and last parent is equal to null, then new child node
       //cant be added, so we throw error.
@@ -205,14 +208,14 @@ let RPGSystem = function (data,editor) {
       _lastChild = null;
       _parentHistory.length = 0;
       //After that, new node is created.
-      let node = _nodeFactory(params,this);
+      let node = _nodeFactory(params);
       _parentHistory = [node];
       _addNode(storage,node);
     }
 
-    function createChildNode() {
+    function createChildNode(nodeParams) {
       //We create a new node, and then set as the last child.
-      _lastChild = _nodeFactory(params,this);
+      _lastChild = _nodeFactory(nodeParams);
       //Then we add our freshly created node to its parent.
       _parentHistory[0].addChild(_lastChild.getId());
       //Finally new node is added to main storage object.
@@ -253,14 +256,18 @@ let RPGSystem = function (data,editor) {
       for (var i = 0; i < _halfLinks[endSide].length; i++) {
         let link = _halfLinks[endSide][i];
         if(link.type === type && link.id === node.getId()){
-          opposite = _halfLinks[endSide].splice(i,1);
+          opposite = _halfLinks[endSide].splice(i,1)[0];
           break;
         }
       }
       if(opposite === null) {
         _halfLinks[startSide].push({type,id});
       } else {
-        _setConnection(type,opposite.id,id);
+        if(startSide === 'inp') {
+          _setConnection(type,id,opposite.id);
+        } else {
+          _setConnection(type,opposite.id,id);
+        }
       }
     } else {
       _errorHandler.showMsg(ErrorCode.INCORRECT_LINK_TARGET);

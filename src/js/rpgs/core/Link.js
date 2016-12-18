@@ -1,27 +1,27 @@
 "use strict";
-import BaseObject from '../core/BaseObject';
+import BaseNode from '../core/BaseNode';
 
 
 let Link = (function() {
 
   let _type = new WeakMap();
-  let _linkOut = new WeakMap();
-  let _linkInp = new WeakMap();
+  let _output = new WeakMap();
+  let _input = new WeakMap();
 
-  return class Link extends BaseObject {
+  return class Link extends BaseNode {
     constructor(data,rpgs){
       super(data,rpgs);
       _type.set(this,data.type);
-      _linkInp.set(this,data.linkInp);
-      _linkOut.set(this,data.linkOut);
+      _input.set(this,data.input ? data.input : '');
+      _output.set(this,data.output ? data.output : '');
     }
 
     getInp() {
-      return _linkInp.get(this);
+      return _input.get(this);
     }
 
     getOut() {
-      return _linkOut.get(this);
+      return _output.get(this);
     }
 
     getType() {
@@ -31,8 +31,8 @@ let Link = (function() {
     getData() {
       let data = super.getData();
       data.type = this.getType();
-      data.linkInp = this.getInp();
-      data.linkOut = this.getOut();
+      data.input = this.getInp();
+      data.output = this.getOut();
       return data;
     }
 
@@ -51,8 +51,8 @@ let Link = (function() {
       if(inpObj) inpObj.removeInputConnection(this.getType(),linkInp);
       if(outObj) outObj.removeOutputConnection(this.getType(),linkOut);
       _type.delete(this);
-      _linkInp.delete(this);
-      _linkOut.delete(this);
+      _input.delete(this);
+      _output.delete(this);
       super.dispose();
     }
   };

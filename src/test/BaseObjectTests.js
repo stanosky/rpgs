@@ -1,9 +1,9 @@
 "use strict";
-import BaseObject from 'rpgs/core/BaseObject';
+import BaseNode from 'rpgs/core/BaseNode';
 import expect from 'chai';
 
-describe('BaseObject', function() {
-  let obj = new BaseObject();
+describe('BaseNode', function() {
+  let obj = new BaseNode();
   it('should exist', function() {
       expect(obj).to.not.be.undefined;
   });

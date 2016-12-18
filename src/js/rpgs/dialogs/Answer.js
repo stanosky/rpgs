@@ -1,5 +1,5 @@
 "use strict";
-import BaseObject from '../core/BaseObject';
+import BaseNode from '../core/BaseNode';
 import LinkType   from '../core/LinkType';
 
 let Answer = (function() {
@@ -8,10 +8,10 @@ let Answer = (function() {
   //and our class can capture those key/value maps in a closure.
   let _text = new WeakMap();
 
-  return class Answer extends BaseObject {
+  return class Answer extends BaseNode {
     constructor(data,rpgs) {
       super(data,rpgs);
-      _text.set(this,data ? data.text : '');
+      _text.set(this,data.text ? data.text : '');
     }
 
     getData() {
