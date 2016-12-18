@@ -33,14 +33,6 @@ let indexOfObject = function(array,obj) {
 
 exports.indexOfObject = indexOfObject;
 
-
-exports.getObjectById = function(array,id) {
-  for (var i = 0; i < array.length; i++) {
-    if(array[i].getId() === id) return array[i];
-  }
-  return null;
-};
-
 let getIndexById = function(array,id) {
   for (var i = 0; i < array.length; i++) {
     if(array[i].getId() === id) return i;
@@ -62,24 +54,14 @@ exports.addObjectToArray = function(array,obj,expectedType) {
   return array;
 };
 
-exports.getObjectsByType = function(array,type) {
-  let out = [];
-  for (var i = 0; i < array.length; i++) {
-    if(type.isPrototypeOf(array[i])) {
-      out.push(array[i]);
-    }
-  }
-  return out;
-};
-
-exports.removeObjectById = function(array,id) {
+/*exports.removeObjectById = function(array,id) {
   let index = getIndexById(array,id);
   if(index !== -1) {
     let spliced = array.splice(index,1);
     if(spliced.dispose) spliced.dispose();
   }
   return array;
-}
+}*/
 
 exports.removeObjectFromArray = function(array,obj) {
   let index = indexOfObject(array,obj);

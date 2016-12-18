@@ -32,7 +32,7 @@ import RPGSystem from './rpgs/RPGSystem';
     console.log("rpgs1",rpgs1Serialized);
 
     let rpgs2 = new RPGSystem(JSON.parse(rpgs1Serialized));
-    console.log("rpgs2",rpgs2.serializeData());
+    console.log("data created is equal to data parsed:",rpgs1Serialized === rpgs2.serializeData());
   });
 
 })(jQuery, window, document);

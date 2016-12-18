@@ -60,10 +60,17 @@ let RPGSystem = function (data,editor) {
     }
   }
 
+  function _findNodeInArray(array,id) {
+    for (var i = 0; i < array.length; i++) {
+      if(array[i].getId() === id) return array[i];
+    }
+    return null;
+  }
+
   let _findNode = function(objId) {
     for (var key in _objectPool) {
       if (_objectPool.hasOwnProperty(key)) {
-        let obj = Utils.getObjectById(_objectPool[key],objId);
+        let obj = _findNodeInArray(_objectPool[key],objId);
         if(obj !== null) return obj;
       }
     }
@@ -73,7 +80,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _getNode = function(key,objId) {
-    let obj = Utils.getObjectById(_objectPool[key],objId);
+    let obj = _findNodeInArray(_objectPool[key],objId);
     return obj;
   },
 
@@ -82,8 +89,23 @@ let RPGSystem = function (data,editor) {
     _objectPool[key].push(obj);
   },
 
-  _removeNode = function(key,id) {
-    _objectPool[key] = Utils.removeObjectById(_objectPool[key],id);
+  _removeNode = function(id) {
+    for (var key in _objectPool) {
+      if (_objectPool.hasOwnProperty(key)) {
+        if(this._removeNodeByKey(key,id)) return true;
+      }
+    }
+    return false;
+  },
+
+  _removeNodeByKey = function(key,id) {
+    let index = Utils.getIndexById(_objectPool[key],id);
+    let isNodeFound = index > -1;
+    if(isNodeFound) {
+      let node = _objectPool[key].splice(index,1)[0];
+      node.dispose();
+    }
+    return isNodeFound;
   },
 
   _setConnection = function(type,nodeId1,nodeId2) {
@@ -120,7 +142,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _removeConnection = function(linkId) {
-    this._removeNode(KEY_LINKS,linkId);
+    this._removeNodeByKey(KEY_LINKS,linkId);
   };
 
   ////////////////////////////////////////////////////////////////
@@ -232,7 +254,7 @@ let RPGSystem = function (data,editor) {
   function _chainNodeRemover(id,key) {
     _lastChild = null;
     _parentHistory.length = 0;
-    this._removeNode(key,id);
+    this._removeNodeByKey(key,id);
   }
 
   /**

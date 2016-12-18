@@ -330,10 +330,17 @@ var RPGSystem = function RPGSystem(data, editor) {
     }
   }
 
+  function _findNodeInArray(array, id) {
+    for (var i = 0; i < array.length; i++) {
+      if (array[i].getId() === id) return array[i];
+    }
+    return null;
+  }
+
   var _findNode = function _findNode(objId) {
     for (var key in _objectPool) {
       if (_objectPool.hasOwnProperty(key)) {
-        var obj = _Utils2.default.getObjectById(_objectPool[key], objId);
+        var obj = _findNodeInArray(_objectPool[key], objId);
         if (obj !== null) return obj;
       }
     }
@@ -342,15 +349,29 @@ var RPGSystem = function RPGSystem(data, editor) {
     return null;
   },
       _getNode = function _getNode(key, objId) {
-    var obj = _Utils2.default.getObjectById(_objectPool[key], objId);
+    var obj = _findNodeInArray(_objectPool[key], objId);
     return obj;
   },
       _addNode = function _addNode(key, obj) {
     if (!_objectPool[key]) _objectPool[key] = [];
     _objectPool[key].push(obj);
   },
-      _removeNode = function _removeNode(key, id) {
-    _objectPool[key] = _Utils2.default.removeObjectById(_objectPool[key], id);
+      _removeNode = function _removeNode(id) {
+    for (var key in _objectPool) {
+      if (_objectPool.hasOwnProperty(key)) {
+        if (this._removeNodeByKey(key, id)) return true;
+      }
+    }
+    return false;
+  },
+      _removeNodeByKey = function _removeNodeByKey(key, id) {
+    var index = _Utils2.default.getIndexById(_objectPool[key], id);
+    var isNodeFound = index > -1;
+    if (isNodeFound) {
+      var node = _objectPool[key].splice(index, 1)[0];
+      node.dispose();
+    }
+    return isNodeFound;
   },
       _setConnection = function _setConnection(type, nodeId1, nodeId2) {
     if (nodeId1 === nodeId2) {
@@ -383,7 +404,7 @@ var RPGSystem = function RPGSystem(data, editor) {
     return _objectPool[KEY_LINKS];
   },
       _removeConnection = function _removeConnection(linkId) {
-    this._removeNode(KEY_LINKS, linkId);
+    this._removeNodeByKey(KEY_LINKS, linkId);
   };
 
   ////////////////////////////////////////////////////////////////
@@ -494,7 +515,7 @@ var RPGSystem = function RPGSystem(data, editor) {
   function _chainNodeRemover(id, key) {
     _lastChild = null;
     _parentHistory.length = 0;
-    this._removeNode(key, id);
+    this._removeNodeByKey(key, id);
   }
 
   /**
@@ -509,12 +530,17 @@ var RPGSystem = function RPGSystem(data, editor) {
   function _chainLinkCreator(type, id, startSide, endSide) {
     var opposite = null;
     var node = null;
+    //First we must check whether our method is called on node.
     if (_lastChild !== null) {
       node = _lastChild;
     } else if (_parentHistory[0] !== undefined) {
       node = _parentHistory[0];
     }
+    //If our last node is not null, we can proceed further.
     if (node !== null) {
+      //Our next task is to iterate through an array of "half links". This step
+      //is necessary to find out whether we should create another "half link"
+      //or complete LinkNode. We are looking for the opposite side of the link.
       for (var i = 0; i < _halfLinks[endSide].length; i++) {
         var link = _halfLinks[endSide][i];
         if (link.type === type && link.id === node.getId()) {
@@ -522,18 +548,27 @@ var RPGSystem = function RPGSystem(data, editor) {
           break;
         }
       }
+      //If opposite side is not available, it means we should create "half link".
       if (opposite === null) {
         _halfLinks[startSide].push({ type: type, id: id });
-      } else {
-        if (startSide === 'inp') {
-          _setConnection(type, id, opposite.id);
-        } else {
-          _setConnection(type, opposite.id, id);
-        }
       }
-    } else {
-      _errorHandler.showMsg(_ErrorCode2.default.INCORRECT_LINK_TARGET);
+      //Otherwise we create LinkNode.
+      else {
+          //Method "_setConnection" always create links in defined direction
+          //starting from input side to output side, so is it important to
+          //pass parameters in proper manner.
+          if (startSide === 'inp') {
+            _setConnection(type, id, opposite.id);
+          } else {
+            _setConnection(type, opposite.id, id);
+          }
+        }
     }
+    //Else if a node is null then it means that method was called on
+    //an incorrect target.
+    else {
+        _errorHandler.showMsg(_ErrorCode2.default.INCORRECT_LINK_TARGET);
+      }
   }
 
   var _addActor = function _addActor(id, params) {
@@ -1472,13 +1507,6 @@ var indexOfObject = function indexOfObject(array, obj) {
 
 exports.indexOfObject = indexOfObject;
 
-exports.getObjectById = function (array, id) {
-  for (var i = 0; i < array.length; i++) {
-    if (array[i].getId() === id) return array[i];
-  }
-  return null;
-};
-
 var getIndexById = function getIndexById(array, id) {
   for (var i = 0; i < array.length; i++) {
     if (array[i].getId() === id) return i;
@@ -1499,24 +1527,14 @@ exports.addObjectToArray = function (array, obj, expectedType) {
   return array;
 };
 
-exports.getObjectsByType = function (array, type) {
-  var out = [];
-  for (var i = 0; i < array.length; i++) {
-    if (type.isPrototypeOf(array[i])) {
-      out.push(array[i]);
-    }
-  }
-  return out;
-};
-
-exports.removeObjectById = function (array, id) {
-  var index = getIndexById(array, id);
-  if (index !== -1) {
-    var spliced = array.splice(index, 1);
-    if (spliced.dispose) spliced.dispose();
+/*exports.removeObjectById = function(array,id) {
+  let index = getIndexById(array,id);
+  if(index !== -1) {
+    let spliced = array.splice(index,1);
+    if(spliced.dispose) spliced.dispose();
   }
   return array;
-};
+}*/
 
 exports.removeObjectFromArray = function (array, obj) {
   var index = indexOfObject(array, obj);
@@ -2006,7 +2024,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
     console.log("rpgs1", rpgs1Serialized);
 
     var rpgs2 = new _RPGSystem2.default(JSON.parse(rpgs1Serialized));
-    console.log("rpgs2", rpgs2.serializeData());
+    console.log("data created is equal to data parsed:", rpgs1Serialized === rpgs2.serializeData());
   });
 })(jQuery, window, document);
 
