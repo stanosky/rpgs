@@ -1,91 +1,168 @@
 {
-    "actors":[
-		{
-			"class":"Actor",
-			"uuid":"act1",
-			"input": {}
-		}
+    "actors":[ {
+        "class":"ActorNode",
+        "uuid":"act1",
+        "input": {
+            "dialog": ["4fd7ea56-94c3-4949-ba71-f9f6ecb7ef9e"]
+        }
+        ,
+        "name":"Adam"
+    }
     ],
-    "dialogs":[
-		{
-			"class":"Dialog",
-			"uuid":"dlg1",
-			"input": {},
-			"output": {},
-			"children": ["tlk0", "tlk1", "tlk2", "tlk3"], "startTalk": ""
-		}
+    "conditions":[ {
+        "class":"ConditionNode",
+        "uuid":"cond1",
+        "output": {
+            "visibility": ["a086a9cb-3aaa-4cdb-abcc-9955c54673db"]
+        }
+        ,
+        "label":"",
+        "code":"\n        (function(){\n          alert(\"Condition test!\");\n          //return true;\n        })();\n      "
+    }
     ],
-    "talks":[
-		{
-			"class":"Talk",
-			"uuid":"tlk0",
-			"input": {},
-			"children": ["tlk0ans1", "tlk0ans2", "tlk0ans3"],
-			"text": ""
-		},
-		{
-			"class":"Talk",
-			"uuid":"tlk1",
-			"input": {},
-			"children": ["tlk1ans1"], "text": ""
-		},
-		{
-			"class":"Talk",
-			"uuid":"tlk2",
-			"input": {},
-			"children": ["tlk2ans1"],
-			"text": ""
-		},
-		{
-			"class":"Talk",
-			"uuid":"tlk3",
-			"input": {},
-			"children": ["tlk3ans1"],
-			"text": ""
-		}
+    "dialogs":[ {
+        "class":"DialogNode",
+        "uuid":"dlg1",
+        "input": {}
+        ,
+        "output": {
+            "dialog": ["4fd7ea56-94c3-4949-ba71-f9f6ecb7ef9e"]
+        }
+        ,
+        "children":["tlk0",
+        "tlk1",
+        "tlk2",
+        "tlk3"],
+        "startTalk":"tlk0"
+    }
     ],
-    "answers":[
-		{
-			"class":"Answer",
-			"uuid":"tlk0ans1",
-			"input": {},
-			"output": {},
-			"text": ""
-		},
-		{
-			"class":"Answer",
-			"uuid":"tlk0ans2",
-			"input": {},
-			"output": {},
-			"text": ""
-		},
-		{
-			"class":"Answer",
-			"uuid":"tlk0ans3",
-			"input": {},
-			"output": {},
-			"text": ""
-		},
-		{
-			"class":"Answer",
-			"uuid":"tlk1ans1",
-			"input": {},
-			"output": {},
-			"text": ""
-		},
-		{
-			"class":"Answer",
-			"uuid":"tlk2ans1",
-			"input": {},
-			"output": {},
-			"text": ""
-		},
-		{
-			"class":"Answer",
-			"uuid":"tlk3ans1",
-			"input": {},
-			"output": {},
-			"text": ""
-		}
+    "links":[ {
+        "class": "LinkNode", "uuid": "4fd7ea56-94c3-4949-ba71-f9f6ecb7ef9e", "input": "act1", "output": "dlg1", "type": "dialog"
+    }
+    ,
+    {
+        "class": "LinkNode", "uuid": "a086a9cb-3aaa-4cdb-abcc-9955c54673db", "input": "tlk0ans1", "output": "cond1", "type": "visibility"
+    }
+    ,
+    {
+        "class": "LinkNode", "uuid": "e52ed77b-515b-4c15-9d50-d43fca635b48", "input": "tlk1", "output": "tlk0ans1", "type": "goto"
+    }
+    ,
+    {
+        "class": "LinkNode", "uuid": "c09982b8-5f1f-47c5-b05d-e2ec56187216", "input": "tlk2", "output": "tlk0ans2", "type": "goto"
+    }
+    ,
+    {
+        "class": "LinkNode", "uuid": "3d66f4f8-dcd8-486c-bf8d-433531f108b1", "input": "tlk3", "output": "tlk0ans3", "type": "goto"
+    }
+    ],
+    "talks":[ {
+        "class":"TalkNode",
+        "uuid":"tlk0",
+        "input": {}
+        ,
+        "children": ["tlk0ans1", "tlk0ans2", "tlk0ans3"], "text": "This is talk 0."
+    }
+    ,
+    {
+        "class":"TalkNode",
+        "uuid":"tlk1",
+        "input": {
+            "goto": ["e52ed77b-515b-4c15-9d50-d43fca635b48"]
+        }
+        ,
+        "children":["tlk1ans1"],
+        "text":"This is talk 1."
+    }
+    ,
+    {
+        "class":"TalkNode",
+        "uuid":"tlk2",
+        "input": {
+            "goto": ["c09982b8-5f1f-47c5-b05d-e2ec56187216"]
+        }
+        ,
+        "children":["tlk2ans1"],
+        "text":"This is talk 2."
+    }
+    ,
+    {
+        "class":"TalkNode",
+        "uuid":"tlk3",
+        "input": {
+            "goto": ["3d66f4f8-dcd8-486c-bf8d-433531f108b1"]
+        }
+        ,
+        "children":["tlk3ans1"],
+        "text":"This is talk 3."
+    }
+    ],
+    "answers":[ {
+        "class":"AnswerNode",
+        "uuid":"tlk0ans1",
+        "input": {
+            "visibility": ["a086a9cb-3aaa-4cdb-abcc-9955c54673db"]
+        }
+        ,
+        "output": {
+            "goto": ["e52ed77b-515b-4c15-9d50-d43fca635b48"]
+        }
+        ,
+        "text":"Answer1"
+    }
+    ,
+    {
+        "class":"AnswerNode",
+        "uuid":"tlk0ans2",
+        "input": {}
+        ,
+        "output": {
+            "goto": ["c09982b8-5f1f-47c5-b05d-e2ec56187216"]
+        }
+        ,
+        "text":"Answer2"
+    }
+    ,
+    {
+        "class":"AnswerNode",
+        "uuid":"tlk0ans3",
+        "input": {}
+        ,
+        "output": {
+            "goto": ["3d66f4f8-dcd8-486c-bf8d-433531f108b1"]
+        }
+        ,
+        "text":"Answer3"
+    }
+    ,
+    {
+        "class":"AnswerNode",
+        "uuid":"tlk1ans1",
+        "input": {}
+        ,
+        "output": {}
+        ,
+        "text": "Answer1"
+    }
+    ,
+    {
+        "class":"AnswerNode",
+        "uuid":"tlk2ans1",
+        "input": {}
+        ,
+        "output": {}
+        ,
+        "text": "Answer1"
+    }
+    ,
+    {
+        "class":"AnswerNode",
+        "uuid":"tlk3ans1",
+        "input": {}
+        ,
+        "output": {}
+        ,
+        "text": "Answer1"
+    }
     ]
 }

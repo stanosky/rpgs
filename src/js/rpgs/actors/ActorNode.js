@@ -2,7 +2,7 @@
 import BaseNode from '../core/BaseNode';
 import LinkType   from '../core/LinkType';
 
-let Actor = (function() {
+let ActorNode = (function() {
   //Weak maps are new feature to JavaScript. We can store private
   //object properties in key/value pairs using our instance as the key,
   //and our class can capture those key/value maps in a closure.
@@ -11,7 +11,7 @@ let Actor = (function() {
   //let _inventory = new WeakMap();
 
 
-  return class Actor extends BaseNode {
+  return class ActorNode extends BaseNode {
     constructor(data) {
       super(data);
       _name.set(this,data ? data.name : '');
@@ -64,4 +64,4 @@ let Actor = (function() {
   }
 })();
 
-module.exports = Actor;
+module.exports = ActorNode;

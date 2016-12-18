@@ -4,12 +4,12 @@ import QuestStatus  from './QuestStatus';
 
 const KEY_TASKS = 'tasks'
 
-let Quest = (function() {
+let QuestNode = (function() {
   let _title = new WeakMap();
   let _description = new WeakMap();
   let _status = new WeakMap();
 
-  return class Quest extends CompoundNode {
+  return class QuestNode extends CompoundNode {
     constructor(data,rpgs) {
       super(data,rpgs);
       _title.set(this,data.title ? data.title : '');
@@ -70,4 +70,4 @@ let Quest = (function() {
   };
 
 })();
-module.exports = Quest;
+module.exports = QuestNode;

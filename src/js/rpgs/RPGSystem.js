@@ -1,17 +1,17 @@
 "use strict";
-import Utils        from './core/Utils';
-import BaseNode     from './core/BaseNode';
-import ErrorHandler from './core/ErrorHandler'
-import ErrorCode    from './core/ErrorCode';
-import Link         from './core/Link';
-import Actor        from './actors/Actor';
-//import Inventory    from './actors/Invenotry';
-import Condition    from './conditions/Condition';
-import Answer       from './dialogs/Answer';
-import Dialog       from './dialogs/Dialog';
-import Talk         from './dialogs/Talk';
-import Quest        from './quests/Quest';
-import Task         from './quests/Task';
+import Utils            from './core/Utils';
+import ErrorHandler     from './core/ErrorHandler'
+import ErrorCode        from './core/ErrorCode';
+import BaseNode         from './core/BaseNode';
+import LinkNode         from './core/LinkNode';
+import ActorNode        from './actors/ActorNode';
+//import InventoryNode  from './actors/InvenotryNode';
+import ConditionNode    from './conditions/ConditionNode';
+import AnswerNode       from './dialogs/AnswerNode';
+import DialogNode       from './dialogs/DialogNode';
+import TalkNode         from './dialogs/TalkNode';
+import QuestNode        from './quests/QuestNode';
+import TaskNode         from './quests/TaskNode';
 
 const KEY_ACTORS = 'actors';
 const KEY_ANSWERS = 'answers';
@@ -46,14 +46,14 @@ let RPGSystem = function (data,editor) {
   function _nodeFactory(data) {
     let className = data.class;
     switch (className) {
-      case 'Actor':     return new Actor(data,this);
-      case 'Condition': return new Condition(data,this);
-      case 'Answer':    return new Answer(data,this);
-      case 'Dialog':    return new Dialog(data,this);
-      case 'Talk':      return new Talk(data,this);
-      case 'Quest':     return new Quest(data,this);
-      case 'Task':      return new Task(data,this);
-      case 'Link':      return new Link(data,this);
+      case 'ActorNode':     return new ActorNode(data,this);
+      case 'ConditionNode': return new ConditionNode(data,this);
+      case 'AnswerNode':    return new AnswerNode(data,this);
+      case 'DialogNode':    return new DialogNode(data,this);
+      case 'TalkNode':      return new TalkNode(data,this);
+      case 'QuestNode':     return new QuestNode(data,this);
+      case 'TaskNode':      return new TaskNode(data,this);
+      case 'LinkNode':      return new LinkNode(data,this);
       default:
         _errorHandler.showMsg(ErrorCode.CLASS_NOT_DEFINED,{class:className});
         return null;
@@ -95,7 +95,7 @@ let RPGSystem = function (data,editor) {
     let node2 = _findNode(nodeId2);
     if(node1 === null || node2 === null) return;
     if(node1.canCreateOutputConnection(type) && node2.canCreateInputConnection(type)) {
-      let link = new Link({type:type,output:nodeId1,input:nodeId2});
+      let link = new LinkNode({type:type,output:nodeId1,input:nodeId2});
       let linkId = link.getId();
       _addNode(KEY_LINKS,link);
       node1.setOutputConnection(type,linkId);
@@ -275,7 +275,7 @@ let RPGSystem = function (data,editor) {
   }
 
   let _addActor = function(id,params) {
-    _chainNodeCreator(id,params,false,'Actor',KEY_ACTORS);
+    _chainNodeCreator(id,params,false,'ActorNode',KEY_ACTORS);
     return this;
   },
 
@@ -285,7 +285,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _addQuest = function(id,params) {
-    _chainNodeCreator(id,params,false,'Quest',KEY_QUESTS);
+    _chainNodeCreator(id,params,false,'QuestNode',KEY_QUESTS);
     return this;
   },
 
@@ -295,7 +295,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _addDialog = function(id,params) {
-    _chainNodeCreator(id,params,false,'Dialog',KEY_DIALOGS);
+    _chainNodeCreator(id,params,false,'DialogNode',KEY_DIALOGS);
     return this;
   },
 
@@ -305,7 +305,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _addCondition = function(id,params) {
-    _chainNodeCreator(id,params,false,'Condition',KEY_CONDITIONS);
+    _chainNodeCreator(id,params,false,'ConditionNode',KEY_CONDITIONS);
     return this;
   },
 
@@ -325,7 +325,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _addTalk = function(id,params) {
-    _chainNodeCreator(id,params,true,'Talk',KEY_TALKS);
+    _chainNodeCreator(id,params,true,'TalkNode',KEY_TALKS);
     return this;
   },
 
@@ -335,7 +335,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _addAnswer = function(id,params) {
-    _chainNodeCreator(id,params,true,'Answer',KEY_ANSWERS);
+    _chainNodeCreator(id,params,true,'AnswerNode',KEY_ANSWERS);
     return this;
   },
 

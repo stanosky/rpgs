@@ -2,13 +2,13 @@
 import BaseNode from '../core/BaseNode';
 
 
-let Link = (function() {
+let LinkNode = (function() {
 
   let _type = new WeakMap();
   let _output = new WeakMap();
   let _input = new WeakMap();
 
-  return class Link extends BaseNode {
+  return class LinkNode extends BaseNode {
     constructor(data,rpgs){
       super(data,rpgs);
       _type.set(this,data.type);
@@ -57,4 +57,4 @@ let Link = (function() {
     }
   };
 })();
-module.exports = Link;
+module.exports = LinkNode;

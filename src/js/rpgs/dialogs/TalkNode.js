@@ -5,11 +5,11 @@ import LinkType   from '../core/LinkType';
 
 const KEY_ANSWERS = 'answers';
 
-let Talk = (function() {
+let TalkNode = (function() {
 
   let _text = new WeakMap();
 
-  return class Talk extends CompoundNode {
+  return class TalkNode extends CompoundNode {
     constructor(data,rpgs) {
       super(data,rpgs);
       _text.set(this,data.text ? data.text : '');
@@ -30,7 +30,7 @@ let Talk = (function() {
     }
 
     canAddChild(type) {
-      return type === 'Answer';
+      return type === 'AnswerNode';
     }
 
     canCreateInputConnection(type) {
@@ -52,4 +52,4 @@ let Talk = (function() {
     }
   };
 })();
-module.exports = Talk;
+module.exports = TalkNode;

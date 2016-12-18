@@ -1,15 +1,15 @@
 "use strict";
 import CompoundNode from '../core/CompoundNode';
-import LinkType   from '../core/LinkType';
-import Utils      from '../core/Utils';
+import LinkType     from '../core/LinkType';
+import Utils        from '../core/Utils';
 
 
 const KEY_TALKS = 'talks';
 
-let Dialog = (function() {
+let DialogNode = (function() {
   let _start = new WeakMap();
 
-  return class Dialog extends CompoundNode {
+  return class DialogNode extends CompoundNode {
 
     constructor(data,rpgs) {
       super(data,rpgs);
@@ -23,7 +23,7 @@ let Dialog = (function() {
     }
 
     canAddChild(type) {
-      return type === 'Talk';
+      return type === 'TalkNode';
     }
 
     setStartTalk(talkId) {
@@ -60,4 +60,4 @@ let Dialog = (function() {
   }
 
 })();
-module.exports = Dialog;
+module.exports = DialogNode;
