@@ -247,12 +247,17 @@ let RPGSystem = function (data,editor) {
   function _chainLinkCreator(type,id,startSide,endSide) {
     let opposite = null;
     let node = null;
+    //First we must check whether our method is called on node.
     if(_lastChild !== null) {
       node = _lastChild;
     } else if(_parentHistory[0] !== undefined) {
       node = _parentHistory[0];
     }
+    //If our last node is not null, we can proceed further.
     if(node !== null) {
+      //Our next task is to iterate through an array of "half links". This step
+      //is necessary to find out whether we should create another "half link"
+      //or complete LinkNode. We are looking for the opposite side of the link.
       for (var i = 0; i < _halfLinks[endSide].length; i++) {
         let link = _halfLinks[endSide][i];
         if(link.type === type && link.id === node.getId()){
@@ -260,16 +265,25 @@ let RPGSystem = function (data,editor) {
           break;
         }
       }
+      //If opposite side is not available, it means we should create "half link".
       if(opposite === null) {
         _halfLinks[startSide].push({type,id});
-      } else {
+      }
+      //Otherwise we create LinkNode.
+      else {
+        //Method "_setConnection" always create links in defined direction
+        //starting from input side to output side, so is it important to
+        //pass parameters in proper manner.
         if(startSide === 'inp') {
           _setConnection(type,id,opposite.id);
         } else {
           _setConnection(type,opposite.id,id);
         }
       }
-    } else {
+    }
+    //Else if a node is null then it means that method was called on
+    //an incorrect target.
+    else {
       _errorHandler.showMsg(ErrorCode.INCORRECT_LINK_TARGET);
     }
   }
