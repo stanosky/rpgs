@@ -270,6 +270,10 @@ var _TaskNode = require('./quests/TaskNode');
 
 var _TaskNode2 = _interopRequireDefault(_TaskNode);
 
+var _VariableNode = require('./variables/VariableNode');
+
+var _VariableNode2 = _interopRequireDefault(_VariableNode);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var KEY_ACTORS = 'actors';
@@ -324,6 +328,8 @@ var RPGSystem = function RPGSystem(data, editor) {
         return new _TaskNode2.default(data, this);
       case 'LinkNode':
         return new _LinkNode2.default(data, this);
+      case 'VariableNode':
+        return new _VariableNode2.default(data, this);
       default:
         _errorHandler.showMsg(_ErrorCode2.default.CLASS_NOT_DEFINED, { class: className });
         return null;
@@ -604,7 +610,7 @@ var RPGSystem = function RPGSystem(data, editor) {
     return this;
   },
       _addVariable = function _addVariable(id, params) {
-    _chainNodeCreator(id, params, false, 'Variable', KEY_VARIABLES);
+    _chainNodeCreator(id, params, false, 'VariableNode', KEY_VARIABLES);
     return this;
   },
       _removeVariable = function _removeVariable(variableId) {
@@ -665,7 +671,7 @@ var RPGSystem = function RPGSystem(data, editor) {
     return _objectPool[KEY_QUESTS];
   },
       _getVariable = function _getVariable(variableId) {
-    return this._getNode(KEY_VARIABLES, variableId);
+    return _getNode(KEY_VARIABLES, variableId);
   },
       _getVariables = function _getVariables() {
     return _objectPool[KEY_VARIABLES];
@@ -741,7 +747,7 @@ var RPGSystem = function RPGSystem(data, editor) {
 };
 module.exports = RPGSystem;
 
-},{"./actors/ActorNode":4,"./conditions/ConditionNode":5,"./core/BaseNode":6,"./core/ErrorCode":8,"./core/ErrorHandler":9,"./core/LinkNode":10,"./core/Utils":12,"./dialogs/AnswerNode":13,"./dialogs/DialogNode":14,"./dialogs/TalkNode":15,"./quests/QuestNode":16,"./quests/TaskNode":18}],4:[function(require,module,exports){
+},{"./actors/ActorNode":4,"./conditions/ConditionNode":5,"./core/BaseNode":6,"./core/ErrorCode":8,"./core/ErrorHandler":9,"./core/LinkNode":10,"./core/Utils":12,"./dialogs/AnswerNode":13,"./dialogs/DialogNode":14,"./dialogs/TalkNode":15,"./quests/QuestNode":16,"./quests/TaskNode":18,"./variables/VariableNode":19}],4:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2006,6 +2012,148 @@ module.exports = TaskNode;
 },{"../core/BaseNode":6}],19:[function(require,module,exports){
 "use strict";
 
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+var _BaseNode2 = require('../core/BaseNode');
+
+var _BaseNode3 = _interopRequireDefault(_BaseNode2);
+
+var _VariableType = require('./VariableType');
+
+var _VariableType2 = _interopRequireDefault(_VariableType);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var VariableNode = function () {
+  var _value = new WeakMap();
+  var _type = new WeakMap();
+
+  function _parseBoolean(val) {
+    var isBool = (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === _VariableType2.default.BOOLEAN;
+    if (isBool) {
+      return val;
+    } else {
+      switch (String(val).toLowerCase().trim()) {
+        case "true":case "yes":case "1":
+          return true;
+        case "false":case "no":case "0":case null:
+          return false;
+        default:
+          return Boolean(val);
+      }
+    }
+  }
+
+  function _parseString(val) {
+    return (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === _VariableType2.default.STRING ? val : String(val);
+  }
+
+  function _parseNumber(val) {
+    return (typeof val === 'undefined' ? 'undefined' : _typeof(val)) === _VariableType2.default.NUMBER ? val : parseFloat(val);
+  }
+
+  function _parseValue(val, type) {
+    switch (type) {
+      case _VariableType2.default.BOOLEAN:
+        return _parseBoolean(val);
+      case _VariableType2.default.NUMBER:
+        return _parseNumber(val);
+      case _VariableType2.default.STRING:
+      default:
+        return _parseString(val);
+    }
+  }
+
+  return function (_BaseNode) {
+    _inherits(VariableNode, _BaseNode);
+
+    function VariableNode(data, rpgs) {
+      _classCallCheck(this, VariableNode);
+
+      var _this = _possibleConstructorReturn(this, (VariableNode.__proto__ || Object.getPrototypeOf(VariableNode)).call(this, data, rpgs));
+
+      _type.set(_this, data.hasOwnProperty('type') ? data.type : _VariableType2.default.STRING);
+      _value.set(_this, data.hasOwnProperty('value') ? _parseValue(data.value, _type.get(_this)) : '');
+      return _this;
+    }
+
+    _createClass(VariableNode, [{
+      key: 'getData',
+      value: function getData() {
+        var data = _get(VariableNode.prototype.__proto__ || Object.getPrototypeOf(VariableNode.prototype), 'getData', this).call(this);
+        data.type = this.getType();
+        data.value = this.getValue();
+        return data;
+      }
+    }, {
+      key: 'setValue',
+      value: function setValue(val) {
+        _value.set(this, _parseValue(val, _type.get(this)));
+      }
+    }, {
+      key: 'getValue',
+      value: function getValue() {
+        return _value.get(this);
+      }
+    }, {
+      key: 'getType',
+      value: function getType() {
+        return _type.get(this);
+      }
+    }, {
+      key: 'canCreateInputConnection',
+      value: function canCreateInputConnection(type) {
+        return false;
+      }
+    }, {
+      key: 'canCreateOutputConnection',
+      value: function canCreateOutputConnection(type) {
+        switch (type) {
+          case LinkType.REFERENCE:
+            return true;
+          default:
+            return false;
+        }
+      }
+    }, {
+      key: 'dispose',
+      value: function dispose() {
+        _value.delete(this);
+        _type.delete(this);
+        _get(VariableNode.prototype.__proto__ || Object.getPrototypeOf(VariableNode.prototype), 'dispose', this).call(this);
+      }
+    }]);
+
+    return VariableNode;
+  }(_BaseNode3.default);
+}();
+
+module.exports = VariableNode;
+
+},{"../core/BaseNode":6,"./VariableType":20}],20:[function(require,module,exports){
+'use strict';
+
+var BOOLEAN = 'boolean';
+var STRING = 'string';
+var NUMBER = 'number';
+
+exports.BOOLEAN = BOOLEAN;
+exports.STRING = STRING;
+exports.NUMBER = NUMBER;
+
+},{}],21:[function(require,module,exports){
+"use strict";
+
 var _data = require('../data/data.json');
 
 var _data2 = _interopRequireDefault(_data);
@@ -2019,7 +2167,14 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 (function ($, window, document, undefined) {
   $(function () {
     var rpgs1 = new _RPGSystem2.default();
-    rpgs1.addActor('act1', { name: 'Adam' }).inp('dialog', 'dlg1').addCondition('cond1', { code: '\n        (function(){\n          alert("Condition test!");\n          //return true;\n        })();\n      ' }).out('visibility', 'tlk0ans1').addDialog('dlg1', { startTalk: 'tlk0' }).out('dialog', 'act1').addTalk('tlk0', { text: 'This is talk 0.' }).addAnswer('tlk0ans1', { text: 'Answer1' }).out('goto', 'tlk1').inp('visibility', 'cond1').addAnswer('tlk0ans2', { text: 'Answer2' }).out('goto', 'tlk2').addAnswer('tlk0ans3', { text: 'Answer3' }).out('goto', 'tlk3').addTalk('tlk1', { text: 'This is talk 1.' }).inp('goto', 'tlk0ans1').addAnswer('tlk1ans1', { text: 'Answer1' }).addTalk('tlk2', { text: 'This is talk 2.' }).inp('goto', 'tlk0ans2').addAnswer('tlk2ans1', { text: 'Answer1' }).addTalk('tlk3', { text: 'This is talk 3.' }).inp('goto', 'tlk0ans3').addAnswer('tlk3ans1', { text: 'Answer1' });
+    rpgs1.addActor('act1', { name: 'Adam' }).inp('dialog', 'dlg1').addCondition('cond1', { code: '\n        (function(){\n          alert("Condition test!");\n          //return true;\n        })();\n      ' }).out('visibility', 'tlk0ans1').addDialog('dlg1', { startTalk: 'tlk0' }).out('dialog', 'act1').addTalk('tlk0', { text: 'This is talk 0.' }).addAnswer('tlk0ans1', { text: 'Answer1' }).out('goto', 'tlk1').inp('visibility', 'cond1').addAnswer('tlk0ans2', { text: 'Answer2' }).out('goto', 'tlk2').addAnswer('tlk0ans3', { text: 'Answer3' }).out('goto', 'tlk3').addTalk('tlk1', { text: 'This is talk 1.' }).inp('goto', 'tlk0ans1').addAnswer('tlk1ans1', { text: 'Answer1' }).addTalk('tlk2', { text: 'This is talk 2.' }).inp('goto', 'tlk0ans2').addAnswer('tlk2ans1', { text: 'Answer1' }).addTalk('tlk3', { text: 'This is talk 3.' }).inp('goto', 'tlk0ans3').addAnswer('tlk3ans1', { text: 'Answer1' }).addVariable('b1', { type: 'boolean', value: false }).addVariable('s1', { type: 'string', value: 'sssssss' }).addVariable('n1', { type: 'number', value: 56 });
+    var b1 = rpgs1.getVariable('b1');
+    var s1 = rpgs1.getVariable('s1');
+    var n1 = rpgs1.getVariable('n1');
+    console.log('b1 value', b1.getValue(), b1.getType());
+    console.log('s1 value', s1.getValue(), s1.getType());
+    console.log('n1 value', n1.getValue(), n1.getType());
+
     var rpgs1Serialized = rpgs1.serializeData();
     console.log("rpgs1", rpgs1Serialized);
 
@@ -2028,5 +2183,5 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
   });
 })(jQuery, window, document);
 
-},{"../data/data.json":2,"./rpgs/RPGSystem":3}]},{},[19])
+},{"../data/data.json":2,"./rpgs/RPGSystem":3}]},{},[21])
 

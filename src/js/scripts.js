@@ -27,7 +27,17 @@ import RPGSystem from './rpgs/RPGSystem';
         .addAnswer('tlk2ans1',{text:'Answer1'})
 
       .addTalk('tlk3',{text:'This is talk 3.'}).inp('goto','tlk0ans3')
-        .addAnswer('tlk3ans1',{text:'Answer1'});
+        .addAnswer('tlk3ans1',{text:'Answer1'})
+    .addVariable('b1',{type:'boolean',value:false})
+    .addVariable('s1',{type:'string',value:'sssssss'})
+    .addVariable('n1',{type:'number',value:56})
+    let b1 = rpgs1.getVariable('b1');
+    let s1 = rpgs1.getVariable('s1');
+    let n1 = rpgs1.getVariable('n1');
+    console.log('b1 value',b1.getValue(),b1.getType());
+    console.log('s1 value',s1.getValue(),s1.getType());
+    console.log('n1 value',n1.getValue(),n1.getType());
+
     let rpgs1Serialized = rpgs1.serializeData();
     console.log("rpgs1",rpgs1Serialized);
 

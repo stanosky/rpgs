@@ -12,6 +12,7 @@ import DialogNode       from './dialogs/DialogNode';
 import TalkNode         from './dialogs/TalkNode';
 import QuestNode        from './quests/QuestNode';
 import TaskNode         from './quests/TaskNode';
+import VariableNode     from './variables/VariableNode';
 
 const KEY_ACTORS = 'actors';
 const KEY_ANSWERS = 'answers';
@@ -54,6 +55,7 @@ let RPGSystem = function (data,editor) {
       case 'QuestNode':     return new QuestNode(data,this);
       case 'TaskNode':      return new TaskNode(data,this);
       case 'LinkNode':      return new LinkNode(data,this);
+      case 'VariableNode':  return new VariableNode(data,this);
       default:
         _errorHandler.showMsg(ErrorCode.CLASS_NOT_DEFINED,{class:className});
         return null;
@@ -351,7 +353,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _addVariable = function(id,params) {
-    _chainNodeCreator(id,params,false,'Variable',KEY_VARIABLES);
+    _chainNodeCreator(id,params,false,'VariableNode',KEY_VARIABLES);
     return this;
   },
 
@@ -426,7 +428,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _getVariable = function(variableId) {
-    return this._getNode(KEY_VARIABLES,variableId);
+    return _getNode(KEY_VARIABLES,variableId);
   },
 
   _getVariables = function() {
