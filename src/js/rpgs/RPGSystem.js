@@ -26,8 +26,7 @@ const KEY_QUESTS = 'quests';
 const KEY_VARIABLES = 'variables';
 
 let RPGSystem = function (data,editor) {
-  let _self = this,
-  _objectPool = {},
+  let _objectPool = {},
   _editor = editor||null,
   _errorHandler = new ErrorHandler(_editor),
   _context = null,
@@ -447,7 +446,7 @@ let RPGSystem = function (data,editor) {
     return JSON.stringify(data);
   };
 
-  return {
+  let _self = {
     ////////////////////////////////////////////
     //General node methods
     ////////////////////////////////////////////
@@ -503,5 +502,6 @@ let RPGSystem = function (data,editor) {
     ////////////////////////////////////////////
     serializeData:    _serializeData
   };
+  return _self;
 };
 module.exports = RPGSystem;

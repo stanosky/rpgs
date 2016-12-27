@@ -341,8 +341,7 @@ var KEY_QUESTS = 'quests';
 var KEY_VARIABLES = 'variables';
 
 var RPGSystem = function RPGSystem(data, editor) {
-  var _self = this,
-      _objectPool = {},
+  var _objectPool = {},
       _editor = editor || null,
       _errorHandler = new _ErrorHandler2.default(_editor),
       _context = null,
@@ -740,7 +739,7 @@ var RPGSystem = function RPGSystem(data, editor) {
     return JSON.stringify(data);
   };
 
-  return {
+  var _self = {
     ////////////////////////////////////////////
     //General node methods
     ////////////////////////////////////////////
@@ -796,6 +795,7 @@ var RPGSystem = function RPGSystem(data, editor) {
     ////////////////////////////////////////////
     serializeData: _serializeData
   };
+  return _self;
 };
 module.exports = RPGSystem;
 
@@ -2221,8 +2221,9 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 (function ($, window, document, undefined) {
   $(function () {
     var rpgs1 = new _RPGSystem2.default();
-    rpgs1.addVariable('b1', { type: 'boolean', value: false }).addVariable('s1', { type: 'string', value: 'sssssss' }).addVariable('n1', { type: 'number', value: 56 }).addActor('act1', { name: 'Adam' }).inp('dialog', 'dlg1').addCondition('cond1', { code: 'console.log(rpgs);' }).out('visibility', 'tlk0ans1').addDialog('dlg1', { startTalk: 'tlk0' }).out('dialog', 'act1').addTalk('tlk0', { text: 'This is talk 0.' }).addAnswer('tlk0ans1', { text: 'Answer1' }).out('goto', 'tlk1').inp('visibility', 'cond1').addAnswer('tlk0ans2', { text: 'Answer2' }).out('goto', 'tlk2').addAnswer('tlk0ans3', { text: 'Answer3' }).out('goto', 'tlk3').addTalk('tlk1', { text: 'This is talk 1.' }).inp('goto', 'tlk0ans1').addAnswer('tlk1ans1', { text: 'Answer1' }).addTalk('tlk2', { text: 'This is talk 2.' }).inp('goto', 'tlk0ans2').addAnswer('tlk2ans1', { text: 'Answer1' }).addTalk('tlk3', { text: 'This is talk 3.' }).inp('goto', 'tlk0ans3').addAnswer('tlk3ans1', { text: 'Answer1' });
-
+    rpgs1.addActor('act1', { name: 'Adam' }).inp('dialog', 'dlg1').addCondition('cond1', {
+      code: 'console.log(rpgs.getVariable(\'s1\').getValue());'
+    }).out('visibility', 'tlk0ans1').addDialog('dlg1', { startTalk: 'tlk0' }).out('dialog', 'act1').addTalk('tlk0', { text: 'This is talk 0.' }).addAnswer('tlk0ans1', { text: 'Answer1' }).out('goto', 'tlk1').inp('visibility', 'cond1').addAnswer('tlk0ans2', { text: 'Answer2' }).out('goto', 'tlk2').addAnswer('tlk0ans3', { text: 'Answer3' }).out('goto', 'tlk3').addTalk('tlk1', { text: 'This is talk 1.' }).inp('goto', 'tlk0ans1').addAnswer('tlk1ans1', { text: 'Answer1' }).addTalk('tlk2', { text: 'This is talk 2.' }).inp('goto', 'tlk0ans2').addAnswer('tlk2ans1', { text: 'Answer1' }).addTalk('tlk3', { text: 'This is talk 3.' }).inp('goto', 'tlk0ans3').addAnswer('tlk3ans1', { text: 'Answer1' }).addVariable('b1', { type: 'boolean', value: false }).addVariable('s1', { type: 'string', value: 'This is message from compiled code!' }).addVariable('n1', { type: 'number', value: 56 });
     var cond = rpgs1.getCondition('cond1');
     console.log(cond.check());
     var b1 = rpgs1.getVariable('b1');
