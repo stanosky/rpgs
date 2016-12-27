@@ -15,8 +15,10 @@ let ConditionNode = (function(){
       super(data,rpgs);
       _label.set(this,data.label ? data.label : '');
       _code.set(this,data.code ? data.code : `(function(){return true;})();`);
-      _sandbox.set(this,{rpgs});
-      _compiled.set(this,compiler.compileExpression(_code.get(this), _sandbox.get(this)));
+      compiler.expose('console');
+      _compiled.set(this,compiler.compileExpression(_code.get(this)));
+      //_sandbox.set(this,compiler.toSandbox(rpgs));
+      //compiler.expose('console', 'Math');
     }
 
     setLabel(text) {
@@ -37,7 +39,7 @@ let ConditionNode = (function(){
     }
 
     check() {
-      return _compiled.get(this)();
+      return _compiled.get(this)({rpgs:this.getRPGS()});
     }
 
     getData() {

@@ -26,8 +26,8 @@ const KEY_QUESTS = 'quests';
 const KEY_VARIABLES = 'variables';
 
 let RPGSystem = function (data,editor) {
-
-  let _objectPool = {},
+  let _self = this,
+  _objectPool = {},
   _editor = editor||null,
   _errorHandler = new ErrorHandler(_editor),
   _context = null,
@@ -40,22 +40,22 @@ let RPGSystem = function (data,editor) {
 
   for (var key in data) {
     if (data.hasOwnProperty(key)) {
-      _objectPool[key] = data[key].map((d) => _nodeFactory(d,this));
+      _objectPool[key] = data[key].map((d) => _nodeFactory(d,_self));
     }
   }
 
-  function _nodeFactory(data) {
+  function _nodeFactory(data,rpgs) {
     let className = data.class;
     switch (className) {
-      case 'ActorNode':     return new ActorNode(data,this);
-      case 'ConditionNode': return new ConditionNode(data,this);
-      case 'AnswerNode':    return new AnswerNode(data,this);
-      case 'DialogNode':    return new DialogNode(data,this);
-      case 'TalkNode':      return new TalkNode(data,this);
-      case 'QuestNode':     return new QuestNode(data,this);
-      case 'TaskNode':      return new TaskNode(data,this);
-      case 'LinkNode':      return new LinkNode(data,this);
-      case 'VariableNode':  return new VariableNode(data,this);
+      case 'ActorNode':     return new ActorNode(data,rpgs);
+      case 'ConditionNode': return new ConditionNode(data,rpgs);
+      case 'AnswerNode':    return new AnswerNode(data,rpgs);
+      case 'DialogNode':    return new DialogNode(data,rpgs);
+      case 'TalkNode':      return new TalkNode(data,rpgs);
+      case 'QuestNode':     return new QuestNode(data,rpgs);
+      case 'TaskNode':      return new TaskNode(data,rpgs);
+      case 'LinkNode':      return new LinkNode(data,rpgs);
+      case 'VariableNode':  return new VariableNode(data,rpgs);
       default:
         _errorHandler.showMsg(ErrorCode.CLASS_NOT_DEFINED,{class:className});
         return null;
@@ -232,14 +232,14 @@ let RPGSystem = function (data,editor) {
       _lastChild = null;
       _parentHistory.length = 0;
       //After that, new node is created.
-      let node = _nodeFactory(params);
+      let node = _nodeFactory(params,_self);
       _parentHistory = [node];
       _addNode(storage,node);
     }
 
     function createChildNode(nodeParams) {
       //We create a new node, and then set as the last child.
-      _lastChild = _nodeFactory(nodeParams);
+      _lastChild = _nodeFactory(nodeParams,_self);
       //Then we add our freshly created node to its parent.
       _parentHistory[0].addChild(_lastChild.getId());
       //Finally new node is added to main storage object.
@@ -404,7 +404,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _getCondition = function(conditionId) {
-    return this._getNode(KEY_CONDITIONS,conditionId);
+    return _getNode(KEY_CONDITIONS,conditionId);
   },
 
   _getConditions = function() {
@@ -412,7 +412,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _getDialog = function(dialogId) {
-    return this._getNode(KEY_DIALOGS,dialogId);
+    return _getNode(KEY_DIALOGS,dialogId);
   },
 
   _getDialogs = function() {
@@ -420,7 +420,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _getQuest = function(questId) {
-    return this._getNode(KEY_QUESTS,questId);
+    return _getNode(KEY_QUESTS,questId);
   },
 
   _getQuests = function() {

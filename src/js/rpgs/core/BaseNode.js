@@ -24,7 +24,7 @@ let BaseNode = (function(){
     }
 
     getRPGS() {
-      return this.getRPGS();
+      return _rpgs.get(this);
     }
 
     setId(value) {

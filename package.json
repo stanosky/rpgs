@@ -31,6 +31,6 @@
     "vinyl-transform": "^1.0.0"
   },
   "dependencies": {
-    "@risingstack/nx-compile": "^3.0.0"
+    "@risingstack/nx-compile": "^4.2.0"
   }
 }

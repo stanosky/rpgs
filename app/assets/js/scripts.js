@@ -1,49 +1,102 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+(function (global){
 'use strict'
 
 module.exports = {
   compileCode,
-  compileExpression
+  compileExpression,
+  expose,
+  hide
 }
 
-function compileExpression (src, sandbox) {
+let globalObj
+if (typeof window !== 'undefined') globalObj = window // eslint-disable-line
+else if (typeof global !== 'undefined') globalObj = global // eslint-disable-line
+else if (typeof self !== 'undefined') globalObj = self // eslint-disable-line
+globalObj.$nxCompileToSandbox = toSandbox
+globalObj.$nxCompileCreateBackup = createBackup
+
+const proxies = new WeakMap()
+const expressionCache = new Map()
+const codeCache = new Map()
+const globals = new Set()
+const handlers = {has}
+
+function compileExpression (src) {
   if (typeof src !== 'string') {
     throw new TypeError('first argument must be a string')
   }
-  if (typeof sandbox !== 'object') {
-    throw new TypeError('second argument must be an object')
+  let expression = expressionCache.get(src)
+  if (!expression) {
+    expression = new Function('context', // eslint-disable-line
+      `const sandbox = $nxCompileToSandbox(context)
+      try { with (sandbox) { return ${src} } } catch (err) {
+        if (!(err instanceof TypeError)) throw err
+      }`)
+    expressionCache.set(src, expression)
   }
-
-  sandbox = new Proxy(sandbox, {get, has})
-  const expression = `
-  try { with (sandbox) { return ${src} } } catch (err) {
-    if (!(err instanceof ReferenceError || err instanceof TypeError)) throw err
-  }`
-  return new Function('sandbox', expression).bind(sandbox, sandbox) // eslint-disable-line
+  return expression
 }
 
-function compileCode (src, sandbox) {
+function compileCode (src) {
   if (typeof src !== 'string') {
     throw new TypeError('first argument must be a string')
   }
-  if (typeof sandbox !== 'object') {
-    throw new TypeError('second argument must be an object')
+  let code = codeCache.get(src)
+  if (!code) {
+    code = new Function('context', 'tempVars', // eslint-disable-line
+    `const backup = $nxCompileCreateBackup(context, tempVars)
+    Object.assign(context, tempVars)
+    const sandbox = $nxCompileToSandbox(context)
+    try {
+      with (sandbox) { ${src} }
+    } finally {
+      Object.assign(context, backup)
+    }`)
+    codeCache.set(src, code)
   }
-
-  sandbox = new Proxy(sandbox, {get, has})
-  return new Function('sandbox', `with (sandbox) { ${src} }`).bind(sandbox, sandbox) // eslint-disable-line
+  return code
 }
 
-function get (target, key, receiver) {
-  if (key === Symbol.unscopables) {
-    return undefined
+function expose (...globalNames) {
+  for (let globalName of globalNames) {
+    globals.add(globalName)
   }
-  return Reflect.get(target, key, receiver)
+}
+
+function hide (...globalNames) {
+  for (let globalName of globalNames) {
+    globals.delete(globalName)
+  }
+}
+
+function toSandbox (obj) {
+  if (typeof obj !== 'object') {
+    throw new TypeError('first argument must be an object')
+  }
+  let sandbox = proxies.get(obj)
+  if (!sandbox) {
+    sandbox = new Proxy(obj, handlers)
+    proxies.set(obj, sandbox)
+  }
+  return sandbox
+}
+
+function createBackup (context, tempVars) {
+  if (typeof tempVars === 'object') {
+    const backup = {}
+    for (let key of Object.keys(tempVars)) {
+      backup[key] = context[key]
+    }
+    return backup
+  }
 }
 
 function has (target, key) {
-  return true
+  return globals.has(key) ? Reflect.has(target, key) : true
 }
+
+}).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
 },{}],2:[function(require,module,exports){
 module.exports={
@@ -288,9 +341,8 @@ var KEY_QUESTS = 'quests';
 var KEY_VARIABLES = 'variables';
 
 var RPGSystem = function RPGSystem(data, editor) {
-  var _this = this;
-
-  var _objectPool = {},
+  var _self = this,
+      _objectPool = {},
       _editor = editor || null,
       _errorHandler = new _ErrorHandler2.default(_editor),
       _context = null,
@@ -304,32 +356,32 @@ var RPGSystem = function RPGSystem(data, editor) {
   for (var key in data) {
     if (data.hasOwnProperty(key)) {
       _objectPool[key] = data[key].map(function (d) {
-        return _nodeFactory(d, _this);
+        return _nodeFactory(d, _self);
       });
     }
   }
 
-  function _nodeFactory(data) {
+  function _nodeFactory(data, rpgs) {
     var className = data.class;
     switch (className) {
       case 'ActorNode':
-        return new _ActorNode2.default(data, this);
+        return new _ActorNode2.default(data, rpgs);
       case 'ConditionNode':
-        return new _ConditionNode2.default(data, this);
+        return new _ConditionNode2.default(data, rpgs);
       case 'AnswerNode':
-        return new _AnswerNode2.default(data, this);
+        return new _AnswerNode2.default(data, rpgs);
       case 'DialogNode':
-        return new _DialogNode2.default(data, this);
+        return new _DialogNode2.default(data, rpgs);
       case 'TalkNode':
-        return new _TalkNode2.default(data, this);
+        return new _TalkNode2.default(data, rpgs);
       case 'QuestNode':
-        return new _QuestNode2.default(data, this);
+        return new _QuestNode2.default(data, rpgs);
       case 'TaskNode':
-        return new _TaskNode2.default(data, this);
+        return new _TaskNode2.default(data, rpgs);
       case 'LinkNode':
-        return new _LinkNode2.default(data, this);
+        return new _LinkNode2.default(data, rpgs);
       case 'VariableNode':
-        return new _VariableNode2.default(data, this);
+        return new _VariableNode2.default(data, rpgs);
       default:
         _errorHandler.showMsg(_ErrorCode2.default.CLASS_NOT_DEFINED, { class: className });
         return null;
@@ -497,14 +549,14 @@ var RPGSystem = function RPGSystem(data, editor) {
       _lastChild = null;
       _parentHistory.length = 0;
       //After that, new node is created.
-      var node = _nodeFactory(params);
+      var node = _nodeFactory(params, _self);
       _parentHistory = [node];
       _addNode(storage, node);
     }
 
     function createChildNode(nodeParams) {
       //We create a new node, and then set as the last child.
-      _lastChild = _nodeFactory(nodeParams);
+      _lastChild = _nodeFactory(nodeParams, _self);
       //Then we add our freshly created node to its parent.
       _parentHistory[0].addChild(_lastChild.getId());
       //Finally new node is added to main storage object.
@@ -653,19 +705,19 @@ var RPGSystem = function RPGSystem(data, editor) {
     return _objectPool[KEY_ACTORS];
   },
       _getCondition = function _getCondition(conditionId) {
-    return this._getNode(KEY_CONDITIONS, conditionId);
+    return _getNode(KEY_CONDITIONS, conditionId);
   },
       _getConditions = function _getConditions() {
     return _objectPool[KEY_CONDITIONS];
   },
       _getDialog = function _getDialog(dialogId) {
-    return this._getNode(KEY_DIALOGS, dialogId);
+    return _getNode(KEY_DIALOGS, dialogId);
   },
       _getDialogs = function _getDialogs() {
     return _objectPool[KEY_DIALOGS];
   },
       _getQuest = function _getQuest(questId) {
-    return this._getNode(KEY_QUESTS, questId);
+    return _getNode(KEY_QUESTS, questId);
   },
       _getQuests = function _getQuests() {
     return _objectPool[KEY_QUESTS];
@@ -899,8 +951,10 @@ var ConditionNode = function () {
 
       _label.set(_this, data.label ? data.label : '');
       _code.set(_this, data.code ? data.code : '(function(){return true;})();');
-      _sandbox.set(_this, { rpgs: rpgs });
-      _compiled.set(_this, _nxCompile2.default.compileExpression(_code.get(_this), _sandbox.get(_this)));
+      _nxCompile2.default.expose('console');
+      _compiled.set(_this, _nxCompile2.default.compileExpression(_code.get(_this)));
+      //_sandbox.set(this,compiler.toSandbox(rpgs));
+      //compiler.expose('console', 'Math');
       return _this;
     }
 
@@ -928,7 +982,7 @@ var ConditionNode = function () {
     }, {
       key: 'check',
       value: function check() {
-        return _compiled.get(this)();
+        return _compiled.get(this)({ rpgs: this.getRPGS() });
       }
     }, {
       key: 'getData',
@@ -1015,7 +1069,7 @@ var BaseNode = function () {
     _createClass(BaseNode, [{
       key: 'getRPGS',
       value: function getRPGS() {
-        return this.getRPGS();
+        return _rpgs.get(this);
       }
     }, {
       key: 'setId',
@@ -2167,13 +2221,16 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 (function ($, window, document, undefined) {
   $(function () {
     var rpgs1 = new _RPGSystem2.default();
-    rpgs1.addActor('act1', { name: 'Adam' }).inp('dialog', 'dlg1').addCondition('cond1', { code: '\n        (function(){\n          alert("Condition test!");\n          //return true;\n        })();\n      ' }).out('visibility', 'tlk0ans1').addDialog('dlg1', { startTalk: 'tlk0' }).out('dialog', 'act1').addTalk('tlk0', { text: 'This is talk 0.' }).addAnswer('tlk0ans1', { text: 'Answer1' }).out('goto', 'tlk1').inp('visibility', 'cond1').addAnswer('tlk0ans2', { text: 'Answer2' }).out('goto', 'tlk2').addAnswer('tlk0ans3', { text: 'Answer3' }).out('goto', 'tlk3').addTalk('tlk1', { text: 'This is talk 1.' }).inp('goto', 'tlk0ans1').addAnswer('tlk1ans1', { text: 'Answer1' }).addTalk('tlk2', { text: 'This is talk 2.' }).inp('goto', 'tlk0ans2').addAnswer('tlk2ans1', { text: 'Answer1' }).addTalk('tlk3', { text: 'This is talk 3.' }).inp('goto', 'tlk0ans3').addAnswer('tlk3ans1', { text: 'Answer1' }).addVariable('b1', { type: 'boolean', value: false }).addVariable('s1', { type: 'string', value: 'sssssss' }).addVariable('n1', { type: 'number', value: 56 });
+    rpgs1.addVariable('b1', { type: 'boolean', value: false }).addVariable('s1', { type: 'string', value: 'sssssss' }).addVariable('n1', { type: 'number', value: 56 }).addActor('act1', { name: 'Adam' }).inp('dialog', 'dlg1').addCondition('cond1', { code: 'console.log(rpgs);' }).out('visibility', 'tlk0ans1').addDialog('dlg1', { startTalk: 'tlk0' }).out('dialog', 'act1').addTalk('tlk0', { text: 'This is talk 0.' }).addAnswer('tlk0ans1', { text: 'Answer1' }).out('goto', 'tlk1').inp('visibility', 'cond1').addAnswer('tlk0ans2', { text: 'Answer2' }).out('goto', 'tlk2').addAnswer('tlk0ans3', { text: 'Answer3' }).out('goto', 'tlk3').addTalk('tlk1', { text: 'This is talk 1.' }).inp('goto', 'tlk0ans1').addAnswer('tlk1ans1', { text: 'Answer1' }).addTalk('tlk2', { text: 'This is talk 2.' }).inp('goto', 'tlk0ans2').addAnswer('tlk2ans1', { text: 'Answer1' }).addTalk('tlk3', { text: 'This is talk 3.' }).inp('goto', 'tlk0ans3').addAnswer('tlk3ans1', { text: 'Answer1' });
+
+    var cond = rpgs1.getCondition('cond1');
+    console.log(cond.check());
     var b1 = rpgs1.getVariable('b1');
     var s1 = rpgs1.getVariable('s1');
     var n1 = rpgs1.getVariable('n1');
-    console.log('b1 value', b1.getValue(), b1.getType());
-    console.log('s1 value', s1.getValue(), s1.getType());
-    console.log('n1 value', n1.getValue(), n1.getType());
+    /*console.log('b1 value',b1.getValue(),b1.getType());
+    console.log('s1 value',s1.getValue(),s1.getType());
+    console.log('n1 value',n1.getValue(),n1.getType());*/
 
     var rpgs1Serialized = rpgs1.serializeData();
     console.log("rpgs1", rpgs1Serialized);
