@@ -4,21 +4,18 @@ import BaseNode   from '../core/BaseNode';
 import LinkType   from '../core/LinkType';
 import compiler   from '@risingstack/nx-compile';
 
-let ConditionNode = (function(){
+let ScriptNode = (function(){
   let _label = new WeakMap();
-  let _code = new WeakMap();
+  let _script = new WeakMap();
   let _compiled = new WeakMap();
-  let _sandbox = new WeakMap();
 
-  return class ConditionNode extends BaseNode {
+  return class ScriptNode extends BaseNode {
     constructor(data,rpgs) {
       super(data,rpgs);
       _label.set(this,data.label ? data.label : '');
-      _code.set(this,data.code ? data.code : `(function(){return true;})();`);
+      _script.set(this,data.script ? data.script : `return true;`);
       compiler.expose('console');
-      _compiled.set(this,compiler.compileExpression(_code.get(this)));
-      //_sandbox.set(this,compiler.toSandbox(rpgs));
-      //compiler.expose('console', 'Math');
+      _compiled.set(this,compiler.compileCode(_script.get(this)));
     }
 
     setLabel(text) {
@@ -29,23 +26,23 @@ let ConditionNode = (function(){
       return _label.get(this);
     }
 
-    setCode(code) {
-      _code.set(this,code);
-      _compiled.set(this,compiler.compileExpression(_code.get(this), _sandbox.get(this)));
+    setScript(script) {
+      _script.set(this,script);
+      _compiled.set(this,compiler.compileCode(_script.get(this)));
     }
 
-    getCode() {
-      return _code.get(this);
+    getScript() {
+      return _script.get(this);
     }
 
-    check() {
+    execute() {
       return _compiled.get(this)({rpgs:this.getRPGS()});
     }
 
     getData() {
       let data = super.getData();
       data.label = this.getLabel();
-      data.code = this.getCode();
+      data.script = this.getScript();
       return data;
     }
 
@@ -64,12 +61,11 @@ let ConditionNode = (function(){
 
     dispose() {
       _label.delete(this);
-      _code.delete(this);
-      _sandbox.delete(this);
+      _script.delete(this);
       _compiled.delete(this);
       super.dispose();
     }
 
   };
 })();
-module.exports = ConditionNode;
+module.exports = ScriptNode;

@@ -3,7 +3,7 @@ import {UUID}   from './Utils';
 import LinkType from './LinkType';
 
 const KEY_LINKS = 'links';
-const KEY_CONDITIONS = 'conditions';
+const KEY_LOGIC = 'logic';
 
 let BaseNode = (function(){
   //Weak maps are new feature to JavaScript. We can store private
@@ -36,7 +36,7 @@ let BaseNode = (function(){
     }
 
     checkCondition(conditionId) {
-      let condition = this.getRPGS().getNode(KEY_CONDITIONS,conditionId);
+      let condition = this.getRPGS().getNode(KEY_LOGIC,conditionId);
       return condition ? condition.check() : true;
     }
 

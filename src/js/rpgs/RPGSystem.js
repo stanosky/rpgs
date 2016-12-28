@@ -5,8 +5,8 @@ import ErrorCode        from './core/ErrorCode';
 import BaseNode         from './core/BaseNode';
 import LinkNode         from './core/LinkNode';
 import ActorNode        from './actors/ActorNode';
-//import InventoryNode  from './actors/InvenotryNode';
-import ConditionNode    from './conditions/ConditionNode';
+//import InventoryNode  from './actors/InventoryNode';
+import ScriptNode       from './logic/ScriptNode';
 import AnswerNode       from './dialogs/AnswerNode';
 import DialogNode       from './dialogs/DialogNode';
 import TalkNode         from './dialogs/TalkNode';
@@ -16,7 +16,7 @@ import VariableNode     from './variables/VariableNode';
 
 const KEY_ACTORS = 'actors';
 const KEY_ANSWERS = 'answers';
-const KEY_CONDITIONS = 'conditions';
+const KEY_LOGIC = 'logic';
 const KEY_DIALOGS = 'dialogs';
 const KEY_LINKS = 'links';
 const KEY_SCRIPTS = 'scripts';
@@ -47,7 +47,7 @@ let RPGSystem = function (data,editor) {
     let className = data.class;
     switch (className) {
       case 'ActorNode':     return new ActorNode(data,rpgs);
-      case 'ConditionNode': return new ConditionNode(data,rpgs);
+      case 'ScriptNode': return new ScriptNode(data,rpgs);
       case 'AnswerNode':    return new AnswerNode(data,rpgs);
       case 'DialogNode':    return new DialogNode(data,rpgs);
       case 'TalkNode':      return new TalkNode(data,rpgs);
@@ -342,12 +342,12 @@ let RPGSystem = function (data,editor) {
   },
 
   _addCondition = function(id,params) {
-    _chainNodeCreator(id,params,false,'ConditionNode',KEY_CONDITIONS);
+    _chainNodeCreator(id,params,false,'ScriptNode',KEY_LOGIC);
     return this;
   },
 
   _removeCondition = function(conditionId) {
-    _chainNodeRemover(conditionId,KEY_CONDITIONS);
+    _chainNodeRemover(conditionId,KEY_LOGIC);
     return this;
   },
 
@@ -403,11 +403,11 @@ let RPGSystem = function (data,editor) {
   },
 
   _getCondition = function(conditionId) {
-    return _getNode(KEY_CONDITIONS,conditionId);
+    return _getNode(KEY_LOGIC,conditionId);
   },
 
   _getConditions = function() {
-    return _objectPool[KEY_CONDITIONS];
+    return _objectPool[KEY_LOGIC];
   },
 
   _getDialog = function(dialogId) {
@@ -432,6 +432,20 @@ let RPGSystem = function (data,editor) {
 
   _getVariables = function() {
     return _objectPool[KEY_VARIABLES];
+  },
+
+  ////////////////////////////////////////////////////////////////
+  //MISCALINEUS
+  ////////////////////////////////////////////////////////////////
+
+  _setVar = function(variableId,value) {
+    let _var = _getVariable(variableId);
+    if(_var !== null) _var.setValue(value);
+  },
+
+  _getVar = function(variableId) {
+    let _var = _getVariable(variableId);
+    return _var !== null ? _var.getValue() : undefined;
   },
 
   _serializeData = function() {
@@ -500,6 +514,8 @@ let RPGSystem = function (data,editor) {
     ////////////////////////////////////////////
     //Miscalineus methods
     ////////////////////////////////////////////
+    setVar:           _setVar,
+    getVar:           _getVar,
     serializeData:    _serializeData
   };
   return _self;

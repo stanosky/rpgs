@@ -8,7 +8,7 @@ import RPGSystem from './rpgs/RPGSystem';
     rpgs1
     .addActor('act1',{name:'Adam'}).inp('dialog','dlg1')
     .addCondition('cond1',{
-      code:`console.log(rpgs.getVariable('s1').getValue());`
+      script:`return 2>1 && rpgs.getVar('b1') === false;`
     }).out('visibility','tlk0ans1')
     .addDialog('dlg1',{startTalk:'tlk0'}).out('dialog','act1')
       .addTalk('tlk0',{text:'This is talk 0.'})
@@ -29,7 +29,7 @@ import RPGSystem from './rpgs/RPGSystem';
     .addVariable('s1',{type:'string',value:'This is message from compiled code!'})
     .addVariable('n1',{type:'number',value:56})
     let cond = rpgs1.getCondition('cond1');
-    console.log(cond.check());
+    console.log(cond.execute());
     let b1 = rpgs1.getVariable('b1');
     let s1 = rpgs1.getVariable('s1');
     let n1 = rpgs1.getVariable('n1');

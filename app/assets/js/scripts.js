@@ -272,7 +272,7 @@ module.exports={
 "use strict";
 
 var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
-//import InventoryNode  from './actors/InvenotryNode';
+//import InventoryNode  from './actors/InventoryNode';
 
 
 var _Utils = require('./core/Utils');
@@ -299,9 +299,9 @@ var _ActorNode = require('./actors/ActorNode');
 
 var _ActorNode2 = _interopRequireDefault(_ActorNode);
 
-var _ConditionNode = require('./conditions/ConditionNode');
+var _ScriptNode = require('./logic/ScriptNode');
 
-var _ConditionNode2 = _interopRequireDefault(_ConditionNode);
+var _ScriptNode2 = _interopRequireDefault(_ScriptNode);
 
 var _AnswerNode = require('./dialogs/AnswerNode');
 
@@ -331,7 +331,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var KEY_ACTORS = 'actors';
 var KEY_ANSWERS = 'answers';
-var KEY_CONDITIONS = 'conditions';
+var KEY_LOGIC = 'logic';
 var KEY_DIALOGS = 'dialogs';
 var KEY_LINKS = 'links';
 var KEY_SCRIPTS = 'scripts';
@@ -365,8 +365,8 @@ var RPGSystem = function RPGSystem(data, editor) {
     switch (className) {
       case 'ActorNode':
         return new _ActorNode2.default(data, rpgs);
-      case 'ConditionNode':
-        return new _ConditionNode2.default(data, rpgs);
+      case 'ScriptNode':
+        return new _ScriptNode2.default(data, rpgs);
       case 'AnswerNode':
         return new _AnswerNode2.default(data, rpgs);
       case 'DialogNode':
@@ -653,11 +653,11 @@ var RPGSystem = function RPGSystem(data, editor) {
     return this;
   },
       _addCondition = function _addCondition(id, params) {
-    _chainNodeCreator(id, params, false, 'ConditionNode', KEY_CONDITIONS);
+    _chainNodeCreator(id, params, false, 'ScriptNode', KEY_LOGIC);
     return this;
   },
       _removeCondition = function _removeCondition(conditionId) {
-    _chainNodeRemover(conditionId, KEY_CONDITIONS);
+    _chainNodeRemover(conditionId, KEY_LOGIC);
     return this;
   },
       _addVariable = function _addVariable(id, params) {
@@ -704,10 +704,10 @@ var RPGSystem = function RPGSystem(data, editor) {
     return _objectPool[KEY_ACTORS];
   },
       _getCondition = function _getCondition(conditionId) {
-    return _getNode(KEY_CONDITIONS, conditionId);
+    return _getNode(KEY_LOGIC, conditionId);
   },
       _getConditions = function _getConditions() {
-    return _objectPool[KEY_CONDITIONS];
+    return _objectPool[KEY_LOGIC];
   },
       _getDialog = function _getDialog(dialogId) {
     return _getNode(KEY_DIALOGS, dialogId);
@@ -726,6 +726,20 @@ var RPGSystem = function RPGSystem(data, editor) {
   },
       _getVariables = function _getVariables() {
     return _objectPool[KEY_VARIABLES];
+  },
+
+
+  ////////////////////////////////////////////////////////////////
+  //MISCALINEUS
+  ////////////////////////////////////////////////////////////////
+
+  _setVar = function _setVar(variableId, value) {
+    var _var = _getVariable(variableId);
+    if (_var !== null) _var.setValue(value);
+  },
+      _getVar = function _getVar(variableId) {
+    var _var = _getVariable(variableId);
+    return _var !== null ? _var.getValue() : undefined;
   },
       _serializeData = function _serializeData() {
     var data = {};
@@ -793,13 +807,15 @@ var RPGSystem = function RPGSystem(data, editor) {
     ////////////////////////////////////////////
     //Miscalineus methods
     ////////////////////////////////////////////
+    setVar: _setVar,
+    getVar: _getVar,
     serializeData: _serializeData
   };
   return _self;
 };
 module.exports = RPGSystem;
 
-},{"./actors/ActorNode":4,"./conditions/ConditionNode":5,"./core/BaseNode":6,"./core/ErrorCode":8,"./core/ErrorHandler":9,"./core/LinkNode":10,"./core/Utils":12,"./dialogs/AnswerNode":13,"./dialogs/DialogNode":14,"./dialogs/TalkNode":15,"./quests/QuestNode":16,"./quests/TaskNode":18,"./variables/VariableNode":19}],4:[function(require,module,exports){
+},{"./actors/ActorNode":4,"./core/BaseNode":5,"./core/ErrorCode":7,"./core/ErrorHandler":8,"./core/LinkNode":9,"./core/Utils":11,"./dialogs/AnswerNode":12,"./dialogs/DialogNode":13,"./dialogs/TalkNode":14,"./logic/ScriptNode":15,"./quests/QuestNode":16,"./quests/TaskNode":18,"./variables/VariableNode":19}],4:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -908,127 +924,7 @@ var ActorNode = function () {
 
 module.exports = ActorNode;
 
-},{"../core/BaseNode":6,"../core/LinkType":11}],5:[function(require,module,exports){
-"use strict";
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _BaseNode2 = require('../core/BaseNode');
-
-var _BaseNode3 = _interopRequireDefault(_BaseNode2);
-
-var _LinkType = require('../core/LinkType');
-
-var _LinkType2 = _interopRequireDefault(_LinkType);
-
-var _nxCompile = require('@risingstack/nx-compile');
-
-var _nxCompile2 = _interopRequireDefault(_nxCompile);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var ConditionNode = function () {
-  var _label = new WeakMap();
-  var _code = new WeakMap();
-  var _compiled = new WeakMap();
-  var _sandbox = new WeakMap();
-
-  return function (_BaseNode) {
-    _inherits(ConditionNode, _BaseNode);
-
-    function ConditionNode(data, rpgs) {
-      _classCallCheck(this, ConditionNode);
-
-      var _this = _possibleConstructorReturn(this, (ConditionNode.__proto__ || Object.getPrototypeOf(ConditionNode)).call(this, data, rpgs));
-
-      _label.set(_this, data.label ? data.label : '');
-      _code.set(_this, data.code ? data.code : '(function(){return true;})();');
-      _nxCompile2.default.expose('console');
-      _compiled.set(_this, _nxCompile2.default.compileExpression(_code.get(_this)));
-      //_sandbox.set(this,compiler.toSandbox(rpgs));
-      //compiler.expose('console', 'Math');
-      return _this;
-    }
-
-    _createClass(ConditionNode, [{
-      key: 'setLabel',
-      value: function setLabel(text) {
-        _label.set(this, text);
-      }
-    }, {
-      key: 'getLabel',
-      value: function getLabel() {
-        return _label.get(this);
-      }
-    }, {
-      key: 'setCode',
-      value: function setCode(code) {
-        _code.set(this, code);
-        _compiled.set(this, _nxCompile2.default.compileExpression(_code.get(this), _sandbox.get(this)));
-      }
-    }, {
-      key: 'getCode',
-      value: function getCode() {
-        return _code.get(this);
-      }
-    }, {
-      key: 'check',
-      value: function check() {
-        return _compiled.get(this)({ rpgs: this.getRPGS() });
-      }
-    }, {
-      key: 'getData',
-      value: function getData() {
-        var data = _get(ConditionNode.prototype.__proto__ || Object.getPrototypeOf(ConditionNode.prototype), 'getData', this).call(this);
-        data.label = this.getLabel();
-        data.code = this.getCode();
-        return data;
-      }
-    }, {
-      key: 'canCreateOutputConnection',
-      value: function canCreateOutputConnection(type) {
-        switch (type) {
-          case _LinkType2.default.VISIBILITY:
-          case _LinkType2.default.ACTIVITY:
-            return true;
-          default:
-            return false;
-        }
-      }
-    }, {
-      key: 'setInputConnection',
-      value: function setInputConnection(type, linkId) {}
-    }, {
-      key: 'getInputConnections',
-      value: function getInputConnections(type) {}
-    }, {
-      key: 'removeInputConnection',
-      value: function removeInputConnection(type, linkId) {}
-    }, {
-      key: 'dispose',
-      value: function dispose() {
-        _label.delete(this);
-        _code.delete(this);
-        _sandbox.delete(this);
-        _compiled.delete(this);
-        _get(ConditionNode.prototype.__proto__ || Object.getPrototypeOf(ConditionNode.prototype), 'dispose', this).call(this);
-      }
-    }]);
-
-    return ConditionNode;
-  }(_BaseNode3.default);
-}();
-module.exports = ConditionNode;
-
-},{"../core/BaseNode":6,"../core/LinkType":11,"@risingstack/nx-compile":1}],6:[function(require,module,exports){
+},{"../core/BaseNode":5,"../core/LinkType":10}],5:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1044,7 +940,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 var KEY_LINKS = 'links';
-var KEY_CONDITIONS = 'conditions';
+var KEY_LOGIC = 'logic';
 
 var BaseNode = function () {
   //Weak maps are new feature to JavaScript. We can store private
@@ -1084,7 +980,7 @@ var BaseNode = function () {
     }, {
       key: 'checkCondition',
       value: function checkCondition(conditionId) {
-        var condition = this.getRPGS().getNode(KEY_CONDITIONS, conditionId);
+        var condition = this.getRPGS().getNode(KEY_LOGIC, conditionId);
         return condition ? condition.check() : true;
       }
 
@@ -1243,7 +1139,7 @@ var BaseNode = function () {
 }();
 module.exports = BaseNode;
 
-},{"./LinkType":11,"./Utils":12}],7:[function(require,module,exports){
+},{"./LinkType":10,"./Utils":11}],6:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1329,7 +1225,7 @@ var CompoundNode = function () {
 }();
 module.exports = CompoundNode;
 
-},{"../core/BaseNode":6,"../core/Utils":12}],8:[function(require,module,exports){
+},{"../core/BaseNode":5,"../core/Utils":11}],7:[function(require,module,exports){
 "use strict";
 
 var NODE_NOT_EXISTS = 0;
@@ -1354,7 +1250,7 @@ exports.INCORRECT_PARENT_NODE = INCORRECT_PARENT_NODE;
 exports.INCORRECT_LINK_TARGET = INCORRECT_LINK_TARGET;
 exports.INCOMPATIBLE_CHILD = INCOMPATIBLE_CHILD;
 
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 "use strict";
 
 var _ErrorCode = require('./ErrorCode');
@@ -1412,7 +1308,7 @@ var ErrorHandler = function ErrorHandler(editor) {
 };
 module.exports = ErrorHandler;
 
-},{"./ErrorCode":8}],10:[function(require,module,exports){
+},{"./ErrorCode":7}],9:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1514,7 +1410,7 @@ var LinkNode = function () {
 }();
 module.exports = LinkNode;
 
-},{"../core/BaseNode":6}],11:[function(require,module,exports){
+},{"../core/BaseNode":5}],10:[function(require,module,exports){
 "use strict";
 
 var REFERENCE = 'reference';
@@ -1531,7 +1427,7 @@ exports.ACTION = ACTION;
 exports.GOTO = GOTO;
 exports.DIALOG = DIALOG;
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 
 /**
@@ -1605,7 +1501,7 @@ exports.removeObjectFromArray = function (array, obj) {
   return array;
 };
 
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1705,7 +1601,7 @@ var AnswerNode = function () {
 }();
 module.exports = AnswerNode;
 
-},{"../core/BaseNode":6,"../core/LinkType":11}],14:[function(require,module,exports){
+},{"../core/BaseNode":5,"../core/LinkType":10}],13:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1807,7 +1703,7 @@ var DialogNode = function () {
 }();
 module.exports = DialogNode;
 
-},{"../core/CompoundNode":7,"../core/LinkType":11,"../core/Utils":12}],15:[function(require,module,exports){
+},{"../core/CompoundNode":6,"../core/LinkType":10,"../core/Utils":11}],14:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1907,7 +1803,123 @@ var TalkNode = function () {
 }();
 module.exports = TalkNode;
 
-},{"../core/CompoundNode":7,"../core/LinkType":11,"../core/Utils":12}],16:[function(require,module,exports){
+},{"../core/CompoundNode":6,"../core/LinkType":10,"../core/Utils":11}],15:[function(require,module,exports){
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
+
+var _BaseNode2 = require('../core/BaseNode');
+
+var _BaseNode3 = _interopRequireDefault(_BaseNode2);
+
+var _LinkType = require('../core/LinkType');
+
+var _LinkType2 = _interopRequireDefault(_LinkType);
+
+var _nxCompile = require('@risingstack/nx-compile');
+
+var _nxCompile2 = _interopRequireDefault(_nxCompile);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var ScriptNode = function () {
+  var _label = new WeakMap();
+  var _script = new WeakMap();
+  var _compiled = new WeakMap();
+
+  return function (_BaseNode) {
+    _inherits(ScriptNode, _BaseNode);
+
+    function ScriptNode(data, rpgs) {
+      _classCallCheck(this, ScriptNode);
+
+      var _this = _possibleConstructorReturn(this, (ScriptNode.__proto__ || Object.getPrototypeOf(ScriptNode)).call(this, data, rpgs));
+
+      _label.set(_this, data.label ? data.label : '');
+      _script.set(_this, data.script ? data.script : 'return true;');
+      _nxCompile2.default.expose('console');
+      _compiled.set(_this, _nxCompile2.default.compileCode(_script.get(_this)));
+      return _this;
+    }
+
+    _createClass(ScriptNode, [{
+      key: 'setLabel',
+      value: function setLabel(text) {
+        _label.set(this, text);
+      }
+    }, {
+      key: 'getLabel',
+      value: function getLabel() {
+        return _label.get(this);
+      }
+    }, {
+      key: 'setScript',
+      value: function setScript(script) {
+        _script.set(this, script);
+        _compiled.set(this, _nxCompile2.default.compileCode(_script.get(this)));
+      }
+    }, {
+      key: 'getScript',
+      value: function getScript() {
+        return _script.get(this);
+      }
+    }, {
+      key: 'execute',
+      value: function execute() {
+        return _compiled.get(this)({ rpgs: this.getRPGS() });
+      }
+    }, {
+      key: 'getData',
+      value: function getData() {
+        var data = _get(ScriptNode.prototype.__proto__ || Object.getPrototypeOf(ScriptNode.prototype), 'getData', this).call(this);
+        data.label = this.getLabel();
+        data.script = this.getScript();
+        return data;
+      }
+    }, {
+      key: 'canCreateOutputConnection',
+      value: function canCreateOutputConnection(type) {
+        switch (type) {
+          case _LinkType2.default.VISIBILITY:
+          case _LinkType2.default.ACTIVITY:
+            return true;
+          default:
+            return false;
+        }
+      }
+    }, {
+      key: 'setInputConnection',
+      value: function setInputConnection(type, linkId) {}
+    }, {
+      key: 'getInputConnections',
+      value: function getInputConnections(type) {}
+    }, {
+      key: 'removeInputConnection',
+      value: function removeInputConnection(type, linkId) {}
+    }, {
+      key: 'dispose',
+      value: function dispose() {
+        _label.delete(this);
+        _script.delete(this);
+        _compiled.delete(this);
+        _get(ScriptNode.prototype.__proto__ || Object.getPrototypeOf(ScriptNode.prototype), 'dispose', this).call(this);
+      }
+    }]);
+
+    return ScriptNode;
+  }(_BaseNode3.default);
+}();
+module.exports = ScriptNode;
+
+},{"../core/BaseNode":5,"../core/LinkType":10,"@risingstack/nx-compile":1}],16:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2018,7 +2030,7 @@ var QuestNode = function () {
 }();
 module.exports = QuestNode;
 
-},{"../core/CompoundNode":7,"./QuestStatus":17}],17:[function(require,module,exports){
+},{"../core/CompoundNode":6,"./QuestStatus":17}],17:[function(require,module,exports){
 "use strict";
 
 var INCOMPLETE = 'questIncomplete';
@@ -2063,7 +2075,7 @@ var TaskNode = function () {
 
 module.exports = TaskNode;
 
-},{"../core/BaseNode":6}],19:[function(require,module,exports){
+},{"../core/BaseNode":5}],19:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2194,7 +2206,7 @@ var VariableNode = function () {
 
 module.exports = VariableNode;
 
-},{"../core/BaseNode":6,"./VariableType":20}],20:[function(require,module,exports){
+},{"../core/BaseNode":5,"./VariableType":20}],20:[function(require,module,exports){
 'use strict';
 
 var BOOLEAN = 'boolean';
@@ -2222,10 +2234,10 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
   $(function () {
     var rpgs1 = new _RPGSystem2.default();
     rpgs1.addActor('act1', { name: 'Adam' }).inp('dialog', 'dlg1').addCondition('cond1', {
-      code: 'console.log(rpgs.getVariable(\'s1\').getValue());'
+      script: 'return 2>1 && rpgs.getVar(\'b1\') === false;'
     }).out('visibility', 'tlk0ans1').addDialog('dlg1', { startTalk: 'tlk0' }).out('dialog', 'act1').addTalk('tlk0', { text: 'This is talk 0.' }).addAnswer('tlk0ans1', { text: 'Answer1' }).out('goto', 'tlk1').inp('visibility', 'cond1').addAnswer('tlk0ans2', { text: 'Answer2' }).out('goto', 'tlk2').addAnswer('tlk0ans3', { text: 'Answer3' }).out('goto', 'tlk3').addTalk('tlk1', { text: 'This is talk 1.' }).inp('goto', 'tlk0ans1').addAnswer('tlk1ans1', { text: 'Answer1' }).addTalk('tlk2', { text: 'This is talk 2.' }).inp('goto', 'tlk0ans2').addAnswer('tlk2ans1', { text: 'Answer1' }).addTalk('tlk3', { text: 'This is talk 3.' }).inp('goto', 'tlk0ans3').addAnswer('tlk3ans1', { text: 'Answer1' }).addVariable('b1', { type: 'boolean', value: false }).addVariable('s1', { type: 'string', value: 'This is message from compiled code!' }).addVariable('n1', { type: 'number', value: 56 });
     var cond = rpgs1.getCondition('cond1');
-    console.log(cond.check());
+    console.log(cond.execute());
     var b1 = rpgs1.getVariable('b1');
     var s1 = rpgs1.getVariable('s1');
     var n1 = rpgs1.getVariable('n1');
