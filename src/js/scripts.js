@@ -1,6 +1,7 @@
 "use strict";
 import data from '../data/data.json';
 import RPGSystem from './rpgs/RPGSystem';
+import DialogWalker from './rpgs/dialogs/DialogWalker';
 
 (function ($, window, document, undefined) {
   $(function () {
@@ -8,7 +9,7 @@ import RPGSystem from './rpgs/RPGSystem';
     rpgs1
     .addActor('act1',{name:'Adam'}).inp('dialog','dlg1')
     .addCondition('cond1',{
-      script:`return 2>1 && rpgs.getVar('b1') === false;`
+      script:`return rpgs.getVar('b1');`
     }).out('visibility','tlk0ans1')
     .addDialog('dlg1',{startTalk:'tlk0'}).out('dialog','act1')
       .addTalk('tlk0',{text:'This is talk 0.'})
@@ -33,15 +34,18 @@ import RPGSystem from './rpgs/RPGSystem';
     let b1 = rpgs1.getVariable('b1');
     let s1 = rpgs1.getVariable('s1');
     let n1 = rpgs1.getVariable('n1');
-    /*console.log('b1 value',b1.getValue(),b1.getType());
-    console.log('s1 value',s1.getValue(),s1.getType());
-    console.log('n1 value',n1.getValue(),n1.getType());*/
 
     let rpgs1Serialized = rpgs1.serializeData();
     console.log("rpgs1",rpgs1Serialized);
 
     let rpgs2 = new RPGSystem(JSON.parse(rpgs1Serialized));
     console.log("data created is equal to data parsed:",rpgs1Serialized === rpgs2.serializeData());
+
+    let walker = new DialogWalker(rpgs2);
+    walker.setDialog('dlg1');
+    console.log('conversation1:',walker.getConversation());
+    walker.selectOption('tlk0ans1');
+    console.log('conversation2:',walker.getConversation());
   });
 
 })(jQuery, window, document);

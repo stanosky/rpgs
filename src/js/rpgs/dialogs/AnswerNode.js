@@ -30,8 +30,9 @@ let AnswerNode = (function() {
     }
 
     getTalk() {
-      let talks = getOutputConnections(LinkType.GOTO);
-      return talks ? talks[0] : null;
+      let linkId = this.getOutputConnections(LinkType.GOTO)[0];
+      let linkNode = this.getRPGS().findNode(linkId);
+      return linkNode ? linkNode.getInp() : null;
     }
 
     canCreateInputConnection(type) {

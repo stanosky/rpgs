@@ -37,12 +37,6 @@ let RPGSystem = function (data,editor) {
     inp: []
   };
 
-  for (var key in data) {
-    if (data.hasOwnProperty(key)) {
-      _objectPool[key] = data[key].map((d) => _nodeFactory(d,_self));
-    }
-  }
-
   function _nodeFactory(data,rpgs) {
     let className = data.class;
     switch (className) {
@@ -518,6 +512,13 @@ let RPGSystem = function (data,editor) {
     getVar:           _getVar,
     serializeData:    _serializeData
   };
+
+  for (var key in data) {
+    if (data.hasOwnProperty(key)) {
+      _objectPool[key] = data[key].map((d) => _nodeFactory(d,_self));
+    }
+  }
+
   return _self;
 };
 module.exports = RPGSystem;

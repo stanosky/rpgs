@@ -99,174 +99,7 @@ function has (target, key) {
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
 
 },{}],2:[function(require,module,exports){
-module.exports={
-    "actors":[ {
-        "class":"ActorNode",
-        "uuid":"act1",
-        "input": {
-            "dialog": ["4fd7ea56-94c3-4949-ba71-f9f6ecb7ef9e"]
-        }
-        ,
-        "name":"Adam"
-    }
-    ],
-    "conditions":[ {
-        "class":"ConditionNode",
-        "uuid":"cond1",
-        "output": {
-            "visibility": ["a086a9cb-3aaa-4cdb-abcc-9955c54673db"]
-        }
-        ,
-        "label":"",
-        "code":"\n        (function(){\n          alert(\"Condition test!\");\n          //return true;\n        })();\n      "
-    }
-    ],
-    "dialogs":[ {
-        "class":"DialogNode",
-        "uuid":"dlg1",
-        "input": {}
-        ,
-        "output": {
-            "dialog": ["4fd7ea56-94c3-4949-ba71-f9f6ecb7ef9e"]
-        }
-        ,
-        "children":["tlk0",
-        "tlk1",
-        "tlk2",
-        "tlk3"],
-        "startTalk":"tlk0"
-    }
-    ],
-    "links":[ {
-        "class": "LinkNode", "uuid": "4fd7ea56-94c3-4949-ba71-f9f6ecb7ef9e", "input": "act1", "output": "dlg1", "type": "dialog"
-    }
-    ,
-    {
-        "class": "LinkNode", "uuid": "a086a9cb-3aaa-4cdb-abcc-9955c54673db", "input": "tlk0ans1", "output": "cond1", "type": "visibility"
-    }
-    ,
-    {
-        "class": "LinkNode", "uuid": "e52ed77b-515b-4c15-9d50-d43fca635b48", "input": "tlk1", "output": "tlk0ans1", "type": "goto"
-    }
-    ,
-    {
-        "class": "LinkNode", "uuid": "c09982b8-5f1f-47c5-b05d-e2ec56187216", "input": "tlk2", "output": "tlk0ans2", "type": "goto"
-    }
-    ,
-    {
-        "class": "LinkNode", "uuid": "3d66f4f8-dcd8-486c-bf8d-433531f108b1", "input": "tlk3", "output": "tlk0ans3", "type": "goto"
-    }
-    ],
-    "talks":[ {
-        "class":"TalkNode",
-        "uuid":"tlk0",
-        "input": {}
-        ,
-        "children": ["tlk0ans1", "tlk0ans2", "tlk0ans3"], "text": "This is talk 0."
-    }
-    ,
-    {
-        "class":"TalkNode",
-        "uuid":"tlk1",
-        "input": {
-            "goto": ["e52ed77b-515b-4c15-9d50-d43fca635b48"]
-        }
-        ,
-        "children":["tlk1ans1"],
-        "text":"This is talk 1."
-    }
-    ,
-    {
-        "class":"TalkNode",
-        "uuid":"tlk2",
-        "input": {
-            "goto": ["c09982b8-5f1f-47c5-b05d-e2ec56187216"]
-        }
-        ,
-        "children":["tlk2ans1"],
-        "text":"This is talk 2."
-    }
-    ,
-    {
-        "class":"TalkNode",
-        "uuid":"tlk3",
-        "input": {
-            "goto": ["3d66f4f8-dcd8-486c-bf8d-433531f108b1"]
-        }
-        ,
-        "children":["tlk3ans1"],
-        "text":"This is talk 3."
-    }
-    ],
-    "answers":[ {
-        "class":"AnswerNode",
-        "uuid":"tlk0ans1",
-        "input": {
-            "visibility": ["a086a9cb-3aaa-4cdb-abcc-9955c54673db"]
-        }
-        ,
-        "output": {
-            "goto": ["e52ed77b-515b-4c15-9d50-d43fca635b48"]
-        }
-        ,
-        "text":"Answer1"
-    }
-    ,
-    {
-        "class":"AnswerNode",
-        "uuid":"tlk0ans2",
-        "input": {}
-        ,
-        "output": {
-            "goto": ["c09982b8-5f1f-47c5-b05d-e2ec56187216"]
-        }
-        ,
-        "text":"Answer2"
-    }
-    ,
-    {
-        "class":"AnswerNode",
-        "uuid":"tlk0ans3",
-        "input": {}
-        ,
-        "output": {
-            "goto": ["3d66f4f8-dcd8-486c-bf8d-433531f108b1"]
-        }
-        ,
-        "text":"Answer3"
-    }
-    ,
-    {
-        "class":"AnswerNode",
-        "uuid":"tlk1ans1",
-        "input": {}
-        ,
-        "output": {}
-        ,
-        "text": "Answer1"
-    }
-    ,
-    {
-        "class":"AnswerNode",
-        "uuid":"tlk2ans1",
-        "input": {}
-        ,
-        "output": {}
-        ,
-        "text": "Answer1"
-    }
-    ,
-    {
-        "class":"AnswerNode",
-        "uuid":"tlk3ans1",
-        "input": {}
-        ,
-        "output": {}
-        ,
-        "text": "Answer1"
-    }
-    ]
-}
+module.exports={"actors":[{"class":"ActorNode","uuid":"act1","input":{"dialog":["2d91e675-9c2d-48d9-87d0-b0260b403059"]},"name":"Adam"}],"logic":[{"class":"ScriptNode","uuid":"cond1","output":{"visibility":["c94b4f1d-2114-43ba-b9b1-f45fb026e07f"]},"label":"","script":"return 2>1 && rpgs.getVar('b1') === false;"}],"dialogs":[{"class":"DialogNode","uuid":"dlg1","input":{},"output":{"dialog":["2d91e675-9c2d-48d9-87d0-b0260b403059"]},"children":["tlk0","tlk1","tlk2","tlk3"],"startTalk":"tlk0"}],"links":[{"class":"LinkNode","uuid":"2d91e675-9c2d-48d9-87d0-b0260b403059","input":"act1","output":"dlg1","type":"dialog"},{"class":"LinkNode","uuid":"c94b4f1d-2114-43ba-b9b1-f45fb026e07f","input":"tlk0ans1","output":"cond1","type":"visibility"},{"class":"LinkNode","uuid":"3184673f-06e6-41dc-ac72-89b2e58e3803","input":"tlk1","output":"tlk0ans1","type":"goto"},{"class":"LinkNode","uuid":"0fb1d66a-b3e7-49af-b802-12529115965b","input":"tlk2","output":"tlk0ans2","type":"goto"},{"class":"LinkNode","uuid":"92f9fb79-f21a-4bf8-bfa4-7b1bbfc64b7c","input":"tlk3","output":"tlk0ans3","type":"goto"}],"talks":[{"class":"TalkNode","uuid":"tlk0","input":{},"children":["tlk0ans1","tlk0ans2","tlk0ans3"],"text":"This is talk 0."},{"class":"TalkNode","uuid":"tlk1","input":{"goto":["3184673f-06e6-41dc-ac72-89b2e58e3803"]},"children":["tlk1ans1"],"text":"This is talk 1."},{"class":"TalkNode","uuid":"tlk2","input":{"goto":["0fb1d66a-b3e7-49af-b802-12529115965b"]},"children":["tlk2ans1"],"text":"This is talk 2."},{"class":"TalkNode","uuid":"tlk3","input":{"goto":["92f9fb79-f21a-4bf8-bfa4-7b1bbfc64b7c"]},"children":["tlk3ans1"],"text":"This is talk 3."}],"answers":[{"class":"AnswerNode","uuid":"tlk0ans1","input":{"visibility":["c94b4f1d-2114-43ba-b9b1-f45fb026e07f"]},"output":{"goto":["3184673f-06e6-41dc-ac72-89b2e58e3803"]},"text":"Answer1"},{"class":"AnswerNode","uuid":"tlk0ans2","input":{},"output":{"goto":["0fb1d66a-b3e7-49af-b802-12529115965b"]},"text":"Answer2"},{"class":"AnswerNode","uuid":"tlk0ans3","input":{},"output":{"goto":["92f9fb79-f21a-4bf8-bfa4-7b1bbfc64b7c"]},"text":"Answer3"},{"class":"AnswerNode","uuid":"tlk1ans1","input":{},"output":{},"text":"Answer1"},{"class":"AnswerNode","uuid":"tlk2ans1","input":{},"output":{},"text":"Answer1"},{"class":"AnswerNode","uuid":"tlk3ans1","input":{},"output":{},"text":"Answer1"}],"variables":[{"class":"VariableNode","uuid":"b1","input":{},"output":{},"type":"boolean","value":false},{"class":"VariableNode","uuid":"s1","input":{},"output":{},"type":"string","value":"This is message from compiled code!"},{"class":"VariableNode","uuid":"n1","input":{},"output":{},"type":"number","value":56}]}
 
 },{}],3:[function(require,module,exports){
 "use strict";
@@ -351,14 +184,6 @@ var RPGSystem = function RPGSystem(data, editor) {
     out: [],
     inp: []
   };
-
-  for (var key in data) {
-    if (data.hasOwnProperty(key)) {
-      _objectPool[key] = data[key].map(function (d) {
-        return _nodeFactory(d, _self);
-      });
-    }
-  }
 
   function _nodeFactory(data, rpgs) {
     var className = data.class;
@@ -811,11 +636,20 @@ var RPGSystem = function RPGSystem(data, editor) {
     getVar: _getVar,
     serializeData: _serializeData
   };
+
+  for (var key in data) {
+    if (data.hasOwnProperty(key)) {
+      _objectPool[key] = data[key].map(function (d) {
+        return _nodeFactory(d, _self);
+      });
+    }
+  }
+
   return _self;
 };
 module.exports = RPGSystem;
 
-},{"./actors/ActorNode":4,"./core/BaseNode":5,"./core/ErrorCode":7,"./core/ErrorHandler":8,"./core/LinkNode":9,"./core/Utils":11,"./dialogs/AnswerNode":12,"./dialogs/DialogNode":13,"./dialogs/TalkNode":14,"./logic/ScriptNode":15,"./quests/QuestNode":16,"./quests/TaskNode":18,"./variables/VariableNode":19}],4:[function(require,module,exports){
+},{"./actors/ActorNode":4,"./core/BaseNode":5,"./core/ErrorCode":7,"./core/ErrorHandler":8,"./core/LinkNode":9,"./core/Utils":11,"./dialogs/AnswerNode":12,"./dialogs/DialogNode":13,"./dialogs/TalkNode":15,"./logic/ScriptNode":16,"./quests/QuestNode":17,"./quests/TaskNode":19,"./variables/VariableNode":20}],4:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -981,7 +815,7 @@ var BaseNode = function () {
       key: 'checkCondition',
       value: function checkCondition(conditionId) {
         var condition = this.getRPGS().getNode(KEY_LOGIC, conditionId);
-        return condition ? condition.check() : true;
+        return condition ? condition.execute() : true;
       }
 
       /**
@@ -992,8 +826,9 @@ var BaseNode = function () {
     }, {
       key: 'isVisible',
       value: function isVisible() {
-        var conditions = getInputConnections(_LinkType2.default.VISIBILITY);
-        return conditions ? this.checkCondition(conditions[0]) : true;
+        var linkId = this.getInputConnections(_LinkType2.default.VISIBILITY)[0];
+        var linkNode = this.getRPGS().getNode(KEY_LINKS, linkId);
+        return linkNode ? this.checkCondition(linkNode.getOut()) : true;
       }
 
       /**
@@ -1004,8 +839,9 @@ var BaseNode = function () {
     }, {
       key: 'isActive',
       value: function isActive() {
-        var conditions = getInputConnections(_LinkType2.default.ACTIVITY);
-        return conditions ? this.checkCondition(conditions[0]) : true;
+        var linkId = this.getInputConnections(_LinkType2.default.ACTIVITY)[0];
+        var linkNode = this.getRPGS().getNode(KEY_LINKS, linkId);
+        return linkNode ? this.checkCondition(linkNode.getOut()) : true;
       }
     }, {
       key: 'getData',
@@ -1563,8 +1399,9 @@ var AnswerNode = function () {
     }, {
       key: 'getTalk',
       value: function getTalk() {
-        var talks = getOutputConnections(_LinkType2.default.GOTO);
-        return talks ? talks[0] : null;
+        var linkId = this.getOutputConnections(_LinkType2.default.GOTO)[0];
+        var linkNode = this.getRPGS().findNode(linkId);
+        return linkNode ? linkNode.getInp() : null;
       }
     }, {
       key: 'canCreateInputConnection',
@@ -1708,6 +1545,97 @@ module.exports = DialogNode;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var DialogWalker = function () {
+  var _currTalk = new WeakMap();
+  var _rpgs = new WeakMap();
+  var _dialog = new WeakMap();
+
+  return function () {
+    function DialogWalker(rpgs) {
+      _classCallCheck(this, DialogWalker);
+
+      _rpgs.set(this, rpgs);
+      _dialog.set(this, null);
+      _currTalk.set(this, null);
+    }
+
+    _createClass(DialogWalker, [{
+      key: "reset",
+      value: function reset() {
+        var dialog = _dialog.get(this);
+        if (dialog !== null) {
+          this.setTalk(dialog.getStartTalk());
+        }
+      }
+    }, {
+      key: "_findNode",
+      value: function _findNode(nodeId) {
+        return _rpgs.get(this).findNode(nodeId);
+      }
+    }, {
+      key: "setDialog",
+      value: function setDialog(dialogId) {
+        var dialog = this._findNode(dialogId);
+        if (dialog === null) {
+          throw new Error("DialogNode with the id \"" + dialogId + "\" does not exists.");
+        }
+        _dialog.set(this, dialog);
+        this.reset();
+      }
+    }, {
+      key: "setTalk",
+      value: function setTalk(talkId) {
+        var talk = this._findNode(talkId);
+        if (talk === null) {
+          throw new Error("TalkNode with the id \"" + talkId + "\" does not exists.");
+        }
+        _currTalk.set(this, talk);
+      }
+    }, {
+      key: "getConversation",
+      value: function getConversation() {
+        var _this = this;
+
+        var conversation = {};
+        conversation.text = _currTalk.get(this).getText();
+        var children = _currTalk.get(this).getChildren();
+        conversation.options = children.map(function (answerId) {
+          var answer = _this._findNode(answerId);
+          return {
+            id: answer.getId(),
+            text: answer.getText(),
+            isActive: answer.isActive(),
+            isVisible: answer.isVisible()
+          };
+        });
+        return conversation;
+      }
+    }, {
+      key: "selectOption",
+      value: function selectOption(id) {
+        var children = _currTalk.get(this).getChildren();
+        var answerId = children.filter(function (currId, index, array) {
+          return currId === id;
+        });
+        if (answerId[0] !== undefined) {
+          var answerNode = this._findNode(answerId[0]);
+          if (answerNode !== null) this.setTalk(answerNode.getTalk());
+        }
+      }
+    }]);
+
+    return DialogWalker;
+  }();
+}();
+module.exports = DialogWalker;
+
+},{}],15:[function(require,module,exports){
+"use strict";
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
 var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 var _Utils = require('../core/Utils');
@@ -1803,7 +1731,7 @@ var TalkNode = function () {
 }();
 module.exports = TalkNode;
 
-},{"../core/CompoundNode":6,"../core/LinkType":10,"../core/Utils":11}],15:[function(require,module,exports){
+},{"../core/CompoundNode":6,"../core/LinkType":10,"../core/Utils":11}],16:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1919,7 +1847,7 @@ var ScriptNode = function () {
 }();
 module.exports = ScriptNode;
 
-},{"../core/BaseNode":5,"../core/LinkType":10,"@risingstack/nx-compile":1}],16:[function(require,module,exports){
+},{"../core/BaseNode":5,"../core/LinkType":10,"@risingstack/nx-compile":1}],17:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2030,7 +1958,7 @@ var QuestNode = function () {
 }();
 module.exports = QuestNode;
 
-},{"../core/CompoundNode":6,"./QuestStatus":17}],17:[function(require,module,exports){
+},{"../core/CompoundNode":6,"./QuestStatus":18}],18:[function(require,module,exports){
 "use strict";
 
 var INCOMPLETE = 'questIncomplete';
@@ -2041,7 +1969,7 @@ exports.INCOMPLETE = INCOMPLETE;
 exports.COMPLETED = COMPLETED;
 exports.FAILED = FAILED;
 
-},{}],18:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 "use strict";
 
 var _BaseNode2 = require("../core/BaseNode");
@@ -2075,7 +2003,7 @@ var TaskNode = function () {
 
 module.exports = TaskNode;
 
-},{"../core/BaseNode":5}],19:[function(require,module,exports){
+},{"../core/BaseNode":5}],20:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2206,7 +2134,7 @@ var VariableNode = function () {
 
 module.exports = VariableNode;
 
-},{"../core/BaseNode":5,"./VariableType":20}],20:[function(require,module,exports){
+},{"../core/BaseNode":5,"./VariableType":21}],21:[function(require,module,exports){
 'use strict';
 
 var BOOLEAN = 'boolean';
@@ -2217,7 +2145,7 @@ exports.BOOLEAN = BOOLEAN;
 exports.STRING = STRING;
 exports.NUMBER = NUMBER;
 
-},{}],21:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 "use strict";
 
 var _data = require('../data/data.json');
@@ -2228,30 +2156,37 @@ var _RPGSystem = require('./rpgs/RPGSystem');
 
 var _RPGSystem2 = _interopRequireDefault(_RPGSystem);
 
+var _DialogWalker = require('./rpgs/dialogs/DialogWalker');
+
+var _DialogWalker2 = _interopRequireDefault(_DialogWalker);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 (function ($, window, document, undefined) {
   $(function () {
     var rpgs1 = new _RPGSystem2.default();
     rpgs1.addActor('act1', { name: 'Adam' }).inp('dialog', 'dlg1').addCondition('cond1', {
-      script: 'return 2>1 && rpgs.getVar(\'b1\') === false;'
+      script: 'return rpgs.getVar(\'b1\');'
     }).out('visibility', 'tlk0ans1').addDialog('dlg1', { startTalk: 'tlk0' }).out('dialog', 'act1').addTalk('tlk0', { text: 'This is talk 0.' }).addAnswer('tlk0ans1', { text: 'Answer1' }).out('goto', 'tlk1').inp('visibility', 'cond1').addAnswer('tlk0ans2', { text: 'Answer2' }).out('goto', 'tlk2').addAnswer('tlk0ans3', { text: 'Answer3' }).out('goto', 'tlk3').addTalk('tlk1', { text: 'This is talk 1.' }).inp('goto', 'tlk0ans1').addAnswer('tlk1ans1', { text: 'Answer1' }).addTalk('tlk2', { text: 'This is talk 2.' }).inp('goto', 'tlk0ans2').addAnswer('tlk2ans1', { text: 'Answer1' }).addTalk('tlk3', { text: 'This is talk 3.' }).inp('goto', 'tlk0ans3').addAnswer('tlk3ans1', { text: 'Answer1' }).addVariable('b1', { type: 'boolean', value: false }).addVariable('s1', { type: 'string', value: 'This is message from compiled code!' }).addVariable('n1', { type: 'number', value: 56 });
     var cond = rpgs1.getCondition('cond1');
     console.log(cond.execute());
     var b1 = rpgs1.getVariable('b1');
     var s1 = rpgs1.getVariable('s1');
     var n1 = rpgs1.getVariable('n1');
-    /*console.log('b1 value',b1.getValue(),b1.getType());
-    console.log('s1 value',s1.getValue(),s1.getType());
-    console.log('n1 value',n1.getValue(),n1.getType());*/
 
     var rpgs1Serialized = rpgs1.serializeData();
     console.log("rpgs1", rpgs1Serialized);
 
     var rpgs2 = new _RPGSystem2.default(JSON.parse(rpgs1Serialized));
     console.log("data created is equal to data parsed:", rpgs1Serialized === rpgs2.serializeData());
+
+    var walker = new _DialogWalker2.default(rpgs2);
+    walker.setDialog('dlg1');
+    console.log('conversation1:', walker.getConversation());
+    walker.selectOption('tlk0ans1');
+    console.log('conversation2:', walker.getConversation());
   });
 })(jQuery, window, document);
 
-},{"../data/data.json":2,"./rpgs/RPGSystem":3}]},{},[21])
+},{"../data/data.json":2,"./rpgs/RPGSystem":3,"./rpgs/dialogs/DialogWalker":14}]},{},[22])
 

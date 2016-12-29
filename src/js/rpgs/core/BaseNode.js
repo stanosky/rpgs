@@ -37,7 +37,7 @@ let BaseNode = (function(){
 
     checkCondition(conditionId) {
       let condition = this.getRPGS().getNode(KEY_LOGIC,conditionId);
-      return condition ? condition.check() : true;
+      return condition ? condition.execute() : true;
     }
 
     /**
@@ -45,8 +45,9 @@ let BaseNode = (function(){
      * @return {Boolean} Visibility state
      */
     isVisible() {
-      let conditions = getInputConnections(LinkType.VISIBILITY);
-      return conditions ? this.checkCondition(conditions[0]) : true;
+      let linkId = this.getInputConnections(LinkType.VISIBILITY)[0];
+      let linkNode = this.getRPGS().getNode(KEY_LINKS,linkId);
+      return linkNode ? this.checkCondition(linkNode.getOut()) : true;
     }
 
     /**
@@ -54,8 +55,9 @@ let BaseNode = (function(){
      * @return {Boolean} Active state
      */
     isActive() {
-      let conditions = getInputConnections(LinkType.ACTIVITY);
-      return conditions ? this.checkCondition(conditions[0]) : true;
+      let linkId = this.getInputConnections(LinkType.ACTIVITY)[0];
+      let linkNode = this.getRPGS().getNode(KEY_LINKS,linkId);
+      return linkNode ? this.checkCondition(linkNode.getOut()) : true;
     }
 
     getData() {
