@@ -27,11 +27,11 @@ import DialogWalker from './rpgs/dialogs/DialogWalker';
     .addVariable('b1',{type:'boolean',value:false})
     .addVariable('s1',{type:'string',value:'This is message from compiled code!'})
     .addVariable('n1',{type:'number',value:56})
-    let cond = rpgs1.getCondition('cond1');
-    console.log(cond.execute());
-    let b1 = rpgs1.getVariable('b1');
-    let s1 = rpgs1.getVariable('s1');
-    let n1 = rpgs1.getVariable('n1');
+
+    let cond = rpgs1.findNode('cond1');
+    let b1 = rpgs1.findNode('b1');
+    let s1 = rpgs1.findNode('s1');
+    let n1 = rpgs1.findNode('n1');
 
     let rpgs1Serialized = rpgs1.serializeData();
     console.log("rpgs1",rpgs1Serialized);

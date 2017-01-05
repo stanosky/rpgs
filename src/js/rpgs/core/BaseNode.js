@@ -101,7 +101,6 @@ let BaseNode = (function(){
     }
 
     _getWires(obj,type) {
-      //console.log('_getWires',obj);
       if(type) return !obj.hasOwnProperty(type) ? [] : obj[type];
       else return obj;
     }

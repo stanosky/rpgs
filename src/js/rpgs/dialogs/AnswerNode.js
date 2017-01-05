@@ -29,7 +29,6 @@ let AnswerNode = (function() {
     }
 
     getTalk() {
-      console.log('AnswerNode::getTalk',this.getWires(Prop.GOTO));
       return this.getWires(Prop.GOTO)[0];
     }
 

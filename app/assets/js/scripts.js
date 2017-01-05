@@ -162,7 +162,6 @@ var KEY_ACTORS = 'actors';
 var KEY_ANSWERS = 'answers';
 var KEY_LOGIC = 'logic';
 var KEY_DIALOGS = 'dialogs';
-var KEY_LINKS = 'links';
 var KEY_SCRIPTS = 'scripts';
 var KEY_TALKS = 'talks';
 var KEY_TASKS = 'tasks';
@@ -170,7 +169,7 @@ var KEY_QUESTS = 'quests';
 var KEY_VARIABLES = 'variables';
 
 var RPGSystem = function RPGSystem(data, editor) {
-  var _objectPool = {},
+  var _objectPool = [],
       _editor = editor || null,
       _errorHandler = new _ErrorHandler2.default(_editor),
       _context = null,
@@ -195,7 +194,6 @@ var RPGSystem = function RPGSystem(data, editor) {
         return new _QuestNode2.default(data, rpgs);
       case 'TaskNode':
         return new _TaskNode2.default(data, rpgs);
-      //case 'LinkNode':      return new LinkNode(data,rpgs);
       case 'VariableNode':
         return new _VariableNode2.default(data, rpgs);
       default:
@@ -204,41 +202,17 @@ var RPGSystem = function RPGSystem(data, editor) {
     }
   }
 
-  function _findNodeInArray(array, id) {
-    for (var i = 0; i < array.length; i++) {
-      if (array[i].getId() === id) return array[i];
+  var _findNode = function _findNode(nodeId) {
+    for (var i = 0; i < _objectPool.length; i++) {
+      if (_objectPool[i].getId() === nodeId) return _objectPool[i];
     }
     return null;
-  }
-
-  var _findNode = function _findNode(objId) {
-    for (var key in _objectPool) {
-      if (_objectPool.hasOwnProperty(key)) {
-        var obj = _findNodeInArray(_objectPool[key], objId);
-        if (obj !== null) return obj;
-      }
-    }
-    //Is error message neccessary here? To consider.
-    //_errorHandler.showMsg(ErrorCode.OBJECT_NOT_FOUND,{id:objId});
-    return null;
-  },
-      _addNode = function _addNode(key, obj) {
-    if (!_objectPool[key]) _objectPool[key] = [];
-    _objectPool[key].push(obj);
   },
       _removeNode = function _removeNode(id) {
-    for (var key in _objectPool) {
-      if (_objectPool.hasOwnProperty(key)) {
-        if (this._removeNodeByKey(key, id)) return true;
-      }
-    }
-    return false;
-  },
-      _removeNodeByKey = function _removeNodeByKey(key, id) {
-    var index = _Utils2.default.getIndexById(_objectPool[key], id);
+    var index = _Utils2.default.getIndexById(_objectPool, id);
     var isNodeFound = index > -1;
     if (isNodeFound) {
-      var node = _objectPool[key].splice(index, 1)[0];
+      var node = _objectPool.splice(index, 1)[0];
       node.dispose();
     }
     return isNodeFound;
@@ -250,12 +224,10 @@ var RPGSystem = function RPGSystem(data, editor) {
     var node1 = _findNode(nodeId1);
     var node2 = _findNode(nodeId2);
     if (node2 === null) {
-      console.log('rpgs::tempWire', type, nodeId1, nodeId2);
       _tempWires.push({ type: type, targetNode: nodeId1, referenceNode: nodeId2 });
       return;
     }
     if (node1.canSetWireType(type)) {
-      console.log('rpgs::createWire', type, nodeId1, nodeId2);
       node1.setWire(type, node2.getId());
     } else {
       _errorHandler.showMsg(_ErrorCode2.default.IMPROPER_CONNECTION, {
@@ -293,34 +265,35 @@ var RPGSystem = function RPGSystem(data, editor) {
     return params;
   }
 
-  /**
-   * This method helps in the creation of nodes. Its focus on proper
-   * placement of nodes in tree.
-   * @param  {string} id      Mandatory id of newly created node.
-   * @param  {object} params  Parameters of created node.
-   * @param  {boolean} asChild Determines if node should be added as child
-   * of another node or as an independent node.
-   * @param  {string} className   Name of class that will be used to create node.
-   * @param  {string} storage Name of node group inside which node will be added.
-   */
-  function _chainNodeCreator(id, params, asChild, className, storage) {
+  function _chainNodeCreator(id, params, asChild, className) {
     //First, we check that id and params are valid.
     params = _checkAndMergeParams(id, params);
     //Class name for later usage.
     params.class = className;
+    _nodeCreator(params, asChild);
+    return _self;
+  }
 
+  /**
+   * This method helps in the creation of nodes. Its focus on proper
+   * placement of nodes in tree.
+   * @param  {object} params  Parameters of created node.
+   * @param  {boolean} asChild Determines if node should be added as child
+   * of another node or as an independent node.
+   */
+  function _nodeCreator(params, asChild) {
     //Test if node should be added as child or parent.
     if (asChild) {
       //If last added child was not null then we must check additional conditions.
       if (_lastChild !== null) {
         //If constructor name of previous child node, is equal to name of class,
         //whose we try to create, it means node should be added to current parent.
-        if (_lastChild.constructor.name === className) {
+        if (_lastChild.constructor.name === params.class) {
           createChildNode(params);
         }
         //If names of constructors not match, then we must check if new node
         //can be added as child to our previous child.
-        else if (_lastChild.canAddChild(className)) {
+        else if (_lastChild.canAddChild(params.class)) {
             _parentHistory.unshift(_lastChild);
             createChildNode(params);
           }
@@ -328,19 +301,19 @@ var RPGSystem = function RPGSystem(data, editor) {
           //parent node.
           else {
               _lastChild = _parentHistory.shift() || null;
-              _chainNodeCreator(id, params, asChild, className, storage);
+              _nodeCreator(params, asChild);
             }
       }
       //If last child is null, then we check if node can be added to current
       //parent node.
-      else if (_parentHistory.length > 0 && _parentHistory[0].canAddChild(className)) {
+      else if (_parentHistory.length > 0 && _parentHistory[0].canAddChild(params.class)) {
           createChildNode(params);
         }
         //If last child and last parent is equal to null, then new child node
         //cant be added, so we throw error.
         else {
             _errorHandler.showMsg(_ErrorCode2.default.INCOMPATIBLE_CHILD, {
-              child: className,
+              child: params.class,
               parent: _parentHistory.length > 0 ? _parentHistory[0].constructor.name : 'null'
             });
           }
@@ -352,13 +325,11 @@ var RPGSystem = function RPGSystem(data, editor) {
       //After that, new node is created.
       var node = _nodeFactory(params, _self);
       _parentHistory = [node];
-      _addNode(storage, node);
+      _objectPool.push(node);
     }
 
-    _getWaitingWiresForNode(id).map(function (wire) {
-      //console.log('wire',wire,wire.type,wire.targetNode,wire.referenceNode);
+    _getWaitingWiresForNode(params.uuid).map(function (wire) {
       _setConnection(wire.type, wire.targetNode, wire.referenceNode);
-      return null;
     });
 
     function createChildNode(nodeParams) {
@@ -367,14 +338,13 @@ var RPGSystem = function RPGSystem(data, editor) {
       //Then we add our freshly created node to its parent.
       _parentHistory[0].addChild(_lastChild.getId());
       //Finally new node is added to main storage object.
-      _addNode(storage, _lastChild);
+      _objectPool.push(_lastChild);
     }
   }
 
   function _getWaitingWiresForNode(nodeId) {
     var wires = [];
     for (var i = _tempWires.length - 1; i >= 0; i--) {
-      //console.log('_getWaitingWiresForNode',_tempWires[i].referenceNode,nodeId);
       if (_tempWires[i].referenceNode === nodeId) {
         wires.push(_tempWires.splice(i, 1)[0]);
       }
@@ -382,73 +352,48 @@ var RPGSystem = function RPGSystem(data, editor) {
     return wires;
   }
 
+  function _getNodesByClass(className) {
+    return _objectPool.map(function (node) {
+      return node.constructor.name === className;
+    });
+  }
+
   /**
    * Helper method that is used to remove nodes from object pool
    * and reset context of "method chaining" algorithm.
    * @param  {string} id  Id of node to be removed.
-   * @param  {string} key Name of node group which contains node to remove.
    */
-  function _chainNodeRemover(id, key) {
+  var _chainNodeRemover = function _chainNodeRemover(id) {
     _lastChild = null;
     _parentHistory.length = 0;
-    this._removeNodeByKey(key, id);
-  }
-
-  var _addActor = function _addActor(id, params) {
-    _chainNodeCreator(id, params, false, 'ActorNode', KEY_ACTORS);
+    _removeNode(id);
     return this;
   },
-      _removeActor = function _removeActor(actorId) {
-    _chainNodeRemover(actorId, KEY_ACTORS);
+      _addNode = function _addNode(className, params, asChild) {
+    params.class = className;
+    _nodeCreator(params, asChild);
     return this;
+  },
+      _addActor = function _addActor(id, params) {
+    return _chainNodeCreator(id, params, false, 'ActorNode');
   },
       _addQuest = function _addQuest(id, params) {
-    _chainNodeCreator(id, params, false, 'QuestNode', KEY_QUESTS);
-    return this;
-  },
-      _removeQuest = function _removeQuest(questId) {
-    _chainNodeRemover(questId, KEY_QUESTS);
-    return this;
+    return _chainNodeCreator(id, params, false, 'QuestNode');
   },
       _addDialog = function _addDialog(id, params) {
-    _chainNodeCreator(id, params, false, 'DialogNode', KEY_DIALOGS);
-    return this;
-  },
-      _removeDialog = function _removeDialog(dialogId) {
-    _chainNodeRemover(dialogId, KEY_DIALOGS);
-    return this;
+    return _chainNodeCreator(id, params, false, 'DialogNode');
   },
       _addCondition = function _addCondition(id, params) {
-    _chainNodeCreator(id, params, false, 'ScriptNode', KEY_LOGIC);
-    return this;
-  },
-      _removeCondition = function _removeCondition(conditionId) {
-    _chainNodeRemover(conditionId, KEY_LOGIC);
-    return this;
+    return _chainNodeCreator(id, params, false, 'ScriptNode');
   },
       _addVariable = function _addVariable(id, params) {
-    _chainNodeCreator(id, params, false, 'VariableNode', KEY_VARIABLES);
-    return this;
-  },
-      _removeVariable = function _removeVariable(variableId) {
-    _chainNodeRemover(variableId, KEY_VARIABLES);
-    return this;
+    return _chainNodeCreator(id, params, false, 'VariableNode');
   },
       _addTalk = function _addTalk(id, params) {
-    _chainNodeCreator(id, params, true, 'TalkNode', KEY_TALKS);
-    return this;
-  },
-      _removeTalk = function _removeTalk(id) {
-    _chainNodeRemover(id, KEY_TALKS);
-    return this;
+    return _chainNodeCreator(id, params, true, 'TalkNode');
   },
       _addAnswer = function _addAnswer(id, params) {
-    _chainNodeCreator(id, params, true, 'AnswerNode', KEY_ANSWERS);
-    return this;
-  },
-      _removeAnswer = function _removeAnswer(id) {
-    _chainNodeRemover(id, KEY_ANSWERS);
-    return this;
+    return _chainNodeCreator(id, params, true, 'AnswerNode');
   },
       _setWire = function _setWire(type, referenceNodeId) {
     var targetNode = _lastChild;
@@ -470,35 +415,20 @@ var RPGSystem = function RPGSystem(data, editor) {
   ////////////////////////////////////////////////////////////////
   //GETTERS
   ////////////////////////////////////////////////////////////////
-  _getActor = function _getActor(actorId) {
-    return this._findNode(actorId);
-  },
-      _getActors = function _getActors() {
-    return _objectPool[KEY_ACTORS];
-  },
-      _getCondition = function _getCondition(conditionId) {
-    return _findNode(conditionId);
+  _getActors = function _getActors() {
+    return _getNodesByClass('ActorNode');
   },
       _getConditions = function _getConditions() {
-    return _objectPool[KEY_LOGIC];
-  },
-      _getDialog = function _getDialog(dialogId) {
-    return _findNode(dialogId);
+    return _getNodesByClass('ScriptNode');
   },
       _getDialogs = function _getDialogs() {
-    return _objectPool[KEY_DIALOGS];
-  },
-      _getQuest = function _getQuest(questId) {
-    return _findNode(questId);
+    return _getNodesByClass('DialogNode');
   },
       _getQuests = function _getQuests() {
-    return _objectPool[KEY_QUESTS];
-  },
-      _getVariable = function _getVariable(variableId) {
-    return _findNode(variableId);
+    return _getNodesByClass('QuestNode');
   },
       _getVariables = function _getVariables() {
-    return _objectPool[KEY_VARIABLES];
+    return _getNodesByClass('VariableNode');
   },
 
 
@@ -507,22 +437,17 @@ var RPGSystem = function RPGSystem(data, editor) {
   ////////////////////////////////////////////////////////////////
 
   _setVar = function _setVar(variableId, value) {
-    var _var = _getVariable(variableId);
+    var _var = _findNode(variableId);
     if (_var !== null) _var.setValue(value);
   },
       _getVar = function _getVar(variableId) {
-    var _var = _getVariable(variableId);
+    var _var = _findNode(variableId);
     return _var !== null ? _var.getValue() : undefined;
   },
       _serializeData = function _serializeData() {
-    var data = {};
-    for (var key in _objectPool) {
-      if (_objectPool.hasOwnProperty(key)) {
-        data[key] = _objectPool[key].map(function (obj) {
-          return obj.getData ? obj.getData() : obj;
-        });
-      }
-    }
+    var data = _objectPool.map(function (obj) {
+      return obj.getData ? obj.getData() : obj;
+    });
     return JSON.stringify(data);
   };
 
@@ -531,7 +456,6 @@ var RPGSystem = function RPGSystem(data, editor) {
     //General node methods
     ////////////////////////////////////////////
     findNode: _findNode,
-    //getNode:          _getNode,
     addNode: _addNode,
     removeNode: _removeNode,
 
@@ -544,34 +468,20 @@ var RPGSystem = function RPGSystem(data, editor) {
     //Chainable methods
     ////////////////////////////////////////////
     addActor: _addActor,
-    removeActor: _removeActor,
     addQuest: _addQuest,
-    removeQuest: _removeQuest,
     addDialog: _addDialog,
-    removeDialog: _removeDialog,
     addCondition: _addCondition,
-    removeCondition: _removeCondition,
     addVariable: _addVariable,
-    removeVariable: _removeVariable,
     addTalk: _addTalk,
-    removeTalk: _removeTalk,
     addAnswer: _addAnswer,
-    removeAnswer: _removeAnswer,
-    //inp:             _inp,
-    //out:             _out,
 
     ////////////////////////////////////////////
     //Getter methods
     ////////////////////////////////////////////
-    getActor: _getActor,
     getActors: _getActors,
-    getCondition: _getCondition,
     getConditions: _getConditions,
-    getDialog: _getDialog,
     getDialogs: _getDialogs,
-    getQuest: _getQuest,
     getQuests: _getQuests,
-    getVariable: _getVariable,
     getVariables: _getVariables,
 
     ////////////////////////////////////////////
@@ -581,14 +491,9 @@ var RPGSystem = function RPGSystem(data, editor) {
     getVar: _getVar,
     serializeData: _serializeData
   };
-
-  for (var key in data) {
-    if (data.hasOwnProperty(key)) {
-      _objectPool[key] = data[key].map(function (d) {
-        return _nodeFactory(d, _self);
-      });
-    }
-  }
+  if (data) _objectPool = data.map(function (d) {
+    return _nodeFactory(d, _self);
+  });
 
   return _self;
 };
@@ -826,7 +731,6 @@ var BaseNode = function () {
     }, {
       key: '_getWires',
       value: function _getWires(obj, type) {
-        //console.log('_getWires',obj);
         if (type) return !obj.hasOwnProperty(type) ? [] : obj[type];else return obj;
       }
     }, {
@@ -1035,14 +939,12 @@ module.exports = ErrorHandler;
 },{"./ErrorCode":7}],9:[function(require,module,exports){
 "use strict";
 
-var REFERENCE = 'reference';
 var VISIBILITY = 'visibility';
 var ACTIVITY = 'activity';
 var ACTION = 'action';
 var GOTO = 'goto';
 var DIALOG = 'dialog';
 
-exports.REFERENCE = REFERENCE;
 exports.VISIBILITY = VISIBILITY;
 exports.ACTIVITY = ACTIVITY;
 exports.ACTION = ACTION;
@@ -1184,7 +1086,6 @@ var AnswerNode = function () {
     }, {
       key: 'getTalk',
       value: function getTalk() {
-        console.log('AnswerNode::getTalk', this.getWires(_Prop2.default.GOTO));
         return this.getWires(_Prop2.default.GOTO)[0];
       }
     }, {
@@ -1900,11 +1801,11 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
     $(function () {
         var rpgs1 = new _RPGSystem2.default();
         rpgs1.addActor('act1', { name: 'Adam' }).setWire('dialog', 'dlg1').addCondition('cond1', { script: 'return rpgs.getVar(\'b1\');' }).addDialog('dlg1', { startTalk: 'tlk0' }).addTalk('tlk0', { text: 'This is talk 0.' }).addAnswer('tlk0ans1', { text: 'Answer1' }).setWire('visibility', 'cond1').setWire('goto', 'tlk1').addAnswer('tlk0ans2', { text: 'Answer2' }).setWire('goto', 'tlk2').addAnswer('tlk0ans3', { text: 'Answer3' }).setWire('goto', 'tlk3').addTalk('tlk1', { text: 'This is talk 1.' }).addAnswer('tlk1ans1', { text: 'Answer1' }).addTalk('tlk2', { text: 'This is talk 2.' }).addAnswer('tlk2ans1', { text: 'Answer1' }).addTalk('tlk3', { text: 'This is talk 3.' }).addAnswer('tlk3ans1', { text: 'Answer1' }).addVariable('b1', { type: 'boolean', value: false }).addVariable('s1', { type: 'string', value: 'This is message from compiled code!' }).addVariable('n1', { type: 'number', value: 56 });
-        var cond = rpgs1.getCondition('cond1');
-        console.log(cond.execute());
-        var b1 = rpgs1.getVariable('b1');
-        var s1 = rpgs1.getVariable('s1');
-        var n1 = rpgs1.getVariable('n1');
+
+        var cond = rpgs1.findNode('cond1');
+        var b1 = rpgs1.findNode('b1');
+        var s1 = rpgs1.findNode('s1');
+        var n1 = rpgs1.findNode('n1');
 
         var rpgs1Serialized = rpgs1.serializeData();
         console.log("rpgs1", rpgs1Serialized);
