@@ -33,6 +33,7 @@ let DialogWalker = (function(){
     }
 
     setTalk(talkId) {
+      console.log('setTalk',talkId);
       let talk = this._findNode(talkId);
       if(talk === null) {
         throw new Error(`TalkNode with the id "${talkId}" does not exists.`);
@@ -63,6 +64,7 @@ let DialogWalker = (function(){
       });
       if(answerId[0] !== undefined) {
         let answerNode = this._findNode(answerId[0]);
+        console.log('selectOption::answerNode',answerNode,answerNode.getId());
         if(answerNode !== null) this.setTalk(answerNode.getTalk());
       }
     }

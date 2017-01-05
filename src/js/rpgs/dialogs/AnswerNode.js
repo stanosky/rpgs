@@ -1,6 +1,6 @@
 "use strict";
 import BaseNode from '../core/BaseNode';
-import LinkType   from '../core/LinkType';
+import Prop   from '../core/Prop';
 
 let AnswerNode = (function() {
   //Weak maps are new feature to JavaScript. We can store private
@@ -17,7 +17,6 @@ let AnswerNode = (function() {
     getData() {
       let data = super.getData();
       data.text = this.getText();
-
       return data;
     }
 
@@ -30,25 +29,18 @@ let AnswerNode = (function() {
     }
 
     getTalk() {
-      let linkId = this.getOutputConnections(LinkType.GOTO)[0];
-      let linkNode = this.getRPGS().findNode(linkId);
-      return linkNode ? linkNode.getInp() : null;
+      console.log('AnswerNode::getTalk',this.getWires(Prop.GOTO));
+      return this.getWires(Prop.GOTO)[0];
     }
 
-    canCreateInputConnection(type) {
+    canSetWireType(type) {
       switch (type) {
-        case LinkType.VISIBILITY:
-          return this.getInputConnections(LinkType.VISIBILITY).length === 0;
-        case LinkType.ACTIVITY:
-          return this.getInputConnections(LinkType.ACTIVITY).length === 0;
-        default: return false;
-      }
-    }
-
-    canCreateOutputConnection(type) {
-      switch (type) {
-        case LinkType.GOTO:
-          return this.getOutputConnections(LinkType.GOTO).length === 0;
+        case Prop.VISIBILITY:
+          return this.getWires(Prop.VISIBILITY).length === 0;
+        case Prop.ACTIVITY:
+          return this.getWires(Prop.ACTIVITY).length === 0;
+        case Prop.GOTO:
+          return this.getWires(Prop.GOTO).length === 0;
         default: return false;
       }
     }

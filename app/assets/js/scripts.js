@@ -124,10 +124,6 @@ var _BaseNode = require('./core/BaseNode');
 
 var _BaseNode2 = _interopRequireDefault(_BaseNode);
 
-var _LinkNode = require('./core/LinkNode');
-
-var _LinkNode2 = _interopRequireDefault(_LinkNode);
-
 var _ActorNode = require('./actors/ActorNode');
 
 var _ActorNode2 = _interopRequireDefault(_ActorNode);
@@ -180,10 +176,7 @@ var RPGSystem = function RPGSystem(data, editor) {
       _context = null,
       _lastChild = null,
       _parentHistory = [],
-      _halfLinks = {
-    out: [],
-    inp: []
-  };
+      _tempWires = [];
 
   function _nodeFactory(data, rpgs) {
     var className = data.class;
@@ -202,8 +195,7 @@ var RPGSystem = function RPGSystem(data, editor) {
         return new _QuestNode2.default(data, rpgs);
       case 'TaskNode':
         return new _TaskNode2.default(data, rpgs);
-      case 'LinkNode':
-        return new _LinkNode2.default(data, rpgs);
+      //case 'LinkNode':      return new LinkNode(data,rpgs);
       case 'VariableNode':
         return new _VariableNode2.default(data, rpgs);
       default:
@@ -230,10 +222,6 @@ var RPGSystem = function RPGSystem(data, editor) {
     //_errorHandler.showMsg(ErrorCode.OBJECT_NOT_FOUND,{id:objId});
     return null;
   },
-      _getNode = function _getNode(key, objId) {
-    var obj = _findNodeInArray(_objectPool[key], objId);
-    return obj;
-  },
       _addNode = function _addNode(key, obj) {
     if (!_objectPool[key]) _objectPool[key] = [];
     _objectPool[key].push(obj);
@@ -258,35 +246,24 @@ var RPGSystem = function RPGSystem(data, editor) {
       _setConnection = function _setConnection(type, nodeId1, nodeId2) {
     if (nodeId1 === nodeId2) {
       _errorHandler.showMsg(_ErrorCode2.default.CONNECTION_TO_ITSELF, { node: nodeId1 });
-      return false;
     }
     var node1 = _findNode(nodeId1);
     var node2 = _findNode(nodeId2);
-    if (node1 === null || node2 === null) return;
-    if (node1.canCreateOutputConnection(type) && node2.canCreateInputConnection(type)) {
-      var link = new _LinkNode2.default({ type: type, output: nodeId1, input: nodeId2 });
-      var linkId = link.getId();
-      _addNode(KEY_LINKS, link);
-      node1.setOutputConnection(type, linkId);
-      node2.setInputConnection(type, linkId);
-      return linkId;
+    if (node2 === null) {
+      console.log('rpgs::tempWire', type, nodeId1, nodeId2);
+      _tempWires.push({ type: type, targetNode: nodeId1, referenceNode: nodeId2 });
+      return;
+    }
+    if (node1.canSetWireType(type)) {
+      console.log('rpgs::createWire', type, nodeId1, nodeId2);
+      node1.setWire(type, node2.getId());
     } else {
       _errorHandler.showMsg(_ErrorCode2.default.IMPROPER_CONNECTION, {
         type: type,
         node1: nodeId1,
         node2: nodeId2
       });
-      return false;
     }
-  },
-      _getConnection = function _getConnection(linkId) {
-    return this._getNode(KEY_LINKS, linkId);
-  },
-      _getConnections = function _getConnections() {
-    return _objectPool[KEY_LINKS];
-  },
-      _removeConnection = function _removeConnection(linkId) {
-    this._removeNodeByKey(KEY_LINKS, linkId);
   };
 
   ////////////////////////////////////////////////////////////////
@@ -378,6 +355,12 @@ var RPGSystem = function RPGSystem(data, editor) {
       _addNode(storage, node);
     }
 
+    _getWaitingWiresForNode(id).map(function (wire) {
+      //console.log('wire',wire,wire.type,wire.targetNode,wire.referenceNode);
+      _setConnection(wire.type, wire.targetNode, wire.referenceNode);
+      return null;
+    });
+
     function createChildNode(nodeParams) {
       //We create a new node, and then set as the last child.
       _lastChild = _nodeFactory(nodeParams, _self);
@@ -386,6 +369,17 @@ var RPGSystem = function RPGSystem(data, editor) {
       //Finally new node is added to main storage object.
       _addNode(storage, _lastChild);
     }
+  }
+
+  function _getWaitingWiresForNode(nodeId) {
+    var wires = [];
+    for (var i = _tempWires.length - 1; i >= 0; i--) {
+      //console.log('_getWaitingWiresForNode',_tempWires[i].referenceNode,nodeId);
+      if (_tempWires[i].referenceNode === nodeId) {
+        wires.push(_tempWires.splice(i, 1)[0]);
+      }
+    }
+    return wires;
   }
 
   /**
@@ -398,59 +392,6 @@ var RPGSystem = function RPGSystem(data, editor) {
     _lastChild = null;
     _parentHistory.length = 0;
     this._removeNodeByKey(key, id);
-  }
-
-  /**
-   * Helper method that is used for creating temporary links (half links)
-   * or complete Link nodes, when input and output counterparts are present.
-   * @param  {string} type      Defines type of connection.
-   * @param  {string} id        Id of targeted node into which connection
-   * should be made.
-   * @param  {string} startSide Defines current start side of the link.
-   * @param  {string} endSide   Defines current end side of the link.
-   */
-  function _chainLinkCreator(type, id, startSide, endSide) {
-    var opposite = null;
-    var node = null;
-    //First we must check whether our method is called on node.
-    if (_lastChild !== null) {
-      node = _lastChild;
-    } else if (_parentHistory[0] !== undefined) {
-      node = _parentHistory[0];
-    }
-    //If our last node is not null, we can proceed further.
-    if (node !== null) {
-      //Our next task is to iterate through an array of "half links". This step
-      //is necessary to find out whether we should create another "half link"
-      //or complete LinkNode. We are looking for the opposite side of the link.
-      for (var i = 0; i < _halfLinks[endSide].length; i++) {
-        var link = _halfLinks[endSide][i];
-        if (link.type === type && link.id === node.getId()) {
-          opposite = _halfLinks[endSide].splice(i, 1)[0];
-          break;
-        }
-      }
-      //If opposite side is not available, it means we should create "half link".
-      if (opposite === null) {
-        _halfLinks[startSide].push({ type: type, id: id });
-      }
-      //Otherwise we create LinkNode.
-      else {
-          //Method "_setConnection" always create links in defined direction
-          //starting from input side to output side, so is it important to
-          //pass parameters in proper manner.
-          if (startSide === 'inp') {
-            _setConnection(type, id, opposite.id);
-          } else {
-            _setConnection(type, opposite.id, id);
-          }
-        }
-    }
-    //Else if a node is null then it means that method was called on
-    //an incorrect target.
-    else {
-        _errorHandler.showMsg(_ErrorCode2.default.INCORRECT_LINK_TARGET);
-      }
   }
 
   var _addActor = function _addActor(id, params) {
@@ -509,12 +450,19 @@ var RPGSystem = function RPGSystem(data, editor) {
     _chainNodeRemover(id, KEY_ANSWERS);
     return this;
   },
-      _inp = function _inp(type, id) {
-    _chainLinkCreator(type, id, 'inp', 'out');
-    return this;
-  },
-      _out = function _out(type, id) {
-    _chainLinkCreator(type, id, 'out', 'inp');
+      _setWire = function _setWire(type, referenceNodeId) {
+    var targetNode = _lastChild;
+    if (targetNode === null && _parentHistory.length > 0) {
+      targetNode = _parentHistory[0];
+    } else {
+      /*_errorHandler.showMsg(ErrorCode.INCOMPATIBLE_CHILD,{
+        child:className,
+        parent: _parentHistory.length > 0
+              ? _parentHistory[0].constructor.name
+              : 'null'
+      });*/
+    }
+    _setConnection(type, targetNode.getId(), referenceNodeId);
     return this;
   },
 
@@ -523,31 +471,31 @@ var RPGSystem = function RPGSystem(data, editor) {
   //GETTERS
   ////////////////////////////////////////////////////////////////
   _getActor = function _getActor(actorId) {
-    return this._getNode(KEY_ACTORS, actorId);
+    return this._findNode(actorId);
   },
       _getActors = function _getActors() {
     return _objectPool[KEY_ACTORS];
   },
       _getCondition = function _getCondition(conditionId) {
-    return _getNode(KEY_LOGIC, conditionId);
+    return _findNode(conditionId);
   },
       _getConditions = function _getConditions() {
     return _objectPool[KEY_LOGIC];
   },
       _getDialog = function _getDialog(dialogId) {
-    return _getNode(KEY_DIALOGS, dialogId);
+    return _findNode(dialogId);
   },
       _getDialogs = function _getDialogs() {
     return _objectPool[KEY_DIALOGS];
   },
       _getQuest = function _getQuest(questId) {
-    return _getNode(KEY_QUESTS, questId);
+    return _findNode(questId);
   },
       _getQuests = function _getQuests() {
     return _objectPool[KEY_QUESTS];
   },
       _getVariable = function _getVariable(variableId) {
-    return _getNode(KEY_VARIABLES, variableId);
+    return _findNode(variableId);
   },
       _getVariables = function _getVariables() {
     return _objectPool[KEY_VARIABLES];
@@ -583,17 +531,14 @@ var RPGSystem = function RPGSystem(data, editor) {
     //General node methods
     ////////////////////////////////////////////
     findNode: _findNode,
-    getNode: _getNode,
+    //getNode:          _getNode,
     addNode: _addNode,
     removeNode: _removeNode,
 
     ////////////////////////////////////////////
     //Link creation methods
     ////////////////////////////////////////////
-    setConnection: _setConnection,
-    getConnection: _getConnection,
-    getConnections: _getConnections,
-    removeConnection: _removeConnection,
+    setWire: _setWire,
 
     ////////////////////////////////////////////
     //Chainable methods
@@ -612,8 +557,8 @@ var RPGSystem = function RPGSystem(data, editor) {
     removeTalk: _removeTalk,
     addAnswer: _addAnswer,
     removeAnswer: _removeAnswer,
-    inp: _inp,
-    out: _out,
+    //inp:             _inp,
+    //out:             _out,
 
     ////////////////////////////////////////////
     //Getter methods
@@ -649,7 +594,7 @@ var RPGSystem = function RPGSystem(data, editor) {
 };
 module.exports = RPGSystem;
 
-},{"./actors/ActorNode":4,"./core/BaseNode":5,"./core/ErrorCode":7,"./core/ErrorHandler":8,"./core/LinkNode":9,"./core/Utils":11,"./dialogs/AnswerNode":12,"./dialogs/DialogNode":13,"./dialogs/TalkNode":15,"./logic/ScriptNode":16,"./quests/QuestNode":17,"./quests/TaskNode":19,"./variables/VariableNode":20}],4:[function(require,module,exports){
+},{"./actors/ActorNode":4,"./core/BaseNode":5,"./core/ErrorCode":7,"./core/ErrorHandler":8,"./core/Utils":10,"./dialogs/AnswerNode":11,"./dialogs/DialogNode":12,"./dialogs/TalkNode":14,"./logic/ScriptNode":15,"./quests/QuestNode":16,"./quests/TaskNode":18,"./variables/VariableNode":19}],4:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -660,9 +605,9 @@ var _BaseNode2 = require('../core/BaseNode');
 
 var _BaseNode3 = _interopRequireDefault(_BaseNode2);
 
-var _LinkType = require('../core/LinkType');
+var _Prop = require('../core/Prop');
 
-var _LinkType2 = _interopRequireDefault(_LinkType);
+var _Prop2 = _interopRequireDefault(_Prop);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -724,24 +669,15 @@ var ActorNode = function () {
       }*/
 
     }, {
-      key: 'canCreateInputConnection',
-      value: function canCreateInputConnection(type) {
+      key: 'canSetWireType',
+      value: function canSetWireType(type) {
         switch (type) {
-          case _LinkType2.default.DIALOG:
-            return this.getInputConnections(_LinkType2.default.DIALOG).length === 0;
+          case _Prop2.default.DIALOG:
+            return this.getWires(_Prop2.default.DIALOG).length === 0;
           default:
             return false;
         }
       }
-    }, {
-      key: 'setOutputConnection',
-      value: function setOutputConnection(type, linkId) {}
-    }, {
-      key: 'getOutputConnections',
-      value: function getOutputConnections(type) {}
-    }, {
-      key: 'removeOutputConnection',
-      value: function removeOutputConnection(type, linkId) {}
     }, {
       key: 'dispose',
       value: function dispose() {
@@ -758,23 +694,20 @@ var ActorNode = function () {
 
 module.exports = ActorNode;
 
-},{"../core/BaseNode":5,"../core/LinkType":10}],5:[function(require,module,exports){
+},{"../core/BaseNode":5,"../core/Prop":9}],5:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _Utils = require('./Utils');
 
-var _LinkType = require('./LinkType');
+var _Prop = require('./Prop');
 
-var _LinkType2 = _interopRequireDefault(_LinkType);
+var _Prop2 = _interopRequireDefault(_Prop);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var KEY_LINKS = 'links';
-var KEY_LOGIC = 'logic';
 
 var BaseNode = function () {
   //Weak maps are new feature to JavaScript. We can store private
@@ -782,8 +715,7 @@ var BaseNode = function () {
   //and our class can capture those key/value maps in a closure.
   var _rpgs = new WeakMap();
   var _uuid = new WeakMap();
-  var _input = new WeakMap();
-  var _output = new WeakMap();
+  var _wires = new WeakMap();
 
   return function () {
     function BaseNode(data, rpgs) {
@@ -792,8 +724,7 @@ var BaseNode = function () {
       _rpgs.set(this, rpgs);
       //If uuid not present, then by default we assign Universally Unique ID.
       _uuid.set(this, data.uuid ? data.uuid : _Utils.UUID.generate());
-      _input.set(this, data.input ? data.input : {});
-      _output.set(this, data.output ? data.output : {});
+      _wires.set(this, data.wires ? data.wires : {});
     }
 
     _createClass(BaseNode, [{
@@ -812,10 +743,11 @@ var BaseNode = function () {
         return _uuid.get(this);
       }
     }, {
-      key: 'checkCondition',
-      value: function checkCondition(conditionId) {
-        var condition = this.getRPGS().getNode(KEY_LOGIC, conditionId);
-        return condition ? condition.execute() : true;
+      key: '_checkCondition',
+      value: function _checkCondition(prop) {
+        var nodeId = this.getWires(prop)[0];
+        var scriptNode = this.getRPGS().findNode(nodeId);
+        return scriptNode != null && scriptNode.execute ? scriptNode.execute() : true;
       }
 
       /**
@@ -826,9 +758,7 @@ var BaseNode = function () {
     }, {
       key: 'isVisible',
       value: function isVisible() {
-        var linkId = this.getInputConnections(_LinkType2.default.VISIBILITY)[0];
-        var linkNode = this.getRPGS().getNode(KEY_LINKS, linkId);
-        return linkNode ? this.checkCondition(linkNode.getOut()) : true;
+        return this._checkCondition(_Prop2.default.VISIBILITY);
       }
 
       /**
@@ -839,9 +769,7 @@ var BaseNode = function () {
     }, {
       key: 'isActive',
       value: function isActive() {
-        var linkId = this.getInputConnections(_LinkType2.default.ACTIVITY)[0];
-        var linkNode = this.getRPGS().getNode(KEY_LINKS, linkId);
-        return linkNode ? this.checkCondition(linkNode.getOut()) : true;
+        return this._checkCondition(_Prop2.default.ACTIVITY);
       }
     }, {
       key: 'getData',
@@ -849,8 +777,7 @@ var BaseNode = function () {
         return {
           class: this.constructor.name,
           uuid: this.getId(),
-          input: this.getInputConnections(),
-          output: this.getOutputConnections()
+          wires: _wires.get(this)
         };
       }
     }, {
@@ -876,97 +803,57 @@ var BaseNode = function () {
       }
     }, {
       key: '_removeChildren',
-      value: function _removeChildren(key) {}
+      value: function _removeChildren() {}
     }, {
-      key: 'canCreateInputConnection',
-      value: function canCreateInputConnection(type) {
+      key: 'canSetWireType',
+      value: function canSetWireType(type) {
         return false;
       }
     }, {
-      key: 'canCreateOutputConnection',
-      value: function canCreateOutputConnection(type) {
-        return false;
-      }
-    }, {
-      key: '_setConnection',
-      value: function _setConnection(obj, type, linkId) {
+      key: '_setWire',
+      value: function _setWire(obj, type, nodeId) {
         if (!obj.hasOwnProperty(type)) {
           obj[type] = [];
         }
-        obj[type].push(linkId);
+        obj[type].push(nodeId);
         return obj;
       }
     }, {
-      key: 'setOutputConnection',
-      value: function setOutputConnection(type, linkId) {
-        _output.set(this, this._setConnection(_output.get(this), type, linkId));
+      key: 'setWire',
+      value: function setWire(type, nodeId) {
+        _wires.set(this, this._setWire(_wires.get(this), type, nodeId));
       }
     }, {
-      key: 'setInputConnection',
-      value: function setInputConnection(type, linkId) {
-        _input.set(this, this._setConnection(_input.get(this), type, linkId));
-      }
-    }, {
-      key: '_getConnections',
-      value: function _getConnections(obj, type) {
+      key: '_getWires',
+      value: function _getWires(obj, type) {
+        //console.log('_getWires',obj);
         if (type) return !obj.hasOwnProperty(type) ? [] : obj[type];else return obj;
       }
     }, {
-      key: 'getOutputConnections',
-      value: function getOutputConnections(type) {
-        return this._getConnections(_output.get(this), type);
+      key: 'getWires',
+      value: function getWires(type) {
+        return this._getWires(_wires.get(this), type);
       }
     }, {
-      key: 'getInputConnections',
-      value: function getInputConnections(type) {
-        return this._getConnections(_input.get(this), type);
-      }
-    }, {
-      key: '_removeConnection',
-      value: function _removeConnection(obj, type, linkId) {
+      key: '_removeWire',
+      value: function _removeWire(obj, type, nodeId) {
         if (obj.hasOwnProperty(type)) {
-          obj[type] = Utils.removeObjectFromArray(obj[type], linkId);
+          obj[type] = Utils.removeObjectFromArray(obj[type], nodeId);
         }
         return obj;
       }
     }, {
-      key: 'removeOutputConnection',
-      value: function removeOutputConnection(type, linkId) {
-        _output.set(this, this._removeConnection(_output.get(this), type, linkId));
-      }
-    }, {
-      key: 'removeInputConnection',
-      value: function removeInputConnection(type, linkId) {
-        _input.set(this, this._removeConnection(_input.get(this), type, linkId));
-      }
-    }, {
-      key: 'removeChildrenFrom',
-      value: function removeChildrenFrom(obj, key) {
-        var _this = this;
-
-        obj.filter(function (childId, index, arr) {
-          _this.getRPGS().removeNode(key, childId);
-          return true;
-        });
-      }
-    }, {
-      key: '_removeLinksFrom',
-      value: function _removeLinksFrom(obj) {
-        for (var type in obj) {
-          if (obj.hasOwnProperty(type)) {
-            removeChildrenFrom(obj[type], KEY_LINKS);
-          }
-        }
+      key: 'removeWire',
+      value: function removeWire(type, nodeId) {
+        _wires.set(this, this._removeWire(_wires.get(this), type, nodeId));
       }
     }, {
       key: 'dispose',
       value: function dispose() {
-        this._removeLinksFrom(_output.get(this));
-        this._removeLinksFrom(_input.get(this));
         _rpgs.delete(this);
         _uuid.delete(this);
-        _input.delete(this);
-        _output.delete(this);
+        _wires.delete(this);
+        _removeChildren();
       }
     }]);
 
@@ -975,7 +862,7 @@ var BaseNode = function () {
 }();
 module.exports = BaseNode;
 
-},{"./LinkType":10,"./Utils":11}],6:[function(require,module,exports){
+},{"./Prop":9,"./Utils":10}],6:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1045,8 +932,9 @@ var CompoundNode = function () {
       }
     }, {
       key: '_removeChildren',
-      value: function _removeChildren(key) {
-        this.removeChildrenFrom(_children.get(this), key);
+      value: function _removeChildren() /*key*/{
+        //Add valid implementation...
+        //this.removeChildrenFrom(_children.get(this),key);
       }
     }, {
       key: 'dispose',
@@ -1061,7 +949,7 @@ var CompoundNode = function () {
 }();
 module.exports = CompoundNode;
 
-},{"../core/BaseNode":5,"../core/Utils":11}],7:[function(require,module,exports){
+},{"../core/BaseNode":5,"../core/Utils":10}],7:[function(require,module,exports){
 "use strict";
 
 var NODE_NOT_EXISTS = 0;
@@ -1147,108 +1035,6 @@ module.exports = ErrorHandler;
 },{"./ErrorCode":7}],9:[function(require,module,exports){
 "use strict";
 
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-var _BaseNode2 = require('../core/BaseNode');
-
-var _BaseNode3 = _interopRequireDefault(_BaseNode2);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
-
-function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var LinkNode = function () {
-
-  var _type = new WeakMap();
-  var _output = new WeakMap();
-  var _input = new WeakMap();
-
-  return function (_BaseNode) {
-    _inherits(LinkNode, _BaseNode);
-
-    function LinkNode(data, rpgs) {
-      _classCallCheck(this, LinkNode);
-
-      var _this = _possibleConstructorReturn(this, (LinkNode.__proto__ || Object.getPrototypeOf(LinkNode)).call(this, data, rpgs));
-
-      _type.set(_this, data.type);
-      _input.set(_this, data.input ? data.input : '');
-      _output.set(_this, data.output ? data.output : '');
-      return _this;
-    }
-
-    _createClass(LinkNode, [{
-      key: 'getInp',
-      value: function getInp() {
-        return _input.get(this);
-      }
-    }, {
-      key: 'getOut',
-      value: function getOut() {
-        return _output.get(this);
-      }
-    }, {
-      key: 'getType',
-      value: function getType() {
-        return _type.get(this);
-      }
-    }, {
-      key: 'getData',
-      value: function getData() {
-        var data = _get(LinkNode.prototype.__proto__ || Object.getPrototypeOf(LinkNode.prototype), 'getData', this).call(this);
-        data.type = this.getType();
-        data.input = this.getInp();
-        data.output = this.getOut();
-        return data;
-      }
-    }, {
-      key: 'setOutputConnection',
-      value: function setOutputConnection(type, linkId) {}
-    }, {
-      key: 'setInputConnection',
-      value: function setInputConnection(type, linkId) {}
-    }, {
-      key: 'getOutputConnections',
-      value: function getOutputConnections(type) {}
-    }, {
-      key: 'getInputConnections',
-      value: function getInputConnections(type) {}
-    }, {
-      key: 'removeOutputConnection',
-      value: function removeOutputConnection(type, linkId) {}
-    }, {
-      key: 'removeInputConnection',
-      value: function removeInputConnection(type, linkId) {}
-    }, {
-      key: 'dispose',
-      value: function dispose() {
-        var linkInp = this.getInp();
-        var linkOut = this.getOut();
-        var inpObj = this.getRPGS().findNode(linkInp);
-        var outObj = this.getRPGS().findNode(linkOut);
-        if (inpObj) inpObj.removeInputConnection(this.getType(), linkInp);
-        if (outObj) outObj.removeOutputConnection(this.getType(), linkOut);
-        _type.delete(this);
-        _input.delete(this);
-        _output.delete(this);
-        _get(LinkNode.prototype.__proto__ || Object.getPrototypeOf(LinkNode.prototype), 'dispose', this).call(this);
-      }
-    }]);
-
-    return LinkNode;
-  }(_BaseNode3.default);
-}();
-module.exports = LinkNode;
-
-},{"../core/BaseNode":5}],10:[function(require,module,exports){
-"use strict";
-
 var REFERENCE = 'reference';
 var VISIBILITY = 'visibility';
 var ACTIVITY = 'activity';
@@ -1263,7 +1049,7 @@ exports.ACTION = ACTION;
 exports.GOTO = GOTO;
 exports.DIALOG = DIALOG;
 
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 "use strict";
 
 /**
@@ -1337,7 +1123,7 @@ exports.removeObjectFromArray = function (array, obj) {
   return array;
 };
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1348,9 +1134,9 @@ var _BaseNode2 = require('../core/BaseNode');
 
 var _BaseNode3 = _interopRequireDefault(_BaseNode2);
 
-var _LinkType = require('../core/LinkType');
+var _Prop = require('../core/Prop');
 
-var _LinkType2 = _interopRequireDefault(_LinkType);
+var _Prop2 = _interopRequireDefault(_Prop);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1383,7 +1169,6 @@ var AnswerNode = function () {
       value: function getData() {
         var data = _get(AnswerNode.prototype.__proto__ || Object.getPrototypeOf(AnswerNode.prototype), 'getData', this).call(this);
         data.text = this.getText();
-
         return data;
       }
     }, {
@@ -1399,28 +1184,19 @@ var AnswerNode = function () {
     }, {
       key: 'getTalk',
       value: function getTalk() {
-        var linkId = this.getOutputConnections(_LinkType2.default.GOTO)[0];
-        var linkNode = this.getRPGS().findNode(linkId);
-        return linkNode ? linkNode.getInp() : null;
+        console.log('AnswerNode::getTalk', this.getWires(_Prop2.default.GOTO));
+        return this.getWires(_Prop2.default.GOTO)[0];
       }
     }, {
-      key: 'canCreateInputConnection',
-      value: function canCreateInputConnection(type) {
+      key: 'canSetWireType',
+      value: function canSetWireType(type) {
         switch (type) {
-          case _LinkType2.default.VISIBILITY:
-            return this.getInputConnections(_LinkType2.default.VISIBILITY).length === 0;
-          case _LinkType2.default.ACTIVITY:
-            return this.getInputConnections(_LinkType2.default.ACTIVITY).length === 0;
-          default:
-            return false;
-        }
-      }
-    }, {
-      key: 'canCreateOutputConnection',
-      value: function canCreateOutputConnection(type) {
-        switch (type) {
-          case _LinkType2.default.GOTO:
-            return this.getOutputConnections(_LinkType2.default.GOTO).length === 0;
+          case _Prop2.default.VISIBILITY:
+            return this.getWires(_Prop2.default.VISIBILITY).length === 0;
+          case _Prop2.default.ACTIVITY:
+            return this.getWires(_Prop2.default.ACTIVITY).length === 0;
+          case _Prop2.default.GOTO:
+            return this.getWires(_Prop2.default.GOTO).length === 0;
           default:
             return false;
         }
@@ -1438,7 +1214,7 @@ var AnswerNode = function () {
 }();
 module.exports = AnswerNode;
 
-},{"../core/BaseNode":5,"../core/LinkType":10}],13:[function(require,module,exports){
+},{"../core/BaseNode":5,"../core/Prop":9}],12:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1449,9 +1225,9 @@ var _CompoundNode2 = require('../core/CompoundNode');
 
 var _CompoundNode3 = _interopRequireDefault(_CompoundNode2);
 
-var _LinkType = require('../core/LinkType');
+var _Prop = require('../core/Prop');
 
-var _LinkType2 = _interopRequireDefault(_LinkType);
+var _Prop2 = _interopRequireDefault(_Prop);
 
 var _Utils = require('../core/Utils');
 
@@ -1505,23 +1281,13 @@ var DialogNode = function () {
         return _start.get(this);
       }
     }, {
-      key: 'canCreateInputConnection',
-      value: function canCreateInputConnection(type) {
+      key: 'canSetWireType',
+      value: function canSetWireType(type) {
         switch (type) {
-          case _LinkType2.default.VISIBILITY:
-            return this.getInputConnections(_LinkType2.default.VISIBILITY).length === 0;
-          case _LinkType2.default.ACTIVITY:
-            return this.getInputConnections(_LinkType2.default.ACTIVITY).length === 0;
-          default:
-            return false;
-        }
-      }
-    }, {
-      key: 'canCreateOutputConnection',
-      value: function canCreateOutputConnection(type) {
-        switch (type) {
-          case _LinkType2.default.DIALOG:
-            return true;
+          case _Prop2.default.VISIBILITY:
+            return this.getWires(_Prop2.default.VISIBILITY).length === 0;
+          case _Prop2.default.ACTIVITY:
+            return this.getWires(_Prop2.default.ACTIVITY).length === 0;
           default:
             return false;
         }
@@ -1529,7 +1295,6 @@ var DialogNode = function () {
     }, {
       key: 'dispose',
       value: function dispose() {
-        this._removeChildren(KEY_TALKS);
         _start.delete(this);
         _get(DialogNode.prototype.__proto__ || Object.getPrototypeOf(DialogNode.prototype), 'dispose', this).call(this);
       }
@@ -1540,7 +1305,7 @@ var DialogNode = function () {
 }();
 module.exports = DialogNode;
 
-},{"../core/CompoundNode":6,"../core/LinkType":10,"../core/Utils":11}],14:[function(require,module,exports){
+},{"../core/CompoundNode":6,"../core/Prop":9,"../core/Utils":10}],13:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1562,7 +1327,7 @@ var DialogWalker = function () {
     }
 
     _createClass(DialogWalker, [{
-      key: "reset",
+      key: 'reset',
       value: function reset() {
         var dialog = _dialog.get(this);
         if (dialog !== null) {
@@ -1570,31 +1335,32 @@ var DialogWalker = function () {
         }
       }
     }, {
-      key: "_findNode",
+      key: '_findNode',
       value: function _findNode(nodeId) {
         return _rpgs.get(this).findNode(nodeId);
       }
     }, {
-      key: "setDialog",
+      key: 'setDialog',
       value: function setDialog(dialogId) {
         var dialog = this._findNode(dialogId);
         if (dialog === null) {
-          throw new Error("DialogNode with the id \"" + dialogId + "\" does not exists.");
+          throw new Error('DialogNode with the id "' + dialogId + '" does not exists.');
         }
         _dialog.set(this, dialog);
         this.reset();
       }
     }, {
-      key: "setTalk",
+      key: 'setTalk',
       value: function setTalk(talkId) {
+        console.log('setTalk', talkId);
         var talk = this._findNode(talkId);
         if (talk === null) {
-          throw new Error("TalkNode with the id \"" + talkId + "\" does not exists.");
+          throw new Error('TalkNode with the id "' + talkId + '" does not exists.');
         }
         _currTalk.set(this, talk);
       }
     }, {
-      key: "getConversation",
+      key: 'getConversation',
       value: function getConversation() {
         var _this = this;
 
@@ -1613,7 +1379,7 @@ var DialogWalker = function () {
         return conversation;
       }
     }, {
-      key: "selectOption",
+      key: 'selectOption',
       value: function selectOption(id) {
         var children = _currTalk.get(this).getChildren();
         var answerId = children.filter(function (currId, index, array) {
@@ -1621,6 +1387,7 @@ var DialogWalker = function () {
         });
         if (answerId[0] !== undefined) {
           var answerNode = this._findNode(answerId[0]);
+          console.log('selectOption::answerNode', answerNode, answerNode.getId());
           if (answerNode !== null) this.setTalk(answerNode.getTalk());
         }
       }
@@ -1631,7 +1398,7 @@ var DialogWalker = function () {
 }();
 module.exports = DialogWalker;
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1646,9 +1413,9 @@ var _CompoundNode2 = require('../core/CompoundNode');
 
 var _CompoundNode3 = _interopRequireDefault(_CompoundNode2);
 
-var _LinkType = require('../core/LinkType');
+var _Prop = require('../core/Prop');
 
-var _LinkType2 = _interopRequireDefault(_LinkType);
+var _Prop2 = _interopRequireDefault(_Prop);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -1657,8 +1424,6 @@ function _classCallCheck(instance, Constructor) { if (!(instance instanceof Cons
 function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
 
 function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-var KEY_ANSWERS = 'answers';
 
 var TalkNode = function () {
 
@@ -1699,28 +1464,18 @@ var TalkNode = function () {
         return type === 'AnswerNode';
       }
     }, {
-      key: 'canCreateInputConnection',
-      value: function canCreateInputConnection(type) {
+      key: 'canSetWireType',
+      value: function canSetWireType(type) {
         switch (type) {
-          case _LinkType2.default.GOTO:
+          case _Prop2.default.GOTO:
             return true;
           default:
             return false;
         }
       }
     }, {
-      key: 'setOutputConnection',
-      value: function setOutputConnection(type, linkId) {}
-    }, {
-      key: 'getOutputConnections',
-      value: function getOutputConnections(type) {}
-    }, {
-      key: 'removeOutputConnection',
-      value: function removeOutputConnection(type, linkId) {}
-    }, {
       key: 'dispose',
       value: function dispose() {
-        this._removeChildren(KEY_ANSWERS);
         _text.delete(this);
         _get(TalkNode.prototype.__proto__ || Object.getPrototypeOf(TalkNode.prototype), 'dispose', this).call(this);
       }
@@ -1731,7 +1486,7 @@ var TalkNode = function () {
 }();
 module.exports = TalkNode;
 
-},{"../core/CompoundNode":6,"../core/LinkType":10,"../core/Utils":11}],16:[function(require,module,exports){
+},{"../core/CompoundNode":6,"../core/Prop":9,"../core/Utils":10}],15:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1742,9 +1497,9 @@ var _BaseNode2 = require('../core/BaseNode');
 
 var _BaseNode3 = _interopRequireDefault(_BaseNode2);
 
-var _LinkType = require('../core/LinkType');
+var _Prop = require('../core/Prop');
 
-var _LinkType2 = _interopRequireDefault(_LinkType);
+var _Prop2 = _interopRequireDefault(_Prop);
 
 var _nxCompile = require('@risingstack/nx-compile');
 
@@ -1813,25 +1568,14 @@ var ScriptNode = function () {
         return data;
       }
     }, {
-      key: 'canCreateOutputConnection',
-      value: function canCreateOutputConnection(type) {
-        switch (type) {
-          case _LinkType2.default.VISIBILITY:
-          case _LinkType2.default.ACTIVITY:
-            return true;
-          default:
-            return false;
-        }
-      }
+      key: 'setWire',
+      value: function setWire(type, linkId) {}
     }, {
-      key: 'setInputConnection',
-      value: function setInputConnection(type, linkId) {}
+      key: 'getWires',
+      value: function getWires(type) {}
     }, {
-      key: 'getInputConnections',
-      value: function getInputConnections(type) {}
-    }, {
-      key: 'removeInputConnection',
-      value: function removeInputConnection(type, linkId) {}
+      key: 'removeWire',
+      value: function removeWire(type, linkId) {}
     }, {
       key: 'dispose',
       value: function dispose() {
@@ -1847,7 +1591,7 @@ var ScriptNode = function () {
 }();
 module.exports = ScriptNode;
 
-},{"../core/BaseNode":5,"../core/LinkType":10,"@risingstack/nx-compile":1}],17:[function(require,module,exports){
+},{"../core/BaseNode":5,"../core/Prop":9,"@risingstack/nx-compile":1}],16:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -1903,7 +1647,7 @@ var QuestNode = function () {
     }, {
       key: 'canAddChild',
       value: function canAddChild(type) {
-        return type === 'Task';
+        return type === 'TaskNode';
       }
     }, {
       key: 'setTitle',
@@ -1946,10 +1690,10 @@ var QuestNode = function () {
     }, {
       key: 'dispose',
       value: function dispose() {
-        this._removeChildren(KEY_TASKS);
         _title.delete(this);
         _description.delete(this);
         _status.delete(this);
+        _get(QuestNode.prototype.__proto__ || Object.getPrototypeOf(QuestNode.prototype), 'dispose', this).call(this);
       }
     }]);
 
@@ -1958,7 +1702,7 @@ var QuestNode = function () {
 }();
 module.exports = QuestNode;
 
-},{"../core/CompoundNode":6,"./QuestStatus":18}],18:[function(require,module,exports){
+},{"../core/CompoundNode":6,"./QuestStatus":17}],17:[function(require,module,exports){
 "use strict";
 
 var INCOMPLETE = 'questIncomplete';
@@ -1969,7 +1713,7 @@ exports.INCOMPLETE = INCOMPLETE;
 exports.COMPLETED = COMPLETED;
 exports.FAILED = FAILED;
 
-},{}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 "use strict";
 
 var _BaseNode2 = require("../core/BaseNode");
@@ -2003,7 +1747,7 @@ var TaskNode = function () {
 
 module.exports = TaskNode;
 
-},{"../core/BaseNode":5}],20:[function(require,module,exports){
+},{"../core/BaseNode":5}],19:[function(require,module,exports){
 "use strict";
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -2105,19 +1849,9 @@ var VariableNode = function () {
         return _type.get(this);
       }
     }, {
-      key: 'canCreateInputConnection',
-      value: function canCreateInputConnection(type) {
+      key: 'canSetWireType',
+      value: function canSetWireType(type) {
         return false;
-      }
-    }, {
-      key: 'canCreateOutputConnection',
-      value: function canCreateOutputConnection(type) {
-        switch (type) {
-          case LinkType.REFERENCE:
-            return true;
-          default:
-            return false;
-        }
       }
     }, {
       key: 'dispose',
@@ -2134,7 +1868,7 @@ var VariableNode = function () {
 
 module.exports = VariableNode;
 
-},{"../core/BaseNode":5,"./VariableType":21}],21:[function(require,module,exports){
+},{"../core/BaseNode":5,"./VariableType":20}],20:[function(require,module,exports){
 'use strict';
 
 var BOOLEAN = 'boolean';
@@ -2145,7 +1879,7 @@ exports.BOOLEAN = BOOLEAN;
 exports.STRING = STRING;
 exports.NUMBER = NUMBER;
 
-},{}],22:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 "use strict";
 
 var _data = require('../data/data.json');
@@ -2163,30 +1897,32 @@ var _DialogWalker2 = _interopRequireDefault(_DialogWalker);
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 (function ($, window, document, undefined) {
-  $(function () {
-    var rpgs1 = new _RPGSystem2.default();
-    rpgs1.addActor('act1', { name: 'Adam' }).inp('dialog', 'dlg1').addCondition('cond1', {
-      script: 'return rpgs.getVar(\'b1\');'
-    }).out('visibility', 'tlk0ans1').addDialog('dlg1', { startTalk: 'tlk0' }).out('dialog', 'act1').addTalk('tlk0', { text: 'This is talk 0.' }).addAnswer('tlk0ans1', { text: 'Answer1' }).out('goto', 'tlk1').inp('visibility', 'cond1').addAnswer('tlk0ans2', { text: 'Answer2' }).out('goto', 'tlk2').addAnswer('tlk0ans3', { text: 'Answer3' }).out('goto', 'tlk3').addTalk('tlk1', { text: 'This is talk 1.' }).inp('goto', 'tlk0ans1').addAnswer('tlk1ans1', { text: 'Answer1' }).addTalk('tlk2', { text: 'This is talk 2.' }).inp('goto', 'tlk0ans2').addAnswer('tlk2ans1', { text: 'Answer1' }).addTalk('tlk3', { text: 'This is talk 3.' }).inp('goto', 'tlk0ans3').addAnswer('tlk3ans1', { text: 'Answer1' }).addVariable('b1', { type: 'boolean', value: false }).addVariable('s1', { type: 'string', value: 'This is message from compiled code!' }).addVariable('n1', { type: 'number', value: 56 });
-    var cond = rpgs1.getCondition('cond1');
-    console.log(cond.execute());
-    var b1 = rpgs1.getVariable('b1');
-    var s1 = rpgs1.getVariable('s1');
-    var n1 = rpgs1.getVariable('n1');
+    $(function () {
+        var rpgs1 = new _RPGSystem2.default();
+        rpgs1.addActor('act1', { name: 'Adam' }).setWire('dialog', 'dlg1').addCondition('cond1', { script: 'return rpgs.getVar(\'b1\');' }).addDialog('dlg1', { startTalk: 'tlk0' }).addTalk('tlk0', { text: 'This is talk 0.' }).addAnswer('tlk0ans1', { text: 'Answer1' }).setWire('visibility', 'cond1').setWire('goto', 'tlk1').addAnswer('tlk0ans2', { text: 'Answer2' }).setWire('goto', 'tlk2').addAnswer('tlk0ans3', { text: 'Answer3' }).setWire('goto', 'tlk3').addTalk('tlk1', { text: 'This is talk 1.' }).addAnswer('tlk1ans1', { text: 'Answer1' }).addTalk('tlk2', { text: 'This is talk 2.' }).addAnswer('tlk2ans1', { text: 'Answer1' }).addTalk('tlk3', { text: 'This is talk 3.' }).addAnswer('tlk3ans1', { text: 'Answer1' }).addVariable('b1', { type: 'boolean', value: false }).addVariable('s1', { type: 'string', value: 'This is message from compiled code!' }).addVariable('n1', { type: 'number', value: 56 });
+        var cond = rpgs1.getCondition('cond1');
+        console.log(cond.execute());
+        var b1 = rpgs1.getVariable('b1');
+        var s1 = rpgs1.getVariable('s1');
+        var n1 = rpgs1.getVariable('n1');
 
-    var rpgs1Serialized = rpgs1.serializeData();
-    console.log("rpgs1", rpgs1Serialized);
+        var rpgs1Serialized = rpgs1.serializeData();
+        console.log("rpgs1", rpgs1Serialized);
 
-    var rpgs2 = new _RPGSystem2.default(JSON.parse(rpgs1Serialized));
-    console.log("data created is equal to data parsed:", rpgs1Serialized === rpgs2.serializeData());
+        var rpgs2 = new _RPGSystem2.default(JSON.parse(rpgs1Serialized));
 
-    var walker = new _DialogWalker2.default(rpgs2);
-    walker.setDialog('dlg1');
-    console.log('conversation1:', walker.getConversation());
-    walker.selectOption('tlk0ans1');
-    console.log('conversation2:', walker.getConversation());
-  });
+        var rpgs2Serialized = rpgs2.serializeData();
+        console.log("rpgs2", rpgs2Serialized);
+
+        console.log("data created is equal to data parsed:", rpgs1Serialized === rpgs2Serialized);
+
+        var walker = new _DialogWalker2.default(rpgs2);
+        walker.setDialog('dlg1');
+        console.log('conversation1:', walker.getConversation());
+        walker.selectOption('tlk0ans1');
+        console.log('conversation2:', walker.getConversation());
+    });
 })(jQuery, window, document);
 
-},{"../data/data.json":2,"./rpgs/RPGSystem":3,"./rpgs/dialogs/DialogWalker":14}]},{},[22])
+},{"../data/data.json":2,"./rpgs/RPGSystem":3,"./rpgs/dialogs/DialogWalker":13}]},{},[21])
 

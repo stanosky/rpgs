@@ -65,16 +65,8 @@ let VariableNode = (function(){
       return _type.get(this);
     }
 
-    canCreateInputConnection(type) {
+    canSetWireType(type) {
       return false;
-    }
-
-    canCreateOutputConnection(type) {
-      switch (type) {
-        case LinkType.REFERENCE:
-          return true;
-        default: return false;
-      }
     }
 
     dispose() {

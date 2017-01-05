@@ -1,6 +1,6 @@
 "use strict";
 import CompoundNode from '../core/CompoundNode';
-import LinkType     from '../core/LinkType';
+import Prop     from '../core/Prop';
 import Utils        from '../core/Utils';
 
 
@@ -34,26 +34,17 @@ let DialogNode = (function() {
       return _start.get(this);
     }
 
-    canCreateInputConnection(type) {
+    canSetWireType(type) {
       switch (type) {
-        case LinkType.VISIBILITY:
-          return this.getInputConnections(LinkType.VISIBILITY).length === 0;
-        case LinkType.ACTIVITY:
-          return this.getInputConnections(LinkType.ACTIVITY).length === 0;
-        default: return false;
-      }
-    }
-
-    canCreateOutputConnection(type) {
-      switch (type) {
-        case LinkType.DIALOG:
-          return true;
+        case Prop.VISIBILITY:
+          return this.getWires(Prop.VISIBILITY).length === 0;
+        case Prop.ACTIVITY:
+          return this.getWires(Prop.ACTIVITY).length === 0;
         default: return false;
       }
     }
 
     dispose() {
-      this._removeChildren(KEY_TALKS);
       _start.delete(this);
       super.dispose();
     }

@@ -1,9 +1,7 @@
 "use strict";
 import Utils      from '../core/Utils';
 import CompoundNode from '../core/CompoundNode';
-import LinkType   from '../core/LinkType';
-
-const KEY_ANSWERS = 'answers';
+import Prop   from '../core/Prop';
 
 let TalkNode = (function() {
 
@@ -33,20 +31,15 @@ let TalkNode = (function() {
       return type === 'AnswerNode';
     }
 
-    canCreateInputConnection(type) {
+    canSetWireType(type) {
       switch (type) {
-        case LinkType.GOTO:
+        case Prop.GOTO:
           return true;
         default: return false;
       }
     }
 
-    setOutputConnection(type,linkId) {}
-    getOutputConnections(type) {}
-    removeOutputConnection(type,linkId) {}
-
     dispose() {
-      this._removeChildren(KEY_ANSWERS);
       _text.delete(this);
       super.dispose();
     }

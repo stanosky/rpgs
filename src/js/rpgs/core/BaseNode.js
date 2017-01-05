@@ -1,9 +1,6 @@
 "use strict";
 import {UUID}   from './Utils';
-import LinkType from './LinkType';
-
-const KEY_LINKS = 'links';
-const KEY_LOGIC = 'logic';
+import Prop from './Prop';
 
 let BaseNode = (function(){
   //Weak maps are new feature to JavaScript. We can store private
@@ -11,16 +8,14 @@ let BaseNode = (function(){
   //and our class can capture those key/value maps in a closure.
   let _rpgs = new WeakMap();
   let _uuid = new WeakMap();
-  let _input = new WeakMap();
-  let _output = new WeakMap();
+  let _wires = new WeakMap();
 
   return class BaseNode {
     constructor(data,rpgs) {
       _rpgs.set(this,rpgs);
       //If uuid not present, then by default we assign Universally Unique ID.
       _uuid.set(this,data.uuid ? data.uuid : UUID.generate());
-      _input.set(this,data.input ? data.input : {});
-      _output.set(this,data.output ? data.output : {});
+      _wires.set(this,data.wires ? data.wires : {});
     }
 
     getRPGS() {
@@ -35,9 +30,10 @@ let BaseNode = (function(){
       return _uuid.get(this);
     }
 
-    checkCondition(conditionId) {
-      let condition = this.getRPGS().getNode(KEY_LOGIC,conditionId);
-      return condition ? condition.execute() : true;
+    _checkCondition(prop) {
+      let nodeId = this.getWires(prop)[0];
+      let scriptNode = this.getRPGS().findNode(nodeId);
+      return scriptNode != null && scriptNode.execute ? scriptNode.execute() : true;
     }
 
     /**
@@ -45,9 +41,7 @@ let BaseNode = (function(){
      * @return {Boolean} Visibility state
      */
     isVisible() {
-      let linkId = this.getInputConnections(LinkType.VISIBILITY)[0];
-      let linkNode = this.getRPGS().getNode(KEY_LINKS,linkId);
-      return linkNode ? this.checkCondition(linkNode.getOut()) : true;
+      return this._checkCondition(Prop.VISIBILITY);
     }
 
     /**
@@ -55,17 +49,14 @@ let BaseNode = (function(){
      * @return {Boolean} Active state
      */
     isActive() {
-      let linkId = this.getInputConnections(LinkType.ACTIVITY)[0];
-      let linkNode = this.getRPGS().getNode(KEY_LINKS,linkId);
-      return linkNode ? this.checkCondition(linkNode.getOut()) : true;
+      return this._checkCondition(Prop.ACTIVITY);
     }
 
     getData() {
       return {
         class:this.constructor.name,
         uuid:this.getId(),
-        input:this.getInputConnections(),
-        output:this.getOutputConnections()
+        wires:_wires.get(this)
       };
     }
 
@@ -89,84 +80,52 @@ let BaseNode = (function(){
       return [];
     }
 
-    _removeChildren(key) {
+    _removeChildren() {
 
     }
 
-    canCreateInputConnection(type) {
+    canSetWireType(type) {
       return false;
     }
 
-    canCreateOutputConnection(type) {
-      return false;
-    }
-
-    _setConnection(obj,type,linkId) {
+    _setWire(obj,type,nodeId) {
       if(!obj.hasOwnProperty(type)) {
         obj[type] = [];
       }
-      obj[type].push(linkId);
+      obj[type].push(nodeId);
       return obj;
     }
 
-    setOutputConnection(type,linkId) {
-      _output.set(this,this._setConnection(_output.get(this),type,linkId));
+    setWire(type,nodeId) {
+      _wires.set(this,this._setWire(_wires.get(this),type,nodeId));
     }
 
-    setInputConnection(type,linkId) {
-      _input.set(this,this._setConnection(_input.get(this),type,linkId));
-    }
-
-    _getConnections(obj,type) {
+    _getWires(obj,type) {
+      //console.log('_getWires',obj);
       if(type) return !obj.hasOwnProperty(type) ? [] : obj[type];
       else return obj;
     }
 
-    getOutputConnections(type) {
-      return this._getConnections(_output.get(this),type);
+    getWires(type) {
+      return this._getWires(_wires.get(this),type);
     }
 
-    getInputConnections(type) {
-      return this._getConnections(_input.get(this),type);
-    }
-
-    _removeConnection(obj,type,linkId) {
+    _removeWire(obj,type,nodeId) {
       if(obj.hasOwnProperty(type)) {
-        obj[type] = Utils.removeObjectFromArray(obj[type],linkId);
+        obj[type] = Utils.removeObjectFromArray(obj[type],nodeId);
       }
       return obj;
     }
 
-    removeOutputConnection(type,linkId) {
-      _output.set(this,this._removeConnection(_output.get(this),type,linkId));
-    }
-
-    removeInputConnection(type,linkId) {
-      _input.set(this,this._removeConnection(_input.get(this),type,linkId));
-    }
-
-    removeChildrenFrom(obj,key) {
-      obj.filter((childId, index, arr) => {
-        this.getRPGS().removeNode(key,childId);
-        return true;
-      });
-    }
-
-    _removeLinksFrom(obj) {
-      for (var type in obj) {
-        if (obj.hasOwnProperty(type)) {
-          removeChildrenFrom(obj[type],KEY_LINKS);
-        }
-      }
+    removeWire(type,nodeId) {
+      _wires.set(this,this._removeWire(_wires.get(this),type,nodeId));
     }
 
     dispose() {
-      this._removeLinksFrom(_output.get(this));
-      this._removeLinksFrom(_input.get(this));
       _rpgs.delete(this);
       _uuid.delete(this);
-      _input.delete(this);
-      _output.delete(this);
+      _wires.delete(this);
+      _removeChildren();
     }
   };
 })();

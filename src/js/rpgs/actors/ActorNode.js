@@ -1,6 +1,6 @@
 "use strict";
 import BaseNode from '../core/BaseNode';
-import LinkType   from '../core/LinkType';
+import Prop   from '../core/Prop';
 
 let ActorNode = (function() {
   //Weak maps are new feature to JavaScript. We can store private
@@ -42,17 +42,13 @@ let ActorNode = (function() {
       return _inventory.get(this);
     }*/
 
-    canCreateInputConnection(type) {
+    canSetWireType(type) {
       switch (type) {
-        case LinkType.DIALOG:
-          return this.getInputConnections(LinkType.DIALOG).length === 0;
+        case Prop.DIALOG:
+          return this.getWires(Prop.DIALOG).length === 0;
         default: return false;
       }
     }
-
-    setOutputConnection(type,linkId) {}
-    getOutputConnections(type) {}
-    removeOutputConnection(type,linkId) {}
 
     dispose() {
       _name.delete(this);

@@ -3,7 +3,6 @@ import Utils            from './core/Utils';
 import ErrorHandler     from './core/ErrorHandler'
 import ErrorCode        from './core/ErrorCode';
 import BaseNode         from './core/BaseNode';
-import LinkNode         from './core/LinkNode';
 import ActorNode        from './actors/ActorNode';
 //import InventoryNode  from './actors/InventoryNode';
 import ScriptNode       from './logic/ScriptNode';
@@ -32,22 +31,19 @@ let RPGSystem = function (data,editor) {
   _context = null,
   _lastChild = null,
   _parentHistory = [],
-  _halfLinks = {
-    out: [],
-    inp: []
-  };
+  _tempWires = [];
 
   function _nodeFactory(data,rpgs) {
     let className = data.class;
     switch (className) {
       case 'ActorNode':     return new ActorNode(data,rpgs);
-      case 'ScriptNode': return new ScriptNode(data,rpgs);
+      case 'ScriptNode':    return new ScriptNode(data,rpgs);
       case 'AnswerNode':    return new AnswerNode(data,rpgs);
       case 'DialogNode':    return new DialogNode(data,rpgs);
       case 'TalkNode':      return new TalkNode(data,rpgs);
       case 'QuestNode':     return new QuestNode(data,rpgs);
       case 'TaskNode':      return new TaskNode(data,rpgs);
-      case 'LinkNode':      return new LinkNode(data,rpgs);
+      //case 'LinkNode':      return new LinkNode(data,rpgs);
       case 'VariableNode':  return new VariableNode(data,rpgs);
       default:
         _errorHandler.showMsg(ErrorCode.CLASS_NOT_DEFINED,{class:className});
@@ -72,11 +68,6 @@ let RPGSystem = function (data,editor) {
     //Is error message neccessary here? To consider.
     //_errorHandler.showMsg(ErrorCode.OBJECT_NOT_FOUND,{id:objId});
     return null;
-  },
-
-  _getNode = function(key,objId) {
-    let obj = _findNodeInArray(_objectPool[key],objId);
-    return obj;
   },
 
   _addNode = function(key,obj) {
@@ -106,38 +97,24 @@ let RPGSystem = function (data,editor) {
   _setConnection = function(type,nodeId1,nodeId2) {
     if(nodeId1 === nodeId2) {
       _errorHandler.showMsg(ErrorCode.CONNECTION_TO_ITSELF,{node:nodeId1});
-      return false;
     }
     let node1 = _findNode(nodeId1);
     let node2 = _findNode(nodeId2);
-    if(node1 === null || node2 === null) return;
-    if(node1.canCreateOutputConnection(type) && node2.canCreateInputConnection(type)) {
-      let link = new LinkNode({type:type,output:nodeId1,input:nodeId2});
-      let linkId = link.getId();
-      _addNode(KEY_LINKS,link);
-      node1.setOutputConnection(type,linkId);
-      node2.setInputConnection(type,linkId);
-      return linkId;
+    if(node2 === null) {
+      console.log('rpgs::tempWire',type,nodeId1,nodeId2);
+      _tempWires.push({type:type,targetNode:nodeId1,referenceNode:nodeId2});
+      return;
+    }
+    if(node1.canSetWireType(type)) {
+      console.log('rpgs::createWire',type,nodeId1,nodeId2);
+      node1.setWire(type,node2.getId());
     } else {
       _errorHandler.showMsg(ErrorCode.IMPROPER_CONNECTION,{
         type:type,
         node1:nodeId1,
         node2:nodeId2
       });
-      return false;
     }
-  },
-
-  _getConnection = function(linkId) {
-    return this._getNode(KEY_LINKS,linkId);
-  },
-
-  _getConnections = function() {
-    return _objectPool[KEY_LINKS];
-  },
-
-  _removeConnection = function(linkId) {
-    this._removeNodeByKey(KEY_LINKS,linkId);
   };
 
   ////////////////////////////////////////////////////////////////
@@ -230,6 +207,12 @@ let RPGSystem = function (data,editor) {
       _addNode(storage,node);
     }
 
+    _getWaitingWiresForNode(id).map((wire) => {
+      //console.log('wire',wire,wire.type,wire.targetNode,wire.referenceNode);
+      _setConnection(wire.type,wire.targetNode,wire.referenceNode);
+      return null;
+    });
+
     function createChildNode(nodeParams) {
       //We create a new node, and then set as the last child.
       _lastChild = _nodeFactory(nodeParams,_self);
@@ -238,6 +221,17 @@ let RPGSystem = function (data,editor) {
       //Finally new node is added to main storage object.
       _addNode(storage,_lastChild);
     }
+  }
+
+  function _getWaitingWiresForNode(nodeId) {
+    let wires = [];
+    for (var i = _tempWires.length - 1; i >= 0 ; i--) {
+      //console.log('_getWaitingWiresForNode',_tempWires[i].referenceNode,nodeId);
+      if(_tempWires[i].referenceNode === nodeId) {
+        wires.push(_tempWires.splice(i,1)[0]);
+      }
+    }
+    return wires;
   }
 
   /**
@@ -250,59 +244,6 @@ let RPGSystem = function (data,editor) {
     _lastChild = null;
     _parentHistory.length = 0;
     this._removeNodeByKey(key,id);
-  }
-
-  /**
-   * Helper method that is used for creating temporary links (half links)
-   * or complete Link nodes, when input and output counterparts are present.
-   * @param  {string} type      Defines type of connection.
-   * @param  {string} id        Id of targeted node into which connection
-   * should be made.
-   * @param  {string} startSide Defines current start side of the link.
-   * @param  {string} endSide   Defines current end side of the link.
-   */
-  function _chainLinkCreator(type,id,startSide,endSide) {
-    let opposite = null;
-    let node = null;
-    //First we must check whether our method is called on node.
-    if(_lastChild !== null) {
-      node = _lastChild;
-    } else if(_parentHistory[0] !== undefined) {
-      node = _parentHistory[0];
-    }
-    //If our last node is not null, we can proceed further.
-    if(node !== null) {
-      //Our next task is to iterate through an array of "half links". This step
-      //is necessary to find out whether we should create another "half link"
-      //or complete LinkNode. We are looking for the opposite side of the link.
-      for (var i = 0; i < _halfLinks[endSide].length; i++) {
-        let link = _halfLinks[endSide][i];
-        if(link.type === type && link.id === node.getId()){
-          opposite = _halfLinks[endSide].splice(i,1)[0];
-          break;
-        }
-      }
-      //If opposite side is not available, it means we should create "half link".
-      if(opposite === null) {
-        _halfLinks[startSide].push({type,id});
-      }
-      //Otherwise we create LinkNode.
-      else {
-        //Method "_setConnection" always create links in defined direction
-        //starting from input side to output side, so is it important to
-        //pass parameters in proper manner.
-        if(startSide === 'inp') {
-          _setConnection(type,id,opposite.id);
-        } else {
-          _setConnection(type,opposite.id,id);
-        }
-      }
-    }
-    //Else if a node is null then it means that method was called on
-    //an incorrect target.
-    else {
-      _errorHandler.showMsg(ErrorCode.INCORRECT_LINK_TARGET);
-    }
   }
 
   let _addActor = function(id,params) {
@@ -375,13 +316,20 @@ let RPGSystem = function (data,editor) {
     return this;
   },
 
-  _inp = function(type,id) {
-    _chainLinkCreator(type,id,'inp','out');
-    return this;
-  },
-
-  _out = function(type,id) {
-    _chainLinkCreator(type,id,'out','inp');
+  _setWire = function(type,referenceNodeId) {
+    let targetNode = _lastChild;
+    if(targetNode === null && _parentHistory.length > 0) {
+      targetNode = _parentHistory[0];
+    }
+    else {
+      /*_errorHandler.showMsg(ErrorCode.INCOMPATIBLE_CHILD,{
+        child:className,
+        parent: _parentHistory.length > 0
+              ? _parentHistory[0].constructor.name
+              : 'null'
+      });*/
+    }
+    _setConnection(type,targetNode.getId(),referenceNodeId);
     return this;
   },
 
@@ -389,7 +337,7 @@ let RPGSystem = function (data,editor) {
   //GETTERS
   ////////////////////////////////////////////////////////////////
   _getActor = function(actorId) {
-    return this._getNode(KEY_ACTORS,actorId);
+    return this._findNode(actorId);
   },
 
   _getActors = function() {
@@ -397,7 +345,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _getCondition = function(conditionId) {
-    return _getNode(KEY_LOGIC,conditionId);
+    return _findNode(conditionId);
   },
 
   _getConditions = function() {
@@ -405,7 +353,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _getDialog = function(dialogId) {
-    return _getNode(KEY_DIALOGS,dialogId);
+    return _findNode(dialogId);
   },
 
   _getDialogs = function() {
@@ -413,7 +361,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _getQuest = function(questId) {
-    return _getNode(KEY_QUESTS,questId);
+    return _findNode(questId);
   },
 
   _getQuests = function() {
@@ -421,7 +369,7 @@ let RPGSystem = function (data,editor) {
   },
 
   _getVariable = function(variableId) {
-    return _getNode(KEY_VARIABLES,variableId);
+    return _findNode(variableId);
   },
 
   _getVariables = function() {
@@ -459,17 +407,14 @@ let RPGSystem = function (data,editor) {
     //General node methods
     ////////////////////////////////////////////
     findNode:         _findNode,
-    getNode:          _getNode,
+    //getNode:          _getNode,
     addNode:          _addNode,
     removeNode:       _removeNode,
 
     ////////////////////////////////////////////
     //Link creation methods
     ////////////////////////////////////////////
-    setConnection:    _setConnection,
-    getConnection:    _getConnection,
-    getConnections:   _getConnections,
-    removeConnection: _removeConnection,
+    setWire:         _setWire,
 
     ////////////////////////////////////////////
     //Chainable methods
@@ -488,8 +433,8 @@ let RPGSystem = function (data,editor) {
     removeTalk:      _removeTalk,
     addAnswer:       _addAnswer,
     removeAnswer:    _removeAnswer,
-    inp:             _inp,
-    out:             _out,
+    //inp:             _inp,
+    //out:             _out,
 
     ////////////////////////////////////////////
     //Getter methods

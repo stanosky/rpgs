@@ -1,7 +1,7 @@
 "use strict";
 
 import BaseNode   from '../core/BaseNode';
-import LinkType   from '../core/LinkType';
+import Prop   from '../core/Prop';
 import compiler   from '@risingstack/nx-compile';
 
 let ScriptNode = (function(){
@@ -46,18 +46,9 @@ let ScriptNode = (function(){
       return data;
     }
 
-    canCreateOutputConnection(type) {
-      switch (type) {
-        case LinkType.VISIBILITY:
-        case LinkType.ACTIVITY:
-        return true;
-        default: return false;
-      }
-    }
-
-    setInputConnection(type,linkId) {}
-    getInputConnections(type) {}
-    removeInputConnection(type,linkId) {}
+    setWire(type,linkId) {}
+    getWires(type) {}
+    removeWire(type,linkId) {}
 
     dispose() {
       _label.delete(this);

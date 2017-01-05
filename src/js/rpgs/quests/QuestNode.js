@@ -26,7 +26,7 @@ let QuestNode = (function() {
     }
 
     canAddChild(type) {
-      return type === 'Task';
+      return type === 'TaskNode';
     }
 
     setTitle(value) {
@@ -62,10 +62,10 @@ let QuestNode = (function() {
     }
 
     dispose() {
-      this._removeChildren(KEY_TASKS);
       _title.delete(this);
       _description.delete(this);
       _status.delete(this);
+      super.dispose();
     }
   };
 

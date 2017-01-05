@@ -4,7 +4,7 @@
  * https://github.com/stanosky/rpgs
  * @author Krzysztof Stano
  * @version 1.0.0
- * Copyright 2016. MIT licensed.
+ * Copyright 2017. MIT licensed.
  */
 .clear:after,.clear:before{content:' ';display:table}.clear{*zoom:1}.clear:after{clear:both}*{box-sizing:border-box;font-smoothing:antialiased;text-rendering:optimizeLegibility}html{font-size:62.5%;background:radial-gradient(ellipse at center,#f7f6f0 0,#c2ba8c 80%,#b0a66b 100%)}body{font:300 13px/1.6 Helvetica Neue,Helvetica,Arial;color:#444;transition:all .4s ease-in .3s}body,html{min-height:100vh;overflow:hidden}
 

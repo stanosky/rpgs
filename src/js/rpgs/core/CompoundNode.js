@@ -37,8 +37,9 @@ let CompoundNode = (function() {
       return _children.get(this);
     }
 
-    _removeChildren(key) {
-      this.removeChildrenFrom(_children.get(this),key);
+    _removeChildren(/*key*/) {
+      //Add valid implementation...
+      //this.removeChildrenFrom(_children.get(this),key);
     }
 
     dispose() {
