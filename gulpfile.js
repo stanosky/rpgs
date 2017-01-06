@@ -1,14 +1,14 @@
 "use strict";
 
 var gulp = require('gulp'),
-    sass = require('gulp-sass'),
+    //sass = require('gulp-sass'),
     browserSync = require('browser-sync'),
-    autoprefixer = require('gulp-autoprefixer'),
+    //autoprefixer = require('gulp-autoprefixer'),
     uglify = require('gulp-uglify'),
     jshint = require('gulp-jshint'),
     header  = require('gulp-header'),
     rename = require('gulp-rename'),
-    cssnano = require('gulp-cssnano'),
+    //cssnano = require('gulp-cssnano'),
     sourcemaps = require('gulp-sourcemaps'),
     browserify = require('browserify'),
     babelify = require('babelify'),
@@ -16,8 +16,8 @@ var gulp = require('gulp'),
     buffer = require('vinyl-buffer'),
     transform = require('vinyl-transform'),
     _package = require('./package.json'),
-    mocha = require("gulp-mocha"),
-    concat = require('gulp-concat');
+    mocha = require("gulp-mocha");
+    //concat = require('gulp-concat');
 
 
 var banner = [
@@ -31,20 +31,6 @@ var banner = [
   ' */',
   '\n'
 ].join('');
-
-gulp.task('css', function () {
-    return gulp.src('src/scss/style.scss')
-    .pipe(sourcemaps.init())
-    .pipe(sass().on('error', sass.logError))
-    .pipe(autoprefixer('last 4 version'))
-    .pipe(gulp.dest('app/assets/css'))
-    .pipe(cssnano())
-    .pipe(rename({ suffix: '.min' }))
-    .pipe(header(banner, { package : _package }))
-    .pipe(sourcemaps.write())
-    .pipe(gulp.dest('app/assets/css'))
-    .pipe(browserSync.reload({stream:true}));
-});
 
 gulp.task('js',function(){
     var bundler = browserify({
@@ -81,8 +67,7 @@ gulp.task('bs-reload', function () {
     browserSync.reload();
 });
 
-gulp.task('default', ['css', 'js', 'browser-sync'], function () {
-    gulp.watch("src/scss/*/*.scss", ['css']);
+gulp.task('default', ['js', 'browser-sync'], function () {
     gulp.watch("src/js/**/*.js", ['js']);
     //gulp.watch("src/data/**/*.json", ['json']);
     gulp.watch("app/*.html", ['bs-reload']);
