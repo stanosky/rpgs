@@ -1,0 +1,20 @@
+'use strict';
+import {expect} from 'chai';
+import {BaseNode} from '../dist/rpgs';
+
+describe('BaseNode tests', () => {
+  describe('new BaseNode()', () => {
+    it('should create new instance of BaseNode', () => {
+      expect(new BaseNode().constructor.name).to.equal('BaseNode');
+    });
+  });
+});
+
+
+/*describe('compileCode()', () => {
+  it('should throw a TypeError on non string source argument', () => {
+    expect(() => compiler.compileCode({})).to.throw(TypeError)
+    expect(() => compiler.compileCode(undefined)).to.throw(TypeError)
+    expect(() => compiler.compileCode(12)).to.throw(TypeError)
+  })
+})*/
