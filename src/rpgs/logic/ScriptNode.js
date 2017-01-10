@@ -1,4 +1,4 @@
-/*'use strict';
+'use strict';
 import BaseNode from '../core/BaseNode';
 import compiler from '@risingstack/nx-compile';
 
@@ -59,4 +59,3 @@ let ScriptNode = (function () {
   };
 })();
 module.exports = ScriptNode;
-*/

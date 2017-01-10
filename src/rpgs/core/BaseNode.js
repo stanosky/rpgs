@@ -15,7 +15,7 @@ let BaseNode = (function () {
     constructor(data, rpgs) {
       _rpgs.set(this, rpgs);
       // If uuid not present, then by default we assign Universally Unique ID.
-      _uuid.set(this, data.uuid ? data.uuid : Utils.UUID.generate());
+      _uuid.set(this, data.uuid ? data.uuid : Utils.getUUID());
       _wires.set(this, data.wires ? data.wires : {});
     }
 

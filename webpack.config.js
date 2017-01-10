@@ -18,7 +18,7 @@ var config = {
   entry: __dirname + '/src/rpgs/RPGSystem.js',
   devtool: 'source-map',
   output: {
-    path: __dirname + '/lib',
+    path: __dirname + '/build',
     filename: outputFile,
     library: libraryName,
     libraryTarget: 'umd',

@@ -1,9 +1,11 @@
 {
   "name": "rpgs",
   "version": "1.0.0",
-  "description": "Library to help produce Role Playing Games",
+  "description": "Library which helps to produce Role Playing Games",
   "main": "lib/rpgs.js",
   "scripts": {
+    "serve": "webpack-dev-server --hot --content-base build/",
+    "start": "webpack --config webpack-dev.config.js",
     "build": "webpack --mode=build",
     "dev": "webpack --progress --colors --watch --mode=dev",
     "test": "mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js"
@@ -17,15 +19,11 @@
     "url": "https://github.com/stanosky/rpgs.git"
   },
   "keywords": [
-    "webpack",
     "es6",
-    "starter",
     "library",
-    "universal",
-    "umd",
-    "commonjs",
-	"rpg",
-	"dialogs"
+    "rpg",
+    "dialogs",
+    "scripting"
   ],
   "devDependencies": {
     "babel": "6.3.13",
@@ -37,8 +35,12 @@
     "chai": "3.4.1",
     "eslint": "1.7.2",
     "eslint-loader": "1.1.0",
+    "jsdom": "9.9.1",
+    "jsdom-global": "2.1.1",
     "mocha": "2.3.4",
-    "webpack": "1.12.9",
+    "mocha-jsdom": "^1.1.0",
+    "webpack": "^1.14.0",
+    "webpack-dev-server": "^1.16.2",
     "yargs": "3.32.0"
   },
   "dependencies": {

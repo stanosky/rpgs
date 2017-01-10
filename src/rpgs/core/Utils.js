@@ -32,7 +32,7 @@ var UUID = (function () {
   return self;
 })();
 
-exports.UUID = UUID;
+exports.getUUID = UUID.generate;
 
 let indexOfObject = function (array, obj) {
   var i;
@@ -53,13 +53,7 @@ let getIndexById = function (array, id) {
 };
 exports.getIndexById = getIndexById;
 
-exports.addObjectToArray = function (array, obj, expectedType) {
-  if (expectedType !== undefined && expectedType !== null) {
-    if (expectedType.isPrototypeOf(obj)) {
-      throw new Error('Wrong type of object passed. Expected ' +
-      expectedType.constructor.name + ' object.');
-    }
-  }
+exports.addObjectToArray = function (array, obj) {
   if (indexOfObject(array, obj) === -1) {
     array.push(obj);
   }
