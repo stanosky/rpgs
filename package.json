@@ -1,6 +1,6 @@
 {
   "name": "rpgs",
-  "version": "1.0.0",
+  "version": "1.0.0a",
   "description": "Library which helps to produce Role Playing Games",
   "main": "lib/rpgs.js",
   "scripts": {
