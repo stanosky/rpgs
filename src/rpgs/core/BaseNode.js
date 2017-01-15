@@ -7,20 +7,15 @@ let BaseNode = (function () {
   // Weak maps are new feature to JavaScript. We can store private
   // object properties in key/value pairs using our instance as the key,
   // and our class can capture those key/value maps in a closure.
-  let _rpgs = new WeakMap();
   let _uuid = new WeakMap();
   let _wires = new WeakMap();
 
   return class BaseNode {
-    constructor(data, rpgs) {
-      _rpgs.set(this, rpgs);
+    constructor(data) {
+      data = data||{};
       // If uuid not present, then by default we assign Universally Unique ID.
       _uuid.set(this, data.uuid ? data.uuid : Utils.getUUID());
       _wires.set(this, data.wires ? data.wires : {});
-    }
-
-    getRPGS() {
-      return _rpgs.get(this);
     }
 
     setId(value) {
@@ -31,27 +26,22 @@ let BaseNode = (function () {
       return _uuid.get(this);
     }
 
-    _checkCondition(prop) {
-      let nodeId = this.getWires(prop)[0];
-      let scriptNode = this.getRPGS().findNode(nodeId);
-
-      return scriptNode != null && scriptNode.execute ? scriptNode.execute() : true;
+    /**
+     * Returns id of ScriptNode that is responsible for visibility state.
+     * If id is not present it will return empty string.
+     * @return {string} Visibility state
+     */
+    getVisibilityController() {
+      return this.getWires(Prop.VISIBILITY)[0]||'';
     }
 
     /**
-     * Returns boolean that reflects visiblility state of node.
-     * @return {Boolean} Visibility state
+    * Returns id of ScriptNode that is responsible for activity state.
+    * If id is not present it will return empty string.
+     * @return {string} Active state
      */
-    isVisible() {
-      return this._checkCondition(Prop.VISIBILITY);
-    }
-
-    /**
-     * Returns boolean that reflects activity state of node.
-     * @return {Boolean} Active state
-     */
-    isActive() {
-      return this._checkCondition(Prop.ACTIVITY);
+    getActivityControler() {
+      return this.getWires(Prop.ACTIVITY)[0]||'';
     }
 
     getData() {
@@ -126,7 +116,6 @@ let BaseNode = (function () {
     }
 
     dispose() {
-      _rpgs.delete(this);
       _uuid.delete(this);
       _wires.delete(this);
       this._removeChildren();

@@ -7,8 +7,8 @@ let TalkNode = (function () {
   let _text = new WeakMap();
 
   return class TalkNode extends CompoundNode {
-    constructor(data, rpgs) {
-      super(data, rpgs);
+    constructor(data) {
+      super(data);
       _text.set(this, data.text ? data.text : '');
     }
 

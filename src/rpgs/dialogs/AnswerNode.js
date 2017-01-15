@@ -9,8 +9,8 @@ let AnswerNode = (function () {
   let _text = new WeakMap();
 
   return class AnswerNode extends BaseNode {
-    constructor(data, rpgs) {
-      super(data, rpgs);
+    constructor(data) {
+      super(data);
       _text.set(this, data.text ? data.text : '');
     }
 

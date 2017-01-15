@@ -8,8 +8,8 @@ let CompoundNode = (function () {
 
   return class CompoundNode extends BaseNode {
 
-    constructor(data, rpgs) {
-      super(data, rpgs);
+    constructor(data) {
+      super(data);
       _children.set(this, data.children ? data.children : []);
     }
 

@@ -1,5 +1,6 @@
 'use strict';
 import Utils from './core/Utils';
+import BaseNode from './core/BaseNode';
 import ErrorHandler from './core/ErrorHandler';
 import ErrorCode from './core/ErrorCode';
 import ActorNode from './actors/ActorNode';
@@ -20,18 +21,19 @@ let RPGSystem = function (data, editor) {
     _parentHistory = [],
     _tempWires = [];
 
-  function _nodeFactory(data, rpgs) {
+  function _nodeFactory(data) {
     let className = data.class;
 
     switch (className) {
-      case 'ActorNode': return new ActorNode(data, rpgs);
-      case 'ScriptNode': return new ScriptNode(data, rpgs);
-      case 'AnswerNode': return new AnswerNode(data, rpgs);
-      case 'DialogNode': return new DialogNode(data, rpgs);
-      case 'TalkNode': return new TalkNode(data, rpgs);
-      case 'QuestNode': return new QuestNode(data, rpgs);
-      case 'TaskNode': return new TaskNode(data, rpgs);
-      case 'VariableNode': return new VariableNode(data, rpgs);
+      case 'BaseNode': return new BaseNode(data);
+      case 'ActorNode': return new ActorNode(data);
+      case 'ScriptNode': return new ScriptNode(data);
+      case 'AnswerNode': return new AnswerNode(data);
+      case 'DialogNode': return new DialogNode(data);
+      case 'TalkNode': return new TalkNode(data);
+      case 'QuestNode': return new QuestNode(data);
+      case 'TaskNode': return new TaskNode(data);
+      case 'VariableNode': return new VariableNode(data);
       default:
         _errorHandler.showMsg(ErrorCode.CLASS_NOT_DEFINED, {class: className});
         return null;
@@ -168,7 +170,7 @@ let RPGSystem = function (data, editor) {
       _lastChild = null;
       _parentHistory.length = 0;
       // After that, new node is created.
-      let node = _nodeFactory(params, _self);
+      let node = _nodeFactory(params/*, _self*/);
       _parentHistory = [node];
       _objectPool.push(node);
     }
@@ -179,7 +181,7 @@ let RPGSystem = function (data, editor) {
 
     function createChildNode(nodeParams) {
       // We create a new node, and then set as the last child.
-      _lastChild = _nodeFactory(nodeParams, _self);
+      _lastChild = _nodeFactory(nodeParams/*, _self*/);
       // Then we add our freshly created node to its parent.
       _parentHistory[0].addChild(_lastChild.getId());
       // Finally new node is added to main storage object.
@@ -304,6 +306,11 @@ let RPGSystem = function (data, editor) {
     return _var !== null ? _var.getValue() : undefined;
   },
 
+  _executeScript = function (scriptId) {
+    let _script = _findNode(scriptId);
+    return _script !== null && _script.execute ? _script.execute({rpgs:_self}) : true;
+  },
+
   _serializeData = function () {
     let data = _objectPool.map((obj) => {
       return obj.getData ? obj.getData() : obj;
@@ -349,9 +356,10 @@ let RPGSystem = function (data, editor) {
     ////////////////////////////////////////////
     setVar: _setVar,
     getVar: _getVar,
+    executeScript: _executeScript,
     serializeData: _serializeData
   };
-  if (data) _objectPool = data.map((d) => _nodeFactory(d, _self));
+  if (data) _objectPool = data.map((d) => _nodeFactory(d/*, _self*/));
 
   return _self;
 };

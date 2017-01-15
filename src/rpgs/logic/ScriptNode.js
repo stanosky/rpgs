@@ -9,8 +9,8 @@ let ScriptNode = (function () {
   let _compiled = new WeakMap();
 
   return class ScriptNode extends BaseNode {
-    constructor(data, rpgs) {
-      super(data, rpgs);
+    constructor(data) {
+      super(data);
       _label.set(this, data.label ? data.label : '');
       _script.set(this, data.script ? data.script : `return true;`);
       compiler.expose('console');
@@ -34,8 +34,8 @@ let ScriptNode = (function () {
       return _script.get(this);
     }
 
-    execute() {
-      return _compiled.get(this)({rpgs: this.getRPGS()});
+    execute(api) {
+      return _compiled.get(this)(api);
     }
 
     getData() {

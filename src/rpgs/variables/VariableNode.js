@@ -49,8 +49,8 @@ let VariableNode = (function () {
   }
 
   return class VariableNode extends BaseNode {
-    constructor(data, rpgs) {
-      super(data, rpgs);
+    constructor(data) {
+      super(data);
       _type.set(this, data.hasOwnProperty('type') ? data.type : VariableType.STRING);
       _value.set(this, data.hasOwnProperty('value') ? _parseValue(data.value, _type.get(this)) : '');
     }

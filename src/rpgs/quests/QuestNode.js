@@ -8,8 +8,8 @@ let QuestNode = (function () {
   let _status = new WeakMap();
 
   return class QuestNode extends CompoundNode {
-    constructor(data, rpgs) {
-      super(data, rpgs);
+    constructor(data) {
+      super(data);
       _title.set(this, data.title ? data.title : '');
       _description.set(this, data.description ? data.description : '');
       _status.set(this, data.status ? data.status : QuestStatus.INCOMPLETE);

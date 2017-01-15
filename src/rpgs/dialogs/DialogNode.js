@@ -8,8 +8,8 @@ let DialogNode = (function () {
 
   return class DialogNode extends CompoundNode {
 
-    constructor(data, rpgs) {
-      super(data, rpgs);
+    constructor(data) {
+      super(data);
       _start.set(this, data.startTalk ? data.startTalk : '');
     }
 
