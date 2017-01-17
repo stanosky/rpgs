@@ -77,4 +77,97 @@ describe('Given an instance of BaseNode',function () {
       expect(data.wires).to.have.any.keys(['visibility','activity']);
     });
   });
+  describe('#canAddChild()',function () {
+    it('should return false value because child should not be added', () => {
+      let childType = ['ActorNode','InventoryNode','BaseNode','CompoundNode',
+                      'AnswerNode','DialogNode','TalkNode','ScriptNode',
+                      'QuestNode','TaskNode','VariableNode'];
+      childType.map((child) => expect(bn.canAddChild(child)).to.equal(false));//
+    });
+  });
+  describe('#addChild()',function () {
+    it('should do nothing, it is placeholder for inheritance purposes', () => {
+      let len = bn.getChildren().length;
+      bn.addChild('testId');
+      expect(bn.getChildren().length).to.equal(len);
+    });
+  });
+  describe('#removeChild()',function () {
+    it('should do nothing, it is placeholder for inheritance purposes', () => {
+      let len = bn.getChildren().length;
+      bn.removeChild(0);
+      expect(bn.getChildren().length).to.equal(len);
+    });
+  });
+  describe('#getChild()',function () {
+    it('should return null, it is placeholder for inheritance purposes', () => {
+      expect(bn.getChild(0)).to.equal(null);
+    });
+  });
+  describe('#getChildren()',function () {
+    it('should return empty array, it is placeholder for inheritance purposes', () => {
+      expect(bn.getChildren().length).to.equal(0);
+    });
+  });
+  describe('#_removeChildren()',function () {
+    it('should do nothing, it is placeholder for inheritance purposes', () => {
+      let len = bn.getChildren().length;
+      bn._removeChildren();
+      expect(bn.getChildren().length).to.equal(len);
+    });
+  });
+  describe('#canSetWireType()',function () {
+    it('should return false value because wire should not be attached', () => {
+      let wireType = ['visibility','activity','action','goto','dialog'];
+      wireType.map((wire) => expect(bn.canSetWireType(wire)).to.equal(false));
+    });
+  });
+  describe('#setWire()',function () {
+    it('should attach wire of given type', () => {
+        let wireType = 'visibility';
+        let nodeId = 'testId';
+        bn.setWire(wireType,nodeId);
+        expect(bn.getWires(wireType)[0]).to.equal(nodeId);
+    });
+  });
+  describe('#getWires()',function () {
+    it('should return array of attached wires by type (i.e. ids of nodes)', () => {
+      let wireType = ['visibility','activity'];
+      let ids = ['i0','i1','i2'];
+      wireType.map((wt) => {
+        return ids.map((id) => {
+          return bn.setWire(wt,id);
+        });
+      });
+      expect(bn.getWires(wireType[0])[0]).to.equal(ids[0]);
+      expect(bn.getWires(wireType[1])[2]).to.equal(ids[2]);
+    });
+  });
+  describe('#removeWire()',function () {
+    it('should remove wire by type and id', () => {
+      let wireType = ['visibility','activity','goto'];
+      let ids = ['i0','i1','i2'];
+      wireType.map((wt) => {
+        return ids.map((id) => {
+          return bn.setWire(wt,id);
+        });
+      });
+      //remove first id from "visibility" wires
+      bn.removeWire(wireType[0],ids[0]);
+      expect(bn.getWires(wireType[0])[0]).to.equal(ids[1]);
+      //remove second id from "activity" wires
+      bn.removeWire(wireType[1],ids[1]);
+      expect(bn.getWires(wireType[1])[1]).to.equal(ids[2]);
+      //remove last id from "goto" wires
+      bn.removeWire(wireType[2],ids[2]);
+      expect(bn.getWires(wireType[2]).length).to.equal(ids.length-1);
+    });
+  });
+  describe('#dispose()',function () {
+    it('should do cleanining and prepare object to garbage collector', () => {
+      bn.dispose();
+      expect(bn.getId()).to.equal(undefined);
+      expect(bn.getWires()).to.equal(undefined);
+    });
+  });
 });

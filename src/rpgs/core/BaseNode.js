@@ -80,39 +80,36 @@ let BaseNode = (function () {
       return false;
     }
 
-    _setWire(obj, type, nodeId) {
-      if (!obj.hasOwnProperty(type)) {
-        obj[type] = [];
-      }
-      obj[type].push(nodeId);
-      return obj;
-    }
-
     setWire(type, nodeId) {
-      _wires.set(this, this._setWire(_wires.get(this), type, nodeId));
-    }
-
-    _getWires(obj, type) {
-      let output;
-
-      if (type) output = !obj.hasOwnProperty(type) ? [] : obj[type];
-      else output = obj;
-      return output;
+      function _setWire(obj, type, nodeId) {
+        if (!obj.hasOwnProperty(type)) {
+          obj[type] = [];
+        }
+        obj[type].push(nodeId);
+        return obj;
+      }
+      _wires.set(this, _setWire(_wires.get(this), type, nodeId));
     }
 
     getWires(type) {
-      return this._getWires(_wires.get(this), type);
-    }
+      function _getWires(obj, type) {
+        let output;
 
-    _removeWire(obj, type, nodeId) {
-      if (obj.hasOwnProperty(type)) {
-        obj[type] = Utils.removeObjectFromArray(obj[type], nodeId);
+        if (type) output = !obj.hasOwnProperty(type) ? [] : obj[type];
+        else output = obj;
+        return output;
       }
-      return obj;
+      return _getWires(_wires.get(this), type);
     }
 
     removeWire(type, nodeId) {
-      _wires.set(this, this._removeWire(_wires.get(this), type, nodeId));
+      function _removeWire(obj, type, nodeId) {
+        if (obj.hasOwnProperty(type)) {
+          obj[type] = Utils.removeObjectFromArray(obj[type], nodeId);
+        }
+        return obj;
+      }
+      _wires.set(this, _removeWire(_wires.get(this), type, nodeId));
     }
 
     dispose() {
