@@ -4,47 +4,41 @@ import Connector from './Connector';
 let ConnectorManager = (function () {
   let _connectors = new WeakMap();
 
-  function parseData(data) {
-    let parsed = [];
-    let connector, limit, nodes;
-    for (let type in data) {
-      if (data.hasOwnProperty(type)) {
-        limit = data[type].limit;
-        nodes = data[type].nodes;
-        connector = new Connector(type,limit);
-        nodes.map(n => connector.addWire(n));
-        parsed.push(connector);
-      }
-    }
-    return parsed;
-  }
-
-
   return class ConnectorManager {
 
-    constructor(data) {
-      _connectors.set(this,parseData(data));
+    constructor() {
+      _connectors.set(this,[]);
     }
 
-    /*addConnector(type,limit) {
+    setData(data) {
+      let wires = data.wires||{}
+      let parsed = [];
+      let connector, limit, nodes;
+      for (let type in wires) {
+        if (wires.hasOwnProperty(type)) {
+          connector = this.getConnector(type);
+          if(connector !== null) {
+            nodes = wires[type];
+            nodes.map(n => connector.addWire(n));
+            parsed.push(connector);
+          }
+        }
+      }
+      return parsed;
+    }
+
+    addConnector(type,limit) {
       let connectors = _connectors.get(this);
       let alreadyExist = connectors.filter(c => c.getType() === type).length > 0;
       if(!alreadyExist) {
         connectors.push(new Connector(type,limit));
         _connectors.set(this,connectors);
       }
-    }*/
-
-    static updateData(data,type,limit) {
-      data[type] = data[type]||{} ;
-      data[type].limit = data[type].limit||limit;
-      data[type].nodes = data[type].nodes||[];
-      return data;
     }
 
     getConnector(type) {
       let connectors = _connectors.get(this);
-      return connectors.filter(c => c.getType() === type)[0];
+      return connectors.filter(c => c.getType() === type)[0]||null;
     }
 
     canSetWireType(type) {
@@ -57,12 +51,11 @@ let ConnectorManager = (function () {
     getData() {
       let data = {};
       let connectors = _connectors.get(this);
-      let type, nodes, limit, i;
+      let type, nodes, i;
       for (i = 0; i < connectors.length; i++) {
         type = connectors[i].getType();
         nodes = connectors[i].getWires();
-        limit = connectors[i].getLimit();
-        data[type] = {limit:limit,nodes:nodes};
+        data[type] = nodes;
       }
       return data;
     }
