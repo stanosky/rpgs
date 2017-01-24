@@ -31,7 +31,7 @@ let TalkNode = (function () {
       return type === 'AnswerNode';
     }
 
-    canSetWireType(type) {
+    canAddWireType(type) {
       switch (type) {
         case Prop.GOTO:
           return true;

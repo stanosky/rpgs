@@ -42,7 +42,7 @@ let ActorNode = (function () {
       return _inventory.get(this);
     }*/
 
-    canSetWireType(type) {
+    canAddWireType(type) {
       switch (type) {
         case Prop.DIALOG:
           return this.getWires(Prop.DIALOG).length === 0;

@@ -81,7 +81,29 @@ describe('Given an instance of Connector',function () {
       con.addWire('testId2');
       expect(con.getWires()[0]).to.equal('testId1');
       expect(con.getWires()[1]).to.equal(undefined);
-      expect(con.getWires().length).to.equal(wiresLen + 1);      
+      expect(con.getWires().length).to.equal(wiresLen + 1);
+    });
+  });
+  describe('#removeWire()', function () {
+    it('should remove wire', () => {
+      con = new Connector(type,2);
+      wiresLen = con.getWires().length;
+      con.addWire('testId1');
+      con.addWire('testId2');
+      con.removeWire('testId1');
+      expect(con.getWires().length).to.equal(1);
+      expect(con.getWires()[0]).to.equal('testId2');
+    });
+  });
+  describe('#dispose()', function () {
+    it('should do cleanining and prepare object to garbage collector', () => {
+      expect(con.getType()).to.not.equal(undefined);
+      expect(con.getLimit()).to.not.equal(undefined);
+      expect(con.getWires()).to.not.equal(undefined);
+      con.dispose();
+      expect(con.getType()).to.equal(undefined);
+      expect(con.getLimit()).to.equal(undefined);
+      expect(con.getWires()).to.equal(undefined);
     });
   });
 });

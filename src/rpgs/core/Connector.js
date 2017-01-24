@@ -38,6 +38,17 @@ let Connector = (function (){
       }
     }
 
+    removeWire(nodeId) {
+      _wires.set(this,_wires.get(this).filter(wire => {
+        return wire !== nodeId;
+      }));
+    }
+
+    dispose() {
+      _type.delete(this);
+      _limit.delete(this);
+      _wires.delete(this);
+    }
   };
 })();
 

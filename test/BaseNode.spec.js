@@ -6,11 +6,15 @@ let bn;
 let wires;
 let params;
 let pattern = new RegExp(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
+let rpgsMock1 = {findNode:function() {return null}};
+let rpgsMock2 = {findNode:function() {return {execute:function() {return true;}};
+  }
+};
 
 describe('Given an instance of BaseNode',function () {
   beforeEach(function () {
     bn = new BaseNode();
-    wires = {visibility:['id1','id2'],activity:['id3','id4'],testWire:[]};
+    wires = {visibility:['id1'],activity:['id2']};
     params = {wires:wires};
   });
   describe('#constructor()',function () {
@@ -22,7 +26,8 @@ describe('Given an instance of BaseNode',function () {
       params.uuid = id;
       bn = new BaseNode(params);
       expect(bn.getId()).to.be.equal(id);
-      expect(bn.getWires()).to.be.equal(wires);
+      expect(bn.getWires('visibility')).to.deep.equal(wires.visibility);
+      expect(bn.getWires('activity')).to.deep.equal(wires.activity);
     });
   });
   describe('#setId()', function () {
@@ -41,22 +46,24 @@ describe('Given an instance of BaseNode',function () {
       expect(bn.getId()).to.be.equal(id);
     });
   });
-  describe('#getVisibilityController()', function () {
-    it('should return empty string if not set', () => {
-      expect(bn.getVisibilityController()).to.be.equal('')
+  describe('#isVisible()', function () {
+    it('should return visibility state true if no script was attached', () => {
+      bn = new BaseNode(params,rpgsMock1);
+      expect(bn.isVisible()).to.be.equal(true);
     });
-    it('should return id of ScriptNode', () => {
-      bn = new BaseNode(params);
-      expect(bn.getVisibilityController()).to.be.equal('id1')
+    it('should return visibility state form script if attached', () => {
+      bn = new BaseNode(params,rpgsMock2);
+      expect(bn.isVisible()).to.be.equal(true);
     });
   });
-  describe('#getActivityControler()', function () {
-    it('should return empty string if not set', () => {
-      expect(bn.getActivityControler()).to.be.equal('')
+  describe('#isActive()', function () {
+    it('should return activity state true if no script was attached', () => {
+      bn = new BaseNode(params,rpgsMock1);
+      expect(bn.isActive()).to.be.equal(true);
     });
-    it('should return id of ScriptNode', () => {
-      bn = new BaseNode(params);
-      expect(bn.getActivityControler()).to.be.equal('id3')
+    it('should return activity state form script if attached', () => {
+      bn = new BaseNode(params,rpgsMock2);
+      expect(bn.isActive()).to.be.equal(true);
     });
   });
   describe('#getData()', function () {
@@ -116,10 +123,13 @@ describe('Given an instance of BaseNode',function () {
       expect(bn.getChildren().length).to.equal(len);
     });
   });
-  describe('#canSetWireType()',function () {
-    it('should return false value because wire should not be attached', () => {
+  describe('#canAddWireType()',function () {
+    it('should return true/false depends on wire type', () => {
       let wireType = ['visibility','activity','action','goto','dialog'];
-      wireType.map((wire) => expect(bn.canSetWireType(wire)).to.equal(false));
+      let expOutput = [true,true,false,false,false];
+      for (var i = 0; i < wireType.length; i++) {
+        expect(bn.canAddWireType(wireType[i])).to.equal(expOutput[i]);
+      }
     });
   });
   describe('#setWire()',function () {
@@ -133,41 +143,34 @@ describe('Given an instance of BaseNode',function () {
   describe('#getWires()',function () {
     it('should return array of attached wires by type (i.e. ids of nodes)', () => {
       let wireType = ['visibility','activity'];
-      let ids = ['i0','i1','i2'];
-      wireType.map((wt) => {
-        return ids.map((id) => {
-          return bn.setWire(wt,id);
-        });
-      });
+      let ids = ['i0','i1'];
+      bn.setWire(wireType[0],ids[0]);
+      bn.setWire(wireType[1],ids[1]);
       expect(bn.getWires(wireType[0])[0]).to.equal(ids[0]);
-      expect(bn.getWires(wireType[1])[2]).to.equal(ids[2]);
+      expect(bn.getWires(wireType[1])[0]).to.equal(ids[1]);
     });
   });
   describe('#removeWire()',function () {
     it('should remove wire by type and id', () => {
-      let wireType = ['visibility','activity','goto'];
-      let ids = ['i0','i1','i2'];
-      wireType.map((wt) => {
-        return ids.map((id) => {
-          return bn.setWire(wt,id);
-        });
-      });
+      let wireType = ['visibility','activity'];
+      let ids = ['i0','i1'];
+      bn.setWire(wireType[0],ids[0]);
+      bn.setWire(wireType[1],ids[1]);
       //remove first id from "visibility" wires
       bn.removeWire(wireType[0],ids[0]);
-      expect(bn.getWires(wireType[0])[0]).to.equal(ids[1]);
+      expect(bn.getWires(wireType[0])[0]).to.equal(undefined);
       //remove second id from "activity" wires
       bn.removeWire(wireType[1],ids[1]);
-      expect(bn.getWires(wireType[1])[1]).to.equal(ids[2]);
-      //remove last id from "goto" wires
-      bn.removeWire(wireType[2],ids[2]);
-      expect(bn.getWires(wireType[2]).length).to.equal(ids.length-1);
+      expect(bn.getWires(wireType[1])[0]).to.equal(undefined);
     });
   });
   describe('#dispose()',function () {
     it('should do cleanining and prepare object to garbage collector', () => {
+      expect(bn.cm).to.not.equal(null);
+      expect(bn.getId()).to.not.equal(undefined);
       bn.dispose();
       expect(bn.getId()).to.equal(undefined);
-      expect(bn.getWires()).to.equal(undefined);
+      expect(bn.cm).to.equal(null);
     });
   });
 });

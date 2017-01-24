@@ -32,7 +32,7 @@ let DialogNode = (function () {
       return _start.get(this);
     }
 
-    canSetWireType(type) {
+    canAddWireType(type) {
       switch (type) {
         case Prop.VISIBILITY:
           return this.getWires(Prop.VISIBILITY).length === 0;

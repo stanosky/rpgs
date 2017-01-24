@@ -33,18 +33,18 @@ describe('Given an instance of ConnectorManager', function() {
       expect(cm.getConnector('undefinedType')).to.equal(null);
     });
   });
-  describe('#canSetWireType()', function() {
+  describe('#canAddWireType()', function() {
     it('should return true if wire can be set', () => {
       let len = type.length;
       for(i=1; i < len; i++) cm.addConnector(type[i],limit[i]);
-      for(i=0; i < len; i++) expect(cm.canSetWireType(type[1])).to.equal(true);
+      for(i=0; i < len; i++) expect(cm.canAddWireType(type[1])).to.equal(true);
     });
     it('should return false, if wire is not compatible or it has too many connections', () => {
       cm.addConnector(type[0],limit[0]);
       cm.addConnector(type[1],limit[1]);
       cm.getConnector(type[1]).addWire('testWireId');
-      expect(cm.canSetWireType(type[0])).to.equal(false);
-      expect(cm.canSetWireType(type[1])).to.equal(false);
+      expect(cm.canAddWireType(type[0])).to.equal(false);
+      expect(cm.canAddWireType(type[1])).to.equal(false);
     });
   });
   describe('#getData()', function() {
@@ -57,7 +57,7 @@ describe('Given an instance of ConnectorManager', function() {
       };
 
       for(i=1; i < 4; i++) cm.addConnector(type[i],limit[i]);
-      
+
       cm.getConnector(type[1]).addWire('t1w1');
       cm.getConnector(type[2]).addWire('t2w1');
       cm.getConnector(type[2]).addWire('t2w2');
@@ -67,6 +67,16 @@ describe('Given an instance of ConnectorManager', function() {
 
       expect(cm.getData()).to.deep.equal(obj);
 
+    });
+  });
+  describe('#dispose()', function () {
+    it('should do cleanining and prepare object to garbage collector', () => {
+      cm.addConnector('type1',2);
+      expect(cm.getConnector('type1')).to.not.equal(null);
+      expect(cm.getData()).to.not.equal(null);
+      cm.dispose();
+      expect(cm.getConnector('type1')).to.equal(null);
+      expect(cm.getData()).to.deep.equal({});
     });
   });
 });

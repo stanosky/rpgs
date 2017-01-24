@@ -37,20 +37,43 @@ let ConnectorManager = (function () {
     }
 
     getConnector(type) {
-      let connectors = _connectors.get(this);
-      return connectors.filter(c => c.getType() === type)[0]||null;
+      let connectors = _connectors.get(this)||null;
+      let connector = null;
+      if(connectors !== null) {
+        connector = connectors.filter(c => c.getType() === type);
+      }
+      return connector !== null && connector.length > 0 ? connector[0] : null;
     }
 
-    canSetWireType(type) {
+    canAddWireType(type) {
       let connectors = _connectors.get(this);
       return connectors.filter(c => {
         return c.getType() === type && c.canAddWire()
       }).length > 0;
     }
 
+    addWireType(type,nodeId) {
+      let connector = this.getConnector(type);
+      if(connector !== null) {
+        connector.addWire(nodeId);
+      }
+    }
+
+    getWiresType(type) {
+      let connector = this.getConnector(type);
+      return connector !== null ? connector.getWires() : [];
+    }
+
+    removeWireType(type,nodeId) {
+      let connector = this.getConnector(type);
+      if(connector !== null) {
+        connector.removeWire(nodeId);
+      }
+    }
+
     getData() {
       let data = {};
-      let connectors = _connectors.get(this);
+      let connectors = _connectors.get(this)||[];
       let type, nodes, i;
       for (i = 0; i < connectors.length; i++) {
         type = connectors[i].getType();
@@ -58,6 +81,11 @@ let ConnectorManager = (function () {
         data[type] = nodes;
       }
       return data;
+    }
+
+    dispose() {
+      _connectors.get(this).map((c) => { c.dispose(); });
+      _connectors.delete(this);
     }
   };
 })();

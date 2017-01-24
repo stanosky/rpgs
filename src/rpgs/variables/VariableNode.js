@@ -75,7 +75,7 @@ let VariableNode = (function () {
       return _type.get(this);
     }
 
-    canSetWireType(type) {
+    canAddWireType(type) {
       return false;
     }
 

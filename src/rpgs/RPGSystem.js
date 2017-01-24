@@ -21,19 +21,19 @@ let RPGSystem = function (data, editor) {
     _parentHistory = [],
     _tempWires = [];
 
-  function _nodeFactory(data) {
+  function _nodeFactory(data,rpgs) {
     let className = data.class;
 
     switch (className) {
-      case 'BaseNode': return new BaseNode(data);
-      case 'ActorNode': return new ActorNode(data);
-      case 'ScriptNode': return new ScriptNode(data);
-      case 'AnswerNode': return new AnswerNode(data);
-      case 'DialogNode': return new DialogNode(data);
-      case 'TalkNode': return new TalkNode(data);
-      case 'QuestNode': return new QuestNode(data);
-      case 'TaskNode': return new TaskNode(data);
-      case 'VariableNode': return new VariableNode(data);
+      case 'BaseNode': return new BaseNode(data,rpgs);
+      case 'ActorNode': return new ActorNode(data,rpgs);
+      case 'ScriptNode': return new ScriptNode(data,rpgs);
+      case 'AnswerNode': return new AnswerNode(data,rpgs);
+      case 'DialogNode': return new DialogNode(data,rpgs);
+      case 'TalkNode': return new TalkNode(data,rpgs);
+      case 'QuestNode': return new QuestNode(data,rpgs);
+      case 'TaskNode': return new TaskNode(data,rpgs);
+      case 'VariableNode': return new VariableNode(data,rpgs);
       default:
         _errorHandler.showMsg(ErrorCode.CLASS_NOT_DEFINED, {class: className});
         return null;
@@ -73,7 +73,7 @@ let RPGSystem = function (data, editor) {
       _tempWires.push({type: type, targetNode: nodeId1, referenceNode: nodeId2});
       return;
     }
-    if (node1.canSetWireType(type)) {
+    if (node1.canAddWireType(type)) {
       node1.setWire(type, node2.getId());
     } else {
       _errorHandler.showMsg(ErrorCode.IMPROPER_CONNECTION, {
@@ -170,7 +170,7 @@ let RPGSystem = function (data, editor) {
       _lastChild = null;
       _parentHistory.length = 0;
       // After that, new node is created.
-      let node = _nodeFactory(params/*, _self*/);
+      let node = _nodeFactory(params, _self);
       _parentHistory = [node];
       _objectPool.push(node);
     }
@@ -181,7 +181,7 @@ let RPGSystem = function (data, editor) {
 
     function createChildNode(nodeParams) {
       // We create a new node, and then set as the last child.
-      _lastChild = _nodeFactory(nodeParams/*, _self*/);
+      _lastChild = _nodeFactory(nodeParams, _self);
       // Then we add our freshly created node to its parent.
       _parentHistory[0].addChild(_lastChild.getId());
       // Finally new node is added to main storage object.
@@ -359,7 +359,7 @@ let RPGSystem = function (data, editor) {
     executeScript: _executeScript,
     serializeData: _serializeData
   };
-  if (data) _objectPool = data.map((d) => _nodeFactory(d/*, _self*/));
+  if (data) _objectPool = data.map((d) => _nodeFactory(d, _self));
 
   return _self;
 };
