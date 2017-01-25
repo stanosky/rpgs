@@ -13,9 +13,14 @@ let ActorNode = (function () {
   return class ActorNode extends BaseNode {
     constructor(data) {
       super(data);
-      _name.set(this, data ? data.name : '');
-      _dialog.set(this, data ? data.dialog : '');
+      _name.set(this, data && data.name ? data.name : '');
+      _dialog.set(this, data && data.dialog ? data.dialog : '');
       // _inventory.set(this,data.inventory ? );
+    }
+
+    _init() {
+      super._init();
+      this.cm.addConnector(Prop.DIALOG,1);
     }
 
     getData() {
@@ -41,14 +46,6 @@ let ActorNode = (function () {
     /* getInventory() {
       return _inventory.get(this);
     }*/
-
-    canAddWireType(type) {
-      switch (type) {
-        case Prop.DIALOG:
-          return this.getWires(Prop.DIALOG).length === 0;
-        default: return false;
-      }
-    }
 
     dispose() {
       _name.delete(this);
