@@ -10,7 +10,7 @@ let CompoundNode = (function () {
 
     constructor(data,rpgs) {
       super(data,rpgs);
-      _children.set(this, data.children ? data.children : []);
+      _children.set(this, data && data.children ? data.children : []);
     }
 
     getData() {
@@ -29,7 +29,10 @@ let CompoundNode = (function () {
     removeChild(index) {
       let children = _children.get(this);
 
-      _children.set(this, children.splice(index, 1));
+      if(index >= 0 && index < children.length) {
+        children.splice(index, 1);
+        _children.set(this, children);
+      }
     }
 
     getChild(index) {
@@ -42,12 +45,13 @@ let CompoundNode = (function () {
       return _children.get(this);
     }
 
-    _removeChildren(/* key*/) {
-      // Add valid implementation...
-      // this.removeChildrenFrom(_children.get(this),key);
-    }
-
     dispose() {
+      if(this.rpgs) {
+        _children.get(this).map(childId => {
+          let nodeObj = this.rpgs.findNode(childId);
+          if(nodeObj !== null) nodeObj.dispose();
+        });
+      }
       _children.delete(this);
       super.dispose();
     }

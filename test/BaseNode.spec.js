@@ -7,9 +7,7 @@ let wires;
 let params;
 let pattern = new RegExp(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
 let rpgsMock1 = {findNode:function() {return null}};
-let rpgsMock2 = {findNode:function() {return {execute:function() {return true;}};
-  }
-};
+let rpgsMock2 = {findNode:function() {return {execute:function() {return true;}};}};
 
 describe('Given an instance of BaseNode',function () {
   beforeEach(function () {
@@ -114,13 +112,6 @@ describe('Given an instance of BaseNode',function () {
   describe('#getChildren()',function () {
     it('should return empty array, it is placeholder for inheritance purposes', () => {
       expect(bn.getChildren().length).to.equal(0);
-    });
-  });
-  describe('#_removeChildren()',function () {
-    it('should do nothing, it is placeholder for inheritance purposes', () => {
-      let len = bn.getChildren().length;
-      bn._removeChildren();
-      expect(bn.getChildren().length).to.equal(len);
     });
   });
   describe('#canAddWireType()',function () {

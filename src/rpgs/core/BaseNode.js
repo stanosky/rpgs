@@ -9,7 +9,7 @@ let BaseNode = (function () {
   // object properties in key/value pairs using our instance as the key,
   // and our class can capture those key/value maps in a closure.
   let _uuid = new WeakMap();
-  let _rpgs = new WeakMap();
+  //let _rpgs = new WeakMap();
 
   function executeScript (rpgs,scriptId) {
     let _script = rpgs.findNode(scriptId);
@@ -21,7 +21,7 @@ let BaseNode = (function () {
       data = data||{};
       // If uuid not present, then by default we assign Universally Unique ID.
       _uuid.set(this, data.uuid ? data.uuid : Utils.getUUID());
-      _rpgs.set(this, rpgs);
+      this.rpgs = rpgs;
       this.cm = new ConnectorManager();
       this._init();
       this.cm.setData(data);
@@ -45,8 +45,7 @@ let BaseNode = (function () {
      * @return {boolean} Visibility state
      */
     isVisible() {
-      return executeScript(_rpgs.get(this),
-              this.cm.getWiresType(Prop.VISIBILITY)[0]);
+      return executeScript(this.rpgs, this.cm.getWiresType(Prop.VISIBILITY)[0]);
     }
 
     /**
@@ -54,8 +53,7 @@ let BaseNode = (function () {
      * @return {boolean} Active state
      */
     isActive() {
-      return executeScript(_rpgs.get(this),
-              this.cm.getWiresType(Prop.ACTIVITY)[0]);
+      return executeScript(this.rpgs, this.cm.getWiresType(Prop.ACTIVITY)[0]);
     }
 
     getData() {
@@ -89,10 +87,6 @@ let BaseNode = (function () {
       return [];
     }
 
-    _removeChildren() {
-      // empty because cannot have children
-    }
-
     canAddWireType(type) {
       return this.cm.canAddWireType(type);
     }
@@ -112,9 +106,8 @@ let BaseNode = (function () {
     dispose() {
       this.cm.dispose();
       this.cm = null;
-      this._removeChildren();
+      this.rpgs = null;
       _uuid.delete(this);
-      _rpgs.delete(this);      
     }
   };
 })();
