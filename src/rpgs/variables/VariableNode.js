@@ -2,6 +2,13 @@
 import BaseNode from '../core/BaseNode';
 import VariableType from './VariableType';
 
+
+
+// CHANGE FROM NODE TO STATIC ELEMENT!
+
+
+
+
 let VariableNode = (function () {
   let _value = new WeakMap();
   let _type = new WeakMap();
@@ -57,7 +64,7 @@ let VariableNode = (function () {
 
     getData() {
       let data = super.getData();
-      
+
       data.type = this.getType();
       data.value = this.getValue();
       return data;

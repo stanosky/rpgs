@@ -5,7 +5,7 @@ import BaseNode from './rpgs/core/BaseNode';
 import CompoundNode from './rpgs/core/CompoundNode';
 import ErrorCode from './rpgs/core/ErrorCode';
 import ErrorHandler from './rpgs/core/ErrorHandler';
-import Prop from './rpgs/core/Prop.js';
+import Plug from './rpgs/core/Plug.js';
 import Utils from './rpgs/core/Utils';
 
 import AnswerNode from './rpgs/dialogs/AnswerNode';
@@ -31,7 +31,7 @@ module.exports = {
   CompoundNode,
   ErrorCode,
   ErrorHandler,
-  Prop,
+  Plug,
   Utils,
   AnswerNode,
   DialogNode,

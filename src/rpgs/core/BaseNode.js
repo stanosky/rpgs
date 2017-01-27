@@ -1,7 +1,8 @@
 'use strict';
 import Utils from './Utils';
-import Prop from './Prop';
+import Plug from './Plug';
 import ConnectorManager from './ConnectorManager';
+import ParamsManager from './ParamsManager';
 
 let BaseNode = (function () {
 
@@ -9,7 +10,6 @@ let BaseNode = (function () {
   // object properties in key/value pairs using our instance as the key,
   // and our class can capture those key/value maps in a closure.
   let _uuid = new WeakMap();
-  //let _rpgs = new WeakMap();
 
   function executeScript (rpgs,scriptId) {
     let _script = rpgs.findNode(scriptId);
@@ -22,14 +22,31 @@ let BaseNode = (function () {
       // If uuid not present, then by default we assign Universally Unique ID.
       _uuid.set(this, data.uuid ? data.uuid : Utils.getUUID());
       this.rpgs = rpgs;
+      this.pm = new ParamsManager(data.params||{});
       this.cm = new ConnectorManager();
       this._init();
       this.cm.setData(data);
     }
 
     _init() {
-      this.cm.addConnector(Prop.VISIBILITY,1);
-      this.cm.addConnector(Prop.ACTIVITY,1);
+      this.cm.addConnector(Plug.VISIBLE,1);
+      this.cm.addConnector(Plug.ENABLED,1);
+    }
+
+    addParam(name,type,value) {
+      this.pm.addParam(name,type,value)
+    }
+
+    getParam(name) {
+      return this.pm.getParamValue(name);
+    }
+
+    setParam(name,value) {
+      this.pm.setParamValue(name,value);
+    }
+
+    removeParam(name) {
+      this.pm.removeParam(name);
     }
 
     setId(value) {
@@ -45,7 +62,7 @@ let BaseNode = (function () {
      * @return {boolean} Visibility state
      */
     isVisible() {
-      return executeScript(this.rpgs, this.cm.getWiresType(Prop.VISIBILITY)[0]);
+      return executeScript(this.rpgs, this.cm.getWiresType(Plug.VISIBLE)[0]);
     }
 
     /**
@@ -53,14 +70,15 @@ let BaseNode = (function () {
      * @return {boolean} Active state
      */
     isActive() {
-      return executeScript(this.rpgs, this.cm.getWiresType(Prop.ACTIVITY)[0]);
+      return executeScript(this.rpgs, this.cm.getWiresType(Plug.ENABLED)[0]);
     }
 
     getData() {
       return {
         class: this.constructor.name,
         uuid: this.getId(),
-        wires: this.cm.getData()
+        wires: this.cm.getData(),
+        params: this.pm.getParams()
       };
     }
 
@@ -105,7 +123,9 @@ let BaseNode = (function () {
 
     dispose() {
       this.cm.dispose();
+      this.pm.dispose();
       this.cm = null;
+      this.pm = null;
       this.rpgs = null;
       _uuid.delete(this);
     }

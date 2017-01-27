@@ -2,6 +2,13 @@
 import CompoundNode from '../core/CompoundNode';
 import QuestStatus from './QuestStatus';
 
+
+
+// CHANGE FROM NODE TO STATIC ELEMENT!
+
+
+
+
 let QuestNode = (function () {
   let _title = new WeakMap();
   let _description = new WeakMap();

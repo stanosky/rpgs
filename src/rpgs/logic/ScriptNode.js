@@ -2,6 +2,13 @@
 import BaseNode from '../core/BaseNode';
 import compiler from '@risingstack/nx-compile';
 
+
+
+// CHANGE FROM NODE TO STATIC ELEMENT!
+
+
+
+
 let ScriptNode = (function () {
 
   let _label = new WeakMap();

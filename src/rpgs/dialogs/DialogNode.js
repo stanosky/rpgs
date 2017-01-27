@@ -1,6 +1,12 @@
 'use strict';
 import CompoundNode from '../core/CompoundNode';
-import Prop from '../core/Prop';
+import Plug from '../core/Plug';
+
+
+
+// CHANGE FROM NODE TO STATIC ELEMENT!
+
+
 
 let DialogNode = (function () {
 
@@ -30,16 +36,6 @@ let DialogNode = (function () {
 
     getStartTalk() {
       return _start.get(this);
-    }
-
-    canAddWireType(type) {
-      switch (type) {
-        case Prop.VISIBILITY:
-          return this.getWires(Prop.VISIBILITY).length === 0;
-        case Prop.ACTIVITY:
-          return this.getWires(Prop.ACTIVITY).length === 0;
-        default: return false;
-      }
     }
 
     dispose() {

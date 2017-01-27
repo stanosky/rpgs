@@ -1,6 +1,12 @@
 'use strict';
 import BaseNode from '../core/BaseNode';
-import Prop from '../core/Prop';
+import Plug from '../core/Plug';
+
+
+
+// CHANGE FROM NODE TO STATIC ELEMENT!
+
+
 
 let ActorNode = (function () {
   // Weak maps are new feature to JavaScript. We can store private
@@ -20,7 +26,7 @@ let ActorNode = (function () {
 
     _init() {
       super._init();
-      this.cm.addConnector(Prop.DIALOG,1);
+      this.cm.addConnector(Plug.DIALOG,1);
     }
 
     getData() {

@@ -1,6 +1,6 @@
 'use strict';
 import BaseNode from '../core/BaseNode';
-import Prop from '../core/Prop';
+import Plug from '../core/Plug';
 
 let AnswerNode = (function () {
   // Weak maps are new feature to JavaScript. We can store private
@@ -12,6 +12,11 @@ let AnswerNode = (function () {
     constructor(data) {
       super(data);
       _text.set(this, data.text ? data.text : '');
+    }
+
+    _init() {
+      super._init();
+      this.cm.addConnector(Plug.GO_TALK,1);
     }
 
     getData() {
@@ -29,19 +34,7 @@ let AnswerNode = (function () {
     }
 
     getTalk() {
-      return this.getWires(Prop.GOTO)[0];
-    }
-
-    canAddWireType(type) {
-      switch (type) {
-        case Prop.VISIBILITY:
-          return this.getWires(Prop.VISIBILITY).length === 0;
-        case Prop.ACTIVITY:
-          return this.getWires(Prop.ACTIVITY).length === 0;
-        case Prop.GOTO:
-          return this.getWires(Prop.GOTO).length === 0;
-        default: return false;
-      }
+      return this.getWires(Plug.GO_TALK)[0];
     }
 
     dispose() {

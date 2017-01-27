@@ -1,6 +1,6 @@
 'use strict';
 import CompoundNode from '../core/CompoundNode';
-import Prop from '../core/Prop';
+import Plug from '../core/Plug';
 
 let TalkNode = (function () {
 
@@ -29,14 +29,6 @@ let TalkNode = (function () {
 
     canAddChild(type) {
       return type === 'AnswerNode';
-    }
-
-    canAddWireType(type) {
-      switch (type) {
-        case Prop.GOTO:
-          return true;
-        default: return false;
-      }
     }
 
     dispose() {
