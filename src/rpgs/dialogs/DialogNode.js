@@ -16,7 +16,7 @@ let DialogNode = (function () {
 
     constructor(data) {
       super(data);
-      _start.set(this, data.startTalk ? data.startTalk : '');
+      _start.set(this, data && data.startTalk ? data.startTalk : '');
     }
 
     getData() {
@@ -30,8 +30,23 @@ let DialogNode = (function () {
       return type === 'TalkNode';
     }
 
+    addChild(childId) {
+      super.addChild(childId);
+      let children = this.getChildren();
+      if(children.length === 1) this.setStartTalk(childId);
+    }
+
+    removeChild(index) {
+      let child = this.getChild(index);
+      if(child === this.getStartTalk()) this.setStartTalk('');
+      super.removeChild(index);
+    }
+
     setStartTalk(talkId) {
-      _start.set(this, talkId);
+      // should only add talk nodes from internal children list
+      let children = this.getChildren();
+      let canAdd = children.filter(child => child === talkId)[0] !== undefined;
+      if(canAdd || talkId === '') _start.set(this, talkId);
     }
 
     getStartTalk() {
