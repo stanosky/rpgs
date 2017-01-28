@@ -15,7 +15,7 @@ const DialogNode = require('../src/rpgs/dialogs/DialogNode');
 
 let rpgs;
 let testNodeId = 'testNode';
-let serialized = '[{"class":"DialogNode","uuid":"dlg1","wires":{"visible":[],"enabled":[]},"params":{},"children":["tlk0"],"startTalk":"tlk0"},{"class":"TalkNode","uuid":"tlk0","wires":{"visible":[],"enabled":[]},"params":{},"children":["tlk0ans1"],"text":"This is talk 0."},{"class":"AnswerNode","uuid":"tlk0ans1","wires":{"visible":[],"enabled":[],"go-talk":[]},"params":{},"text":"Answer1"}]';
+let serialized = '[{"class":"DialogNode","uuid":"dlg1","wires":{"visible":[],"enabled":[]},"params":{},"children":["tlk0"],"startTalk":"tlk0"},{"class":"TalkNode","uuid":"tlk0","wires":{"visible":[],"enabled":[]},"params":{},"children":["tlk0ans1"],"text":"This is talk 0."},{"class":"AnswerNode","uuid":"tlk0ans1","wires":{"visible":[],"enabled":[],"go_talk":[]},"params":{},"text":"Answer1"}]';
 
 describe('Given an instance of RPGSystem', function () {
   beforeEach(function () {
@@ -74,14 +74,14 @@ describe('Given an instance of RPGSystem', function () {
     it('should connect two compatible nodes', () => {
       rpgs.addDialog('dlg1',{startTalk:'tlk0'})
             .addTalk('tlk0',{text:'This is talk 0.'})
-              .addAnswer('tlk0ans1',{text:'Answer1'}).setWire('go-talk','tlk1')
+              .addAnswer('tlk0ans1',{text:'Answer1'}).setWire('go_talk','tlk1')
             .addTalk('tlk1',{text:'This is talk 1.'})
       let answer = rpgs.findNode('tlk0ans1');
       expect(answer.getTalk()).to.equal('tlk1');
     });
     it('should throw error if nodes are incompatible', () => {
       rpgs.addDialog('dlg1',{startTalk:'tlk0'})
-      let fn = function() {rpgs.addDialog('dlg2',{startTalk:'tlk0'}).setWire('go-talk','dlg1')};
+      let fn = function() {rpgs.addDialog('dlg2',{startTalk:'tlk0'}).setWire('go_talk','dlg1')};
       expect(fn).to.throw(Error);
 
     });

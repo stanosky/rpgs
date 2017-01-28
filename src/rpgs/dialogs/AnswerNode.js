@@ -11,7 +11,7 @@ let AnswerNode = (function () {
   return class AnswerNode extends BaseNode {
     constructor(data) {
       super(data);
-      _text.set(this, data.text ? data.text : '');
+      _text.set(this, data && data.text ? data.text : '');
     }
 
     _init() {

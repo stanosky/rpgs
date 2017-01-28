@@ -2,7 +2,7 @@
 
 const VISIBLE = 'visible';
 const ENABLED = 'enabled';
-const GO_TALK = 'go-talk';
+const GO_TALK = 'go_talk';
 //To remove, deprecated
 const DIALOG = 'dialog';
 
