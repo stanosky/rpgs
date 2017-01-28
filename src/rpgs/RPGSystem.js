@@ -3,14 +3,14 @@ import Utils from './core/Utils';
 import BaseNode from './core/BaseNode';
 import ErrorHandler from './core/ErrorHandler';
 import ErrorCode from './core/ErrorCode';
-import ActorNode from './actors/ActorNode';
-import ScriptNode from './logic/ScriptNode';
+//import ActorNode from './actors/ActorNode';
+//import ScriptNode from './logic/ScriptNode';
 import AnswerNode from './dialogs/AnswerNode';
 import DialogNode from './dialogs/DialogNode';
 import TalkNode from './dialogs/TalkNode';
-import QuestNode from './quests/QuestNode';
-import TaskNode from './quests/TaskNode';
-import VariableNode from './variables/VariableNode';
+//import QuestNode from './quests/QuestNode';
+//import TaskNode from './quests/TaskNode';
+//import VariableNode from './variables/VariableNode';
 
 let RPGSystem = function (data, editor) {
 
@@ -26,14 +26,14 @@ let RPGSystem = function (data, editor) {
 
     switch (className) {
       case 'BaseNode': return new BaseNode(data,rpgs);
-      case 'ActorNode': return new ActorNode(data,rpgs);
-      case 'ScriptNode': return new ScriptNode(data,rpgs);
+      //case 'ActorNode': return new ActorNode(data,rpgs);
+      //case 'ScriptNode': return new ScriptNode(data,rpgs);
       case 'AnswerNode': return new AnswerNode(data,rpgs);
       case 'DialogNode': return new DialogNode(data,rpgs);
       case 'TalkNode': return new TalkNode(data,rpgs);
-      case 'QuestNode': return new QuestNode(data,rpgs);
-      case 'TaskNode': return new TaskNode(data,rpgs);
-      case 'VariableNode': return new VariableNode(data,rpgs);
+      //case 'QuestNode': return new QuestNode(data,rpgs);
+      //case 'TaskNode': return new TaskNode(data,rpgs);
+      //case 'VariableNode': return new VariableNode(data,rpgs);
       default:
         _errorHandler.showMsg(ErrorCode.CLASS_NOT_DEFINED, {class: className});
         return null;
@@ -201,7 +201,7 @@ let RPGSystem = function (data, editor) {
 
 
   function _getNodesByClass(className) {
-    return _objectPool.map((node) => {
+    return _objectPool.filter((node) => {
       return node.constructor.name === className;
     });
   }
@@ -224,25 +224,25 @@ let RPGSystem = function (data, editor) {
     return this;
   },
 
-  _addActor = function (id, params) {
-    return _chainNodeCreator(id, params, false, 'ActorNode');
-  },
+  //_addActor = function (id, params) {
+  //  return _chainNodeCreator(id, params, false, 'ActorNode');
+  //},
 
-  _addQuest = function (id, params) {
-    return _chainNodeCreator(id, params, false, 'QuestNode');
-  },
+  //_addQuest = function (id, params) {
+  //  return _chainNodeCreator(id, params, false, 'QuestNode');
+  //},
 
   _addDialog = function (id, params) {
     return _chainNodeCreator(id, params, false, 'DialogNode');
   },
 
-  _addCondition = function (id, params) {
-    return _chainNodeCreator(id, params, false, 'ScriptNode');
-  },
+  //_addCondition = function (id, params) {
+  //  return _chainNodeCreator(id, params, false, 'ScriptNode');
+  //},
 
-  _addVariable = function (id, params) {
-    return _chainNodeCreator(id, params, false, 'VariableNode');
-  },
+  //_addVariable = function (id, params) {
+  //  return _chainNodeCreator(id, params, false, 'VariableNode');
+  //},
 
   _addTalk = function (id, params) {
     return _chainNodeCreator(id, params, true, 'TalkNode');
@@ -272,44 +272,44 @@ let RPGSystem = function (data, editor) {
   ////////////////////////////////////////////////////////////////
   //GETTERS
   ////////////////////////////////////////////////////////////////
-  _getActors = function () {
-    return _getNodesByClass('ActorNode');
-  },
+  //_getActors = function () {
+  //  return _getNodesByClass('ActorNode');
+  //},
 
-  _getConditions = function () {
-    return _getNodesByClass('ScriptNode');
-  },
+  //_getConditions = function () {
+  //  return _getNodesByClass('ScriptNode');
+  //},
 
   _getDialogs = function () {
     return _getNodesByClass('DialogNode');
   },
 
-  _getQuests = function () {
-    return _getNodesByClass('QuestNode');
-  },
+  //_getQuests = function () {
+  //  return _getNodesByClass('QuestNode');
+  //},
 
-  _getVariables = function () {
-    return _getNodesByClass('VariableNode');
-  },
+  //_getVariables = function () {
+  //  return _getNodesByClass('VariableNode');
+  //},
 
   ////////////////////////////////////////////////////////////////
   //MISCALINEUS
   ////////////////////////////////////////////////////////////////
 
-  _setVar = function (variableId, value) {
-    let _var = _findNode(variableId);
-    if (_var !== null) _var.setValue(value);
-  },
+  //_setVar = function (variableId, value) {
+  //  let _var = _findNode(variableId);
+  //  if (_var !== null) _var.setValue(value);
+  //},
 
-  _getVar = function (variableId) {
-    let _var = _findNode(variableId);
-    return _var !== null ? _var.getValue() : undefined;
-  },
+  //_getVar = function (variableId) {
+  //  let _var = _findNode(variableId);
+  //  return _var !== null ? _var.getValue() : undefined;
+  //},
 
-  _executeScript = function (scriptId) {
-    let _script = _findNode(scriptId);
-    return _script !== null && _script.execute ? _script.execute({rpgs:_self}) : true;
-  },
+  //_executeScript = function (scriptId) {
+  //  let _script = _findNode(scriptId);
+  //  return _script !== null && _script.execute ? _script.execute({rpgs:_self}) : true;
+  //},
 
   _serializeData = function () {
     let data = _objectPool.map((obj) => {
@@ -334,32 +334,32 @@ let RPGSystem = function (data, editor) {
     ////////////////////////////////////////////
     // Chainable methods
     ////////////////////////////////////////////
-    addActor: _addActor,
-    addQuest: _addQuest,
+    //addActor: _addActor,
+    //addQuest: _addQuest,
     addDialog: _addDialog,
-    addCondition: _addCondition,
-    addVariable: _addVariable,
+    //addCondition: _addCondition,
+    //addVariable: _addVariable,
     addTalk: _addTalk,
     addAnswer: _addAnswer,
 
     ////////////////////////////////////////////
     // Getter methods
     ////////////////////////////////////////////
-    getActors: _getActors,
-    getConditions: _getConditions,
+    //getActors: _getActors,
+    //getConditions: _getConditions,
     getDialogs: _getDialogs,
-    getQuests: _getQuests,
-    getVariables: _getVariables,
+    //getQuests: _getQuests,
+    //getVariables: _getVariables,
 
     ////////////////////////////////////////////
     // Miscalineus methods
     ////////////////////////////////////////////
-    setVar: _setVar,
-    getVar: _getVar,
-    executeScript: _executeScript,
+    //setVar: _setVar,
+    //getVar: _getVar,
+    //executeScript: _executeScript,
     serializeData: _serializeData
   };
-  if (data) _objectPool = data.map((d) => _nodeFactory(d, _self));
+  if (data) _objectPool = JSON.parse(data).map((d) => _nodeFactory(d, _self));
 
   return _self;
 };
