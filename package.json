@@ -39,6 +39,8 @@
     "jsdom-global": "2.1.1",
     "mocha": "2.3.4",
     "mocha-jsdom": "^1.1.0",
+    "sinon": "^1.17.7",
+    "sinon-chai": "^2.8.0",
     "webpack": "^1.14.0",
     "webpack-dev-server": "^1.16.2",
     "yargs": "3.32.0"

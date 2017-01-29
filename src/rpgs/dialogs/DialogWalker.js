@@ -7,25 +7,17 @@ let DialogWalker = (function(){
 
   return class DialogWalker {
     constructor(rpgs) {
+      if(!(rpgs && rpgs.findNode)) {
+        throw new Error('RPGSystem instance not passed do constructor.');
+      }
       _rpgs.set(this,rpgs);
       _dialog.set(this,null);
       _currTalk.set(this,null);
     }
 
-    reset() {
-      let dialog = _dialog.get(this);
-      if(dialog !== null){
-        this.setTalk(dialog.getStartTalk());
-      }
-    }
-
-    _findNode(nodeId) {
-      return _rpgs.get(this).findNode(nodeId);
-    }
-
     setDialog(dialogId) {
-      let dialog = this._findNode(dialogId);
-      if(dialog === null) {
+      let dialog = _rpgs.get(this).findNode(dialogId);
+      if(dialog === null || !dialog.getStartTalk) {
         throw new Error(`DialogNode with the id "${dialogId}" does not exists.`);
       }
       _dialog.set(this,dialog);
@@ -33,8 +25,7 @@ let DialogWalker = (function(){
     }
 
     setTalk(talkId) {
-      console.log('setTalk',talkId);
-      let talk = this._findNode(talkId);
+      let talk = _rpgs.get(this).findNode(talkId);
       if(talk === null) {
         throw new Error(`TalkNode with the id "${talkId}" does not exists.`);
       }
@@ -43,15 +34,16 @@ let DialogWalker = (function(){
 
     getConversation() {
       let conversation = {};
-      conversation.text = _currTalk.get(this).getText();
-      let children = _currTalk.get(this).getChildren();
+      let currTalk = _currTalk.get(this);
+      let children = currTalk ? currTalk.getChildren() : [];
+      conversation.text = currTalk ? currTalk.getText() : '';
       conversation.options = children.map((answerId) => {
-        let answer = this._findNode(answerId);
+        let answer = _rpgs.get(this).findNode(answerId);
         return {
           id:answer.getId(),
           text:answer.getText(),
-          isActive:answer.isActive(),
-          isVisible:answer.isVisible()
+          active:answer.isActive(),
+          enabled:answer.isVisible()
         }
       });
       return conversation;
@@ -63,9 +55,15 @@ let DialogWalker = (function(){
         return currId === id;
       });
       if(answerId[0] !== undefined) {
-        let answerNode = this._findNode(answerId[0]);
-        console.log('selectOption::answerNode',answerNode,answerNode.getId());
+        let answerNode = _rpgs.get(this).findNode(answerId[0]);
         if(answerNode !== null) this.setTalk(answerNode.getTalk());
+      }
+    }
+
+    reset() {
+      let dialog = _dialog.get(this);
+      if(dialog !== null){
+        this.setTalk(dialog.getStartTalk());
       }
     }
   }

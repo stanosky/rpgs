@@ -5,6 +5,7 @@ RPGS 1.0:
 -prosty system dialogów bez skryptów i zmiennych: DialogWalker,
 -ukończone testy jednostkowe dla dialogów,
 -komentarze,
+-README.md
 
 Edytor 1.0:
 -dodany prosty edytor wizualny do dialogów,
