@@ -5,7 +5,6 @@
   "main": "lib/rpgs.js",
   "scripts": {
     "serve": "webpack-dev-server --hot --content-base build/",
-    "start": "webpack --config webpack-dev.config.js",
     "build": "webpack --mode=build",
     "dev": "webpack --progress --colors --watch --mode=dev",
     "test": "mocha --compilers js:babel-core/register --colors -w ./test/*.spec.js"
