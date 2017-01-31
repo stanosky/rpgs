@@ -16,11 +16,12 @@ let AnswerNode = (function () {
 
     _init() {
       super._init();
-      this.cm.addConnector(Plug.GO_TALK,1);
+      this.cm.addConnector(Plug.GO_TALK, 1);
     }
 
     getData() {
       let data = super.getData();
+
       data.text = this.getText();
       return data;
     }
@@ -44,4 +45,5 @@ let AnswerNode = (function () {
 
   };
 })();
+
 module.exports = AnswerNode;

@@ -34,7 +34,11 @@ var config = {
       {
         test: /(\.jsx|\.js)$/,
         loader: "eslint-loader",
-        exclude: /node_modules/
+        exclude: /node_modules/,
+        enforce: 'pre',
+        options: {
+          fix: true,
+        }
       }
     ]
   },
@@ -42,7 +46,10 @@ var config = {
     root: path.resolve('./src'),
     extensions: ['', '.js']
   },
-  plugins: plugins
+  plugins: plugins,
+  eslint: {
+    configFile: './.eslintrc'
+  }
 };
 
 module.exports = config;

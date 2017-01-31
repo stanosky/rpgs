@@ -1,12 +1,5 @@
 'use strict';
 import CompoundNode from '../core/CompoundNode';
-import Plug from '../core/Plug';
-
-
-
-// CHANGE FROM NODE TO STATIC ELEMENT!
-
-
 
 let DialogNode = (function () {
 
@@ -33,12 +26,14 @@ let DialogNode = (function () {
     addChild(childId) {
       super.addChild(childId);
       let children = this.getChildren();
-      if(children.length === 1) this.setStartTalk(childId);
+
+      if (children.length === 1) this.setStartTalk(childId);
     }
 
     removeChild(index) {
       let child = this.getChild(index);
-      if(child === this.getStartTalk()) this.setStartTalk('');
+
+      if (child === this.getStartTalk()) this.setStartTalk('');
       super.removeChild(index);
     }
 
@@ -46,7 +41,8 @@ let DialogNode = (function () {
       // should only add talk nodes from internal children list
       let children = this.getChildren();
       let canAdd = children.filter(child => child === talkId)[0] !== undefined;
-      if(canAdd || talkId === '') _start.set(this, talkId);
+
+      if (canAdd || talkId === '') _start.set(this, talkId);
     }
 
     getStartTalk() {
@@ -59,4 +55,5 @@ let DialogNode = (function () {
     }
   };
 })();
+
 module.exports = DialogNode;

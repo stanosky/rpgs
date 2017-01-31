@@ -11,38 +11,39 @@ let BaseNode = (function () {
   // and our class can capture those key/value maps in a closure.
   let _uuid = new WeakMap();
 
-  function executeScript (rpgs,scriptId) {
+  function executeScript(rpgs, scriptId) {
     let _script = rpgs.findNode(scriptId);
-    return _script !== null && _script.execute ? _script.execute({rpgs:rpgs}) : true;
+
+    return _script !== null && _script.execute ? _script.execute({rpgs: rpgs}) : true;
   }
 
   return class BaseNode {
-    constructor(data,rpgs) {
-      data = data||{};
+    constructor(data, rpgs) {
+      data = data || {};
       // If uuid not present, then by default we assign Universally Unique ID.
       _uuid.set(this, data.uuid ? data.uuid : Utils.getUUID());
       this.rpgs = rpgs;
-      this.pm = new ParamsManager(data.params||{});
+      this.pm = new ParamsManager(data.params || {});
       this.cm = new ConnectorManager();
       this._init();
       this.cm.setData(data);
     }
 
     _init() {
-      this.cm.addConnector(Plug.VISIBLE,1);
-      this.cm.addConnector(Plug.ENABLED,1);
+      this.cm.addConnector(Plug.VISIBLE, 1);
+      this.cm.addConnector(Plug.ENABLED, 1);
     }
 
-    addParam(name,type,value) {
-      this.pm.addParam(name,type,value)
+    addParam(name, type, value) {
+      this.pm.addParam(name, type, value);
     }
 
     getParam(name) {
       return this.pm.getParamValue(name);
     }
 
-    setParam(name,value) {
-      this.pm.setParamValue(name,value);
+    setParam(name, value) {
+      this.pm.setParamValue(name, value);
     }
 
     removeParam(name) {
@@ -110,7 +111,7 @@ let BaseNode = (function () {
     }
 
     setWire(type, nodeId) {
-      this.cm.addWireType(type,nodeId);
+      this.cm.addWireType(type, nodeId);
     }
 
     getWires(type) {
@@ -118,7 +119,7 @@ let BaseNode = (function () {
     }
 
     removeWire(type, nodeId) {
-      this.cm.removeWireType(type,nodeId);
+      this.cm.removeWireType(type, nodeId);
     }
 
     dispose() {
@@ -131,4 +132,5 @@ let BaseNode = (function () {
     }
   };
 })();
+
 module.exports = BaseNode;

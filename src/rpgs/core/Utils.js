@@ -36,6 +36,7 @@ exports.getUUID = UUID.generate;
 
 let indexOfObject = function (array, obj) {
   var i;
+
   for (i = 0; i < array.length; i++) {
     if (array[i] === obj) return i;
   }
@@ -46,11 +47,13 @@ exports.indexOfObject = indexOfObject;
 
 let getIndexById = function (array, id) {
   var i;
+
   for (i = 0; i < array.length; i++) {
     if (array[i].getId() === id) return i;
   }
   return -1;
 };
+
 exports.getIndexById = getIndexById;
 
 exports.addObjectToArray = function (array, obj) {
@@ -60,19 +63,12 @@ exports.addObjectToArray = function (array, obj) {
   return array;
 };
 
-/* exports.removeObjectById = function(array,id) {
-  let index = getIndexById(array,id);
-  if(index !== -1) {
-    let spliced = array.splice(index,1);
-    if(spliced.dispose) spliced.dispose();
-  }
-  return array;
-}*/
-
 exports.removeObjectFromArray = function (array, obj) {
   let index = indexOfObject(array, obj);
+
   if (index !== -1) {
     let spliced = array.splice(index, 1);
+
     if (spliced.dispose) spliced.dispose();
   }
   return array;

@@ -1,6 +1,5 @@
 'use strict';
 import CompoundNode from '../core/CompoundNode';
-import Plug from '../core/Plug';
 
 let TalkNode = (function () {
 
@@ -37,4 +36,5 @@ let TalkNode = (function () {
     }
   };
 })();
+
 module.exports = TalkNode;

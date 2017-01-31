@@ -5,7 +5,7 @@ import ErrorCode from './ErrorCode';
 
 let ErrorHandler = function (editor) {
   return {
-    showMsg: function(errorCode, params) {
+    showMsg: function (errorCode, params) {
       let msg = '';
 
       switch (errorCode) {
@@ -52,4 +52,5 @@ let ErrorHandler = function (editor) {
     }
   };
 };
+
 module.exports = ErrorHandler;

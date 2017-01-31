@@ -1,15 +1,16 @@
 'use strict';
 
-let Connector = (function (){
+let Connector = (function () {
   let _type = new WeakMap();
   let _limit = new WeakMap();
   let _wires = new WeakMap();
+
   return class Connector {
 
-    constructor(type,limit) {
-      _type.set(this,type);
-      _limit.set(this, isNaN(parseInt(limit)) ? -1 : parseInt(limit));
-      _wires.set(this,[]);
+    constructor(type, limit) {
+      _type.set(this, type);
+      _limit.set(this, isNaN(parseInt(limit, 10)) ? -1 : parseInt(limit, 10));
+      _wires.set(this, []);
     }
 
     getType() {
@@ -27,19 +28,21 @@ let Connector = (function (){
     canAddWire() {
       let limit = this.getLimit();
       let wiresLen = this.getWires().length;
+
       return limit === -1 || (limit > 0 && wiresLen < limit);
     }
 
     addWire(nodeId) {
       let wires = this.getWires();
-      if(this.canAddWire()) {
+
+      if (this.canAddWire()) {
         wires.push(nodeId);
-        _wires.set(this,wires);
+        _wires.set(this, wires);
       }
     }
 
     removeWire(nodeId) {
-      _wires.set(this,_wires.get(this).filter(wire => {
+      _wires.set(this, _wires.get(this).filter(wire => {
         return wire !== nodeId;
       }));
     }
@@ -52,4 +55,4 @@ let Connector = (function (){
   };
 })();
 
-module.exports = Connector
+module.exports = Connector;
