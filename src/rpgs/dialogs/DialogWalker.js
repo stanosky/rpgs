@@ -49,15 +49,26 @@ let DialogWalker = (function(){
       return conversation;
     }
 
+    // should return boolean that indicates if there is next talk
     selectOption(id) {
       let children = _currTalk.get(this).getChildren();
       let answerId = children.filter((currId,index,array) => {
         return currId === id;
       });
-      if(answerId[0] !== undefined) {
+
+      if (answerId[0] !== undefined) {
         let answerNode = _rpgs.get(this).findNode(answerId[0]);
-        if(answerNode !== null) this.setTalk(answerNode.getTalk());
+        let talkId;
+
+        if (answerNode !== null) {
+          talkId = answerNode.getTalk();
+          if (talkId !== undefined) {
+            this.setTalk(talkId);
+            return true;
+          }
+        }
       }
+      return false;
     }
 
     reset() {
@@ -68,4 +79,5 @@ let DialogWalker = (function(){
     }
   }
 })();
+
 module.exports = DialogWalker;

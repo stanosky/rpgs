@@ -10,30 +10,13 @@ const DialogNode = require('../src/rpgs/dialogs/DialogNode');
 //const DialogWalker = require('./rpgs/dialogs/DialogWalker');
 
 
-// Need to add tests of private methods!!!
-
-
 let rpgs;
 let testNodeId = 'testNode';
-let serialized = '[{"class":"DialogNode","uuid":"dlg1","wires":{"visible":[],"enabled":[]},"params":{},"children":["tlk0"],"startTalk":"tlk0"},{"class":"TalkNode","uuid":"tlk0","wires":{"visible":[],"enabled":[]},"params":{},"children":["tlk0ans1"],"text":"This is talk 0."},{"class":"AnswerNode","uuid":"tlk0ans1","wires":{"visible":[],"enabled":[],"go_talk":[]},"params":{},"text":"Answer1"}]';
+let serialized = '[{"class":"DialogNode","uuid":"dlg1","wires":{"visible":[],"enabled":[]},"params":{},"children":["tlk0"],"startTalk":"tlk0"},{"class":"TalkNode","uuid":"tlk0","wires":{"visible":[],"enabled":[]},"params":{},"children":["ad62c1a0-d912-45d4-a0fd-680824c21e22"],"text":"This is talk 0."},{"class":"AnswerNode","uuid":"ad62c1a0-d912-45d4-a0fd-680824c21e22","wires":{"visible":[],"enabled":[],"goto":[]},"params":{},"text":"Answer1"}]';
 
 describe('Given an instance of RPGSystem', function () {
   beforeEach(function () {
     rpgs = new RPGSystem()
-    /*.addDialog('dlg1',{startTalk:'tlk0'})
-      .addTalk('tlk0',{text:'This is talk 0.'})
-        .addAnswer('tlk0ans1',{text:'Answer1'}).setWire('go-talk','tlk1')
-        .addAnswer('tlk0ans2',{text:'Answer2'}).setWire('go-talk','tlk2')
-        .addAnswer('tlk0ans3',{text:'Answer3'}).setWire('go-talk','tlk3')
-
-      .addTalk('tlk1',{text:'This is talk 1.'})
-        .addAnswer('tlk1ans1',{text:'Answer1'})
-
-      .addTalk('tlk2',{text:'This is talk 2.'})
-        .addAnswer('tlk2ans1',{text:'Answer1'})
-
-      .addTalk('tlk3',{text:'This is talk 3.'})
-        .addAnswer('tlk3ans1',{text:'Answer1'})*/
   });
   describe('new RPGSystem()', function () {
     it('should create new instance even if no parameters has been passed', () => {
@@ -72,16 +55,17 @@ describe('Given an instance of RPGSystem', function () {
   });
   describe('#setWire()',function() {
     it('should connect two compatible nodes', () => {
-      rpgs.addDialog('dlg1',{startTalk:'tlk0'})
-            .addTalk('tlk0',{text:'This is talk 0.'})
-              .addAnswer('tlk0ans1',{text:'Answer1'}).setWire('go_talk','tlk1')
-            .addTalk('tlk1',{text:'This is talk 1.'})
-      let answer = rpgs.findNode('tlk0ans1');
+      rpgs.addDialog('dlg1')
+            .addTalk('tlk0','This is talk 0.')
+              .addAnswer('Answer1').setWire('goto','tlk1')
+            .addTalk('tlk1','This is talk 1.')
+      let answerId = rpgs.findNode('tlk0').getChild(0);
+      let answer = rpgs.findNode(answerId);
       expect(answer.getTalk()).to.equal('tlk1');
     });
     it('should throw error if nodes are incompatible', () => {
-      rpgs.addDialog('dlg1',{startTalk:'tlk0'})
-      let fn = function() {rpgs.addDialog('dlg2',{startTalk:'tlk0'}).setWire('go_talk','dlg1')};
+      rpgs.addDialog('dlg1')
+      let fn = function() {rpgs.addDialog('dlg2').setWire('goto','dlg1')};
       expect(fn).to.throw(Error);
 
     });
@@ -94,23 +78,25 @@ describe('Given an instance of RPGSystem', function () {
   });
   describe('#addTalk()',function() {
     it('should add new talk node', () => {
-      rpgs.addDialog('dlg1',{startTalk:'tlk0'})
-            .addTalk('tlk0',{text:'This is talk 0.'})
+      rpgs.addDialog('dlg1')
+            .addTalk('tlk0','This is talk 0.')
       expect(rpgs.findNode('tlk0').getId()).to.equal('tlk0');
     });
   });
   describe('#addAnswer()',function() {
     it('should add new answer node', () => {
-      rpgs.addDialog('dlg1',{startTalk:'tlk0'})
-            .addTalk('tlk0',{text:'This is talk 0.'})
-              .addAnswer('tlk0ans1',{text:'Answer1'})
-      expect(rpgs.findNode('tlk0ans1').getId()).to.equal('tlk0ans1');
+      rpgs.addDialog('dlg1')
+            .addTalk('tlk0','This is talk 0.')
+              .addAnswer('Answer1')
+      let answerId = rpgs.findNode('tlk0').getChild(0);
+      let answerNode = rpgs.findNode(answerId)
+      expect(answerNode).to.be.instanceof(AnswerNode);
     });
   });
   describe('#getDialogs()',function() {
     it('should return array of available dialog nodes', () => {
-      rpgs.addDialog('dlg1',{startTalk:'tlk0'})
-          .addDialog('dlg2',{startTalk:'tlk1'})
+      rpgs.addDialog('dlg1')
+          .addDialog('dlg2')
       let dialogs = rpgs.getDialogs();
       dialogs.map(d => expect(d).to.be.instanceof(DialogNode));
     });
@@ -120,10 +106,12 @@ describe('Given an instance of RPGSystem', function () {
       expect(rpgs.serializeData()).to.equal('[]');
     });
     it('should return serialized data string from all nodes in RPGS instance', () => {
-      rpgs.addDialog('dlg1',{startTalk:'tlk0'})
-            .addTalk('tlk0',{text:'This is talk 0.'})
-              .addAnswer('tlk0ans1',{text:'Answer1'})
-      expect(rpgs.serializeData()).to.equal(serialized);
+      rpgs.addDialog('dlg1')
+            .addTalk('tlk0','This is talk 0.')
+              .addAnswer('Answer1')
+      let sd = rpgs.serializeData();
+      let rpgs2 = new RPGSystem(sd);
+      expect(rpgs2.serializeData()).to.equal(sd);
     });
   });
 });

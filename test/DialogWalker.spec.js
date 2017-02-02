@@ -38,6 +38,13 @@ let fake_answer2_isActive;
 let fake_answer2_isVisible;
 let fake_answer2_getTalk;
 
+let fake_answer3;
+let fake_answer3_getId;
+let fake_answer3_getText;
+let fake_answer3_isActive;
+let fake_answer3_isVisible;
+let fake_answer3_getTalk;
+
 describe('Given an instance of DialogWalker',function () {
   beforeEach(function () {
 
@@ -46,7 +53,7 @@ describe('Given an instance of DialogWalker',function () {
     fake_dialog = {getStartTalk:fake_dialog_getStartTalk};
 
     fake_talk1_getText = sinon.stub().returns('Talk1 fake text.');
-    fake_talk1_getChildren = sinon.stub().returns(['ans1','ans2']);
+    fake_talk1_getChildren = sinon.stub().returns(['ans1','ans2','ans3']);
 
     fake_talk1 = {
       getText:fake_talk1_getText,
@@ -89,12 +96,27 @@ describe('Given an instance of DialogWalker',function () {
       getTalk:fake_answer2_getTalk
     }
 
+    fake_answer3_getId = sinon.stub().returns('ans3');
+    fake_answer3_getText = sinon.stub().returns('Answer3 fake text.');
+    fake_answer3_isActive = sinon.stub().returns(false);
+    fake_answer3_isVisible = sinon.stub().returns(false);
+    fake_answer3_getTalk =  sinon.stub().returns(undefined);
+
+    fake_answer3 = {
+      getId:fake_answer3_getId,
+      getText:fake_answer3_getText,
+      isActive:fake_answer3_isActive,
+      isVisible:fake_answer3_isVisible,
+      getTalk:fake_answer3_getTalk
+    }
+
     fake_rpgs_findNode = sinon.stub().returns(null);
     fake_rpgs_findNode.withArgs('dlg1').returns(fake_dialog);
     fake_rpgs_findNode.withArgs('talk1').returns(fake_talk1);
     fake_rpgs_findNode.withArgs('talk2').returns(fake_talk1);
     fake_rpgs_findNode.withArgs('ans1').returns(fake_answer1);
     fake_rpgs_findNode.withArgs('ans2').returns(fake_answer2);
+    fake_rpgs_findNode.withArgs('ans3').returns(fake_answer3);
 
     fake_rpgs = {findNode:fake_rpgs_findNode};
 
@@ -143,6 +165,7 @@ describe('Given an instance of DialogWalker',function () {
       expect(fake_talk1_getChildren).to.have.been.calledOnce;
       expect(fake_rpgs_findNode).to.have.been.calledWith('ans1');
       expect(fake_rpgs_findNode).to.have.been.calledWith('ans2');
+      expect(fake_rpgs_findNode).to.have.been.calledWith('ans3');
 
       expect(fake_answer1_getId).to.have.been.calledOnce;
       expect(fake_answer1_getText).to.have.been.calledOnce;
@@ -154,13 +177,19 @@ describe('Given an instance of DialogWalker',function () {
       expect(fake_answer2_isActive).to.have.been.calledOnce;
       expect(fake_answer2_isVisible).to.have.been.calledOnce;
 
+      expect(fake_answer3_getId).to.have.been.calledOnce;
+      expect(fake_answer3_getText).to.have.been.calledOnce;
+      expect(fake_answer3_isActive).to.have.been.calledOnce;
+      expect(fake_answer3_isVisible).to.have.been.calledOnce;
+
       expect(conv).to.have.all.keys(['text','options']);
       expect(conv.text).to.equal('Talk1 fake text.');
 
       let keys = ['id','text','active','enabled'];
       let opt1 = ['ans1','Answer1 fake text.',true,true];
       let opt2 = ['ans2','Answer2 fake text.',false,false];
-      let opts = [opt1,opt2];
+      let opt3 = ['ans3','Answer3 fake text.',false,false];
+      let opts = [opt1,opt2,opt3];
       conv.options.map((opt, optIndex) => {
         expect(opt).to.have.all.keys(keys);
         keys.map((k,i) => {
@@ -186,6 +215,11 @@ describe('Given an instance of DialogWalker',function () {
       expect(fake_rpgs_findNode).to.have.been.calledWith('ans1');
       expect(fake_answer1_getTalk).to.have.been.calledOnce;
       expect(fake_rpgs_findNode).to.have.been.calledWith('talk2');
+    });
+    it('should return boolean value which indicates that answer leads (or not) to another talk', () => {
+      instance.setDialog('dlg1');
+      expect(instance.selectOption('ans1')).to.equal(true);
+      expect(instance.selectOption('ans3')).to.equal(false);
     });
   });
   describe('#reset()',function() {

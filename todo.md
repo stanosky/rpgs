@@ -1,6 +1,7 @@
 Zmiany globalne:
 -wprowadzić typ obiektu statycznego, który nie jest węzłem,
 -zmienić klasy VariableNode, ScriptNode, (ActorNode?) na obiekty statyczne,
+-dodać wyszukiwanie wezłów o tych samych id,
 -napisać system eventów,
 -rozważyć labelki dla obiektu (nazwa klasy + uuid),
 -dokończyć testy jednostkowe,

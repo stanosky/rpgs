@@ -12,7 +12,7 @@ describe('Given an instance of AnswerNode',function () {
               class:'AnswerNode',
               wires:{
                 enabled: [],
-                go_talk: [],
+                goto: [],
                 visible: []
               },
               params:{},
@@ -53,7 +53,7 @@ describe('Given an instance of AnswerNode',function () {
   });
   describe('#getTalk()',function() {
     it('should return id of linked talk node', () => {
-      instance.setWire('go_talk','talkNodeId');
+      instance.setWire('goto','talkNodeId');
       expect(instance.getTalk()).to.equal('talkNodeId');
     });
   });

@@ -187,16 +187,37 @@ let RPGSystem = function (data, editor) {
     return _self;
   }
 
-  function _addDialog(id, params) {
-    return _chainNodeCreator(id, params, false, 'DialogNode');
+  function _addDialog(id = _errorHandler.showMsg(ErrorCode.MANDATORY_PARAM,
+                                {param: 'id'})) {
+    let params = {
+      uuid:id,
+      class:'DialogNode'
+    };
+
+    _nodeCreator(params, false);
+    return _self;
   }
 
-  function _addTalk(id, params) {
-    return _chainNodeCreator(id, params, true, 'TalkNode');
+  function _addTalk(id = _errorHandler.showMsg(ErrorCode.MANDATORY_PARAM,
+                                {param: 'id'}), text = '') {
+    let params = {
+      uuid:id,
+      text:text,
+      class:'TalkNode'
+    };
+
+    _nodeCreator(params, true);
+    return _self;
   }
 
-  function _addAnswer(id, params) {
-    return _chainNodeCreator(id, params, true, 'AnswerNode');
+  function _addAnswer(text = '') {
+    let params = {
+      text:text,
+      class:'AnswerNode'
+    };
+
+    _nodeCreator(params, true);
+    return _self;
   }
 
   function _setWire(type, referenceNodeId) {
@@ -222,17 +243,9 @@ let RPGSystem = function (data, editor) {
     });
   }
 
-  // //////////////////////////////////////////////////////////////
-  // GETTERS
-  // //////////////////////////////////////////////////////////////
-
   function _getDialogs() {
     return _getNodesByClass('DialogNode');
   }
-
-  // //////////////////////////////////////////////////////////////
-  // MISCALINEUS
-  // //////////////////////////////////////////////////////////////
 
   function _serializeData() {
     let data = _objectPool.map((obj) => {
@@ -245,33 +258,19 @@ let RPGSystem = function (data, editor) {
   if (data) _objectPool = JSON.parse(data).map((d) => _nodeFactory(d, _self));
 
   _self = {
-    // //////////////////////////////////////////
-    // General node methods
-    // //////////////////////////////////////////
+
     findNode: _findNode,
     addNode: _addNode,
     removeNode: _removeNode,
 
-    // //////////////////////////////////////////
-    // Link creation methods
-    // //////////////////////////////////////////
     setWire: _setWire,
 
-    // //////////////////////////////////////////
-    // Chainable methods
-    // //////////////////////////////////////////
     addDialog: _addDialog,
     addTalk: _addTalk,
     addAnswer: _addAnswer,
 
-    // //////////////////////////////////////////
-    // Getter methods
-    // //////////////////////////////////////////
     getDialogs: _getDialogs,
 
-    // //////////////////////////////////////////
-    // Miscalineus methods
-    // //////////////////////////////////////////
     serializeData: _serializeData
   };
 

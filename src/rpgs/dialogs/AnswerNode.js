@@ -16,7 +16,7 @@ let AnswerNode = (function () {
 
     _init() {
       super._init();
-      this.cm.addConnector(Plug.GO_TALK, 1);
+      this.cm.addConnector(Plug.GOTO, 1);
     }
 
     getData() {
@@ -35,7 +35,7 @@ let AnswerNode = (function () {
     }
 
     getTalk() {
-      return this.getWires(Plug.GO_TALK)[0];
+      return this.getWires(Plug.GOTO)[0];
     }
 
     dispose() {
