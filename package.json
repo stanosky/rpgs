@@ -1,8 +1,8 @@
 {
   "name": "rpgs",
-  "version": "1.0.0a",
-  "description": "Library which helps to produce Role Playing Games",
-  "main": "lib/rpgs.js",
+  "version": "1.0.0rc",
+  "description": "Library which helps to produce Role-Playing Games",
+  "main": "build/rpgs.min.js",
   "scripts": {
     "serve": "webpack-dev-server --hot --content-base build/",
     "build": "webpack --mode=build",
@@ -21,8 +21,7 @@
     "es6",
     "library",
     "rpg",
-    "dialogs",
-    "scripting"
+    "dialogs"
   ],
   "devDependencies": {
     "babel": "6.3.13",

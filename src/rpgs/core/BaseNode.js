@@ -11,11 +11,11 @@ let BaseNode = (function () {
   // and our class can capture those key/value maps in a closure.
   let _uuid = new WeakMap();
 
-  function executeScript(rpgs, scriptId) {
+  /* function executeScript(rpgs, scriptId) {
     let _script = rpgs.findNode(scriptId);
 
     return _script !== null && _script.execute ? _script.execute({rpgs: rpgs}) : true;
-  }
+  }*/
 
   return class BaseNode {
     constructor(data, rpgs) {
@@ -63,7 +63,7 @@ let BaseNode = (function () {
      * @return {boolean} Visibility state
      */
     isVisible() {
-      return executeScript(this.rpgs, this.cm.getWiresType(Plug.VISIBLE)[0]);
+      return true;// executeScript(this.rpgs, this.cm.getWiresType(Plug.VISIBLE)[0]);
     }
 
     /**
@@ -71,7 +71,7 @@ let BaseNode = (function () {
      * @return {boolean} Active state
      */
     isActive() {
-      return executeScript(this.rpgs, this.cm.getWiresType(Plug.ENABLED)[0]);
+      return true;// executeScript(this.rpgs, this.cm.getWiresType(Plug.ENABLED)[0]);
     }
 
     getData() {

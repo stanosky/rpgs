@@ -1,3 +1,11 @@
+/**
+ * Role-Playing Game System
+ * @author Krzysztof Stano (stanosky)
+ * @license MIT license
+ * @link https://github.com/stanosky/rpgs
+ * @version 1.0.0rc
+ **/
+
 'use strict';
 import Utils from './core/Utils';
 import BaseNode from './core/BaseNode';
@@ -16,27 +24,6 @@ let RPGSystem = function (data, editor) {
     _parentHistory = [],
     _tempWires = [],
     _self = {};
-
-  /**
-   * Method used to check passed parameters and later merge them into
-   * single object.
-   * @param  {string} id      Mandatory id of node.
-   * @param  {object} params  Optional parameters.
-   * @return {object} Parameters merged into object.
-   */
-  function _checkAndMergeParams(id = _errorHandler.showMsg(ErrorCode.MANDATORY_PARAM,
-                                {param: 'id'}), params) {
-    if (typeof id !== 'string') {
-      _errorHandler.showMsg(ErrorCode.INCORRECT_TYPE, {type: 'string'});
-    }
-    if (params !== undefined && typeof params !== 'object') {
-      _errorHandler.showMsg(ErrorCode.INCORRECT_TYPE, {type: 'object'});
-    } else if (params === undefined) {
-      params = {};
-    }
-    params.uuid = id;
-    return params;
-  }
 
   function _findNode(nodeId) {
     var i;
@@ -178,20 +165,11 @@ let RPGSystem = function (data, editor) {
     return _self;
   }
 
-  function _chainNodeCreator(id, params, asChild, className) {
-    // First, we check that id and params are valid.
-    params = _checkAndMergeParams(id, params);
-    // Class name for later usage.
-    params.class = className;
-    _nodeCreator(params, asChild);
-    return _self;
-  }
-
   function _addDialog(id = _errorHandler.showMsg(ErrorCode.MANDATORY_PARAM,
                                 {param: 'id'})) {
     let params = {
-      uuid:id,
-      class:'DialogNode'
+      uuid: id,
+      class: 'DialogNode'
     };
 
     _nodeCreator(params, false);
@@ -201,9 +179,9 @@ let RPGSystem = function (data, editor) {
   function _addTalk(id = _errorHandler.showMsg(ErrorCode.MANDATORY_PARAM,
                                 {param: 'id'}), text = '') {
     let params = {
-      uuid:id,
-      text:text,
-      class:'TalkNode'
+      uuid: id,
+      text: text,
+      class: 'TalkNode'
     };
 
     _nodeCreator(params, true);
@@ -212,8 +190,8 @@ let RPGSystem = function (data, editor) {
 
   function _addAnswer(text = '') {
     let params = {
-      text:text,
-      class:'AnswerNode'
+      text: text,
+      class: 'AnswerNode'
     };
 
     _nodeCreator(params, true);

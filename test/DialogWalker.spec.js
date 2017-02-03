@@ -113,7 +113,7 @@ describe('Given an instance of DialogWalker',function () {
     fake_rpgs_findNode = sinon.stub().returns(null);
     fake_rpgs_findNode.withArgs('dlg1').returns(fake_dialog);
     fake_rpgs_findNode.withArgs('talk1').returns(fake_talk1);
-    fake_rpgs_findNode.withArgs('talk2').returns(fake_talk1);
+    fake_rpgs_findNode.withArgs('talk2').returns(fake_talk2);
     fake_rpgs_findNode.withArgs('ans1').returns(fake_answer1);
     fake_rpgs_findNode.withArgs('ans2').returns(fake_answer2);
     fake_rpgs_findNode.withArgs('ans3').returns(fake_answer3);
@@ -210,7 +210,7 @@ describe('Given an instance of DialogWalker',function () {
       expect(fake_rpgs_findNode).to.have.been.calledWith('dlg1');
       expect(fake_dialog_getStartTalk).to.have.been.calledOnce;
       expect(fake_rpgs_findNode).to.have.been.calledWith('talk1');
-      instance.selectOption('ans1');
+      expect(instance.selectOption('ans1')).to.equal(true);
       expect(fake_talk1_getChildren).to.have.been.calledOnce;
       expect(fake_rpgs_findNode).to.have.been.calledWith('ans1');
       expect(fake_answer1_getTalk).to.have.been.calledOnce;
