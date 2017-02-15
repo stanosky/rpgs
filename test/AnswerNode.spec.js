@@ -15,10 +15,11 @@ describe('Given an instance of AnswerNode',function () {
                 goto: [],
                 visible: []
               },
+              label: '',
               params:{},
               text:'This is my answer.'
             };
-    keys = ['class','uuid','wires','params','text'];
+    keys = ['class','uuid','label','wires','params','text'];
     instance = new AnswerNode(params);
   });
   describe('#constructor()',function() {

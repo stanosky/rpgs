@@ -28,7 +28,7 @@ describe('Given an instance of CompoundNode',function () {
   });
   describe('#getData()',function() {
     it('should return valid data object', () => {
-      expect(cn.getData()).to.have.all.keys(['class','uuid','wires','params','children']);
+      expect(cn.getData()).to.have.all.keys(['class','uuid','wires','label','params','children']);
       expect(cn.getData().class).to.equal('CompoundNode');
       expect(cn.getData().children).to.deep.equal(params.children);
     });

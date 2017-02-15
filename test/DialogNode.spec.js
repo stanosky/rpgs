@@ -14,11 +14,12 @@ describe('Given an instance of DialogNode',function () {
                 enabled: [],
                 visible: []
               },
+              label: '',
               params:{},
               children:[],
               startTalk:''
             };
-    keys = ['class','uuid','wires','params','children','startTalk'];
+    keys = ['class','uuid','label','wires','params','children','startTalk'];
     instance = new DialogNode(params);
   });
   describe('#constructor()',function() {

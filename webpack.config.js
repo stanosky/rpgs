@@ -8,7 +8,7 @@ var libraryName = 'rpgs';
 var plugins = [], outputFile;
 
 if (env === 'build') {
-  plugins.push(new UglifyJsPlugin({ minimize: true }));
+  plugins.push(new UglifyJsPlugin({ minimize: true,mangle: false }));
   outputFile = libraryName + '.min.js';
 } else {
   outputFile = libraryName + '.js';

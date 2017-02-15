@@ -14,11 +14,12 @@ describe('Given an instance of TalkNode',function () {
                 enabled: [],
                 visible: []
               },
+              label: '',
               params:{},
               children:[],
               text:''
             };
-    keys = ['class','uuid','wires','params','children','text'];
+    keys = ['class','uuid','label','wires','params','children','text'];
     instance = new TalkNode(params)
   });
   describe('#constructor()',function() {

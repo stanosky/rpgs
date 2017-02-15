@@ -12,7 +12,7 @@ const DialogNode = require('../src/rpgs/dialogs/DialogNode');
 
 let rpgs;
 let testNodeId = 'testNode';
-let serialized = '[{"class":"DialogNode","uuid":"dlg1","wires":{"visible":[],"enabled":[]},"params":{},"children":["tlk0"],"startTalk":"tlk0"},{"class":"TalkNode","uuid":"tlk0","wires":{"visible":[],"enabled":[]},"params":{},"children":["ad62c1a0-d912-45d4-a0fd-680824c21e22"],"text":"This is talk 0."},{"class":"AnswerNode","uuid":"ad62c1a0-d912-45d4-a0fd-680824c21e22","wires":{"visible":[],"enabled":[],"goto":[]},"params":{},"text":"Answer1"}]';
+let serialized = '[{"class":"DialogNode","uuid":"dlg1","label":"","wires":{"visible":[],"enabled":[]},"params":{},"children":["tlk0"],"startTalk":"tlk0"},{"class":"TalkNode","uuid":"tlk0","label":"","wires":{"visible":[],"enabled":[]},"params":{},"children":["ad62c1a0-d912-45d4-a0fd-680824c21e22"],"text":"This is talk 0."},{"class":"AnswerNode","uuid":"ad62c1a0-d912-45d4-a0fd-680824c21e22","label":"","wires":{"visible":[],"enabled":[],"goto":[]},"params":{},"text":"Answer1"}]';
 
 describe('Given an instance of RPGSystem', function () {
   beforeEach(function () {

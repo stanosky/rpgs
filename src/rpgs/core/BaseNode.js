@@ -10,6 +10,7 @@ let BaseNode = (function () {
   // object properties in key/value pairs using our instance as the key,
   // and our class can capture those key/value maps in a closure.
   let _uuid = new WeakMap();
+  let _label = new WeakMap();
 
   /* function executeScript(rpgs, scriptId) {
     let _script = rpgs.findNode(scriptId);
@@ -19,14 +20,16 @@ let BaseNode = (function () {
 
   return class BaseNode {
     constructor(data, rpgs) {
-      data = data || {};
+      let _data = data || {};
+
       // If uuid not present, then by default we assign Universally Unique ID.
-      _uuid.set(this, data.uuid ? data.uuid : Utils.getUUID());
+      _uuid.set(this, _data.uuid ? _data.uuid : Utils.getUUID());
+      _label.set(this, _data.label ? _data.label : '');
       this.rpgs = rpgs;
-      this.pm = new ParamsManager(data.params || {});
+      this.pm = new ParamsManager(_data.params || {});
       this.cm = new ConnectorManager();
       this._init();
-      this.cm.setData(data);
+      this.cm.setData(_data);
     }
 
     _init() {
@@ -58,6 +61,13 @@ let BaseNode = (function () {
       return _uuid.get(this);
     }
 
+    setLabel(value) {
+      _label.set(this, value);
+    }
+
+    getLabel() {
+      return _label.get(this);
+    }
     /**
      * Returns visibility state.
      * @return {boolean} Visibility state
@@ -78,6 +88,7 @@ let BaseNode = (function () {
       return {
         class: this.constructor.name,
         uuid: this.getId(),
+        label: this.getLabel(),
         wires: this.cm.getData(),
         params: this.pm.getParams()
       };

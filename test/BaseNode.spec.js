@@ -45,6 +45,24 @@ describe('Given an instance of BaseNode',function () {
       expect(instance.getId()).to.be.equal(id);
     });
   });
+
+  describe('#setLabel()', function () {
+    it('should set new label', () => {
+      let oldLabel = instance.getLabel();
+      let newLabel = 'new label';
+      instance.setLabel(newLabel);
+      expect(instance.getLabel()).to.not.equal(oldLabel);
+      expect(instance.getLabel()).to.equal(newLabel);
+    });
+  });
+  describe('#getLabel()', function () {
+    it('should return label', () => {
+      let label = 'test label';
+      instance.setLabel(label);
+      expect(instance.getLabel()).to.be.equal(label);
+    });
+  });
+
   describe('#isVisible()', function () {
     it('should return visibility state true if no script was attached', () => {
       instance = new BaseNode(data,rpgsMock1);
@@ -91,7 +109,7 @@ describe('Given an instance of BaseNode',function () {
   describe('#getData()', function () {
     it('should return object with default data', () => {
       let data = instance.getData();
-      expect(data).to.have.all.keys(['class','uuid','wires','params']);
+      expect(data).to.have.all.keys(['class','uuid','label','wires','params']);
       expect(data.class).to.equal('BaseNode');
       expect(pattern.test(data.uuid)).to.equal(true);
     });
@@ -100,7 +118,7 @@ describe('Given an instance of BaseNode',function () {
       data.uuid = id;
       instance = new BaseNode(data);
       let output = instance.getData();
-      expect(output).to.have.all.keys(['class','uuid','wires','params']);
+      expect(output).to.have.all.keys(['class','uuid','label','wires','params']);
       expect(output.class).to.equal('BaseNode');
       expect(output.uuid).to.equal(id);
       expect(output.wires).to.have.any.keys(['visible','enabled']);
