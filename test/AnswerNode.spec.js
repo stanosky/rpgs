@@ -17,9 +17,11 @@ describe('Given an instance of AnswerNode',function () {
               },
               label: '',
               params:{},
+              'x': 0,
+              'y': 0,
               text:'This is my answer.'
             };
-    keys = ['class','uuid','label','wires','params','text'];
+    keys = ['class','uuid','label','wires','params','text','x','y'];
     instance = new AnswerNode(params);
   });
   describe('#constructor()',function() {

@@ -17,9 +17,11 @@ describe('Given an instance of TalkNode',function () {
               label: '',
               params:{},
               children:[],
-              text:''
+              text:'',
+              'x': 0,
+              'y': 0
             };
-    keys = ['class','uuid','label','wires','params','children','text'];
+    keys = ['class','uuid','label','wires','params','children','text','x','y'];
     instance = new TalkNode(params)
   });
   describe('#constructor()',function() {

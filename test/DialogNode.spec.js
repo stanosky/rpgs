@@ -17,9 +17,11 @@ describe('Given an instance of DialogNode',function () {
               label: '',
               params:{},
               children:[],
-              startTalk:''
+              startTalk:'',
+              'x': 0,
+              'y': 0
             };
-    keys = ['class','uuid','label','wires','params','children','startTalk'];
+    keys = ['class','uuid','label','wires','params','children','startTalk','x','y'];
     instance = new DialogNode(params);
   });
   describe('#constructor()',function() {

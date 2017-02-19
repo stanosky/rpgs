@@ -46,6 +46,22 @@ describe('Given an instance of BaseNode',function () {
     });
   });
 
+  describe('#x', function () {
+    it('should set/get x position of node', () => {
+      expect(instance.x).to.be.equal(0);
+      instance.x = 123;
+      expect(instance.x).to.be.equal(123);
+    });
+  });
+
+  describe('#y', function () {
+    it('should set/get y position of node', () => {
+      expect(instance.y).to.be.equal(0);
+      instance.y = 123;
+      expect(instance.y).to.be.equal(123);
+    });
+  });
+
   describe('#setLabel()', function () {
     it('should set new label', () => {
       let oldLabel = instance.getLabel();
@@ -109,7 +125,7 @@ describe('Given an instance of BaseNode',function () {
   describe('#getData()', function () {
     it('should return object with default data', () => {
       let data = instance.getData();
-      expect(data).to.have.all.keys(['class','uuid','label','wires','params']);
+      expect(data).to.have.all.keys(['class','uuid','label','wires','params','x','y']);
       expect(data.class).to.equal('BaseNode');
       expect(pattern.test(data.uuid)).to.equal(true);
     });
@@ -118,7 +134,7 @@ describe('Given an instance of BaseNode',function () {
       data.uuid = id;
       instance = new BaseNode(data);
       let output = instance.getData();
-      expect(output).to.have.all.keys(['class','uuid','label','wires','params']);
+      expect(output).to.have.all.keys(['class','uuid','label','wires','params','x','y']);
       expect(output.class).to.equal('BaseNode');
       expect(output.uuid).to.equal(id);
       expect(output.wires).to.have.any.keys(['visible','enabled']);

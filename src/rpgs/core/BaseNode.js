@@ -11,6 +11,8 @@ let BaseNode = (function () {
   // and our class can capture those key/value maps in a closure.
   let _uuid = new WeakMap();
   let _label = new WeakMap();
+  let _x = new WeakMap();
+  let _y = new WeakMap();
 
   /* function executeScript(rpgs, scriptId) {
     let _script = rpgs.findNode(scriptId);
@@ -25,6 +27,8 @@ let BaseNode = (function () {
       // If uuid not present, then by default we assign Universally Unique ID.
       _uuid.set(this, _data.uuid ? _data.uuid : Utils.getUUID());
       _label.set(this, _data.label ? _data.label : '');
+      _x.set(this, _data.x ? _data.x : 0);
+      _y.set(this, _data.y ? _data.y : 0);
       this.rpgs = rpgs;
       this.pm = new ParamsManager(_data.params || {});
       this.cm = new ConnectorManager();
@@ -68,6 +72,23 @@ let BaseNode = (function () {
     getLabel() {
       return _label.get(this);
     }
+
+    set x(value) {
+      _x.set(this, value);
+    }
+
+    get x() {
+      return _x.get(this);
+    }
+
+    set y(value) {
+      _y.set(this, value);
+    }
+
+    get y() {
+      return _y.get(this);
+    }
+
     /**
      * Returns visibility state.
      * @return {boolean} Visibility state
@@ -90,7 +111,9 @@ let BaseNode = (function () {
         uuid: this.getId(),
         label: this.getLabel(),
         wires: this.cm.getData(),
-        params: this.pm.getParams()
+        params: this.pm.getParams(),
+        x: this.x,
+        y: this.y
       };
     }
 

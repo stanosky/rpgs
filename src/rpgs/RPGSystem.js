@@ -221,9 +221,13 @@ let RPGSystem = function (data, editor) {
     });
   }
 
-  function _getDialogs() {
-    return _getNodesByClass('DialogNode');
+  function _getNodes(className = '') {
+    return className === '' ? _objectPool.slice() : _getNodesByClass(className);
   }
+
+  /* function _getDialogs() {
+    return _getNodesByClass('DialogNode');
+  }*/
 
   function _serializeData() {
     let data = _objectPool.map((obj) => {
@@ -240,6 +244,7 @@ let RPGSystem = function (data, editor) {
     findNode: _findNode,
     addNode: _addNode,
     removeNode: _removeNode,
+    getNodes: _getNodes,
 
     setWire: _setWire,
 
@@ -247,9 +252,10 @@ let RPGSystem = function (data, editor) {
     addTalk: _addTalk,
     addAnswer: _addAnswer,
 
-    getDialogs: _getDialogs,
+    // getDialogs: _getDialogs,
 
-    serializeData: _serializeData
+    serializeData: _serializeData,
+    toString: _serializeData // it is just alias of serializeData
   };
 
   return _self;
