@@ -24,6 +24,7 @@ let BaseNode = (function () {
     constructor(data, rpgs) {
       let _data = data || {};
 
+      console.log('rpgs:', rpgs);
       // If uuid not present, then by default we assign Universally Unique ID.
       _uuid.set(this, _data.uuid ? _data.uuid : Utils.getUUID());
       _label.set(this, _data.label ? _data.label : '');
