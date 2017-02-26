@@ -43,12 +43,19 @@ const NodePool = function (errorHandler) {
     return className === '' ? _objectPool.slice() : _getNodesByClass(className);
   }
 
-  function _serialize() {
-    let data = _objectPool.map((obj) => {
+  function _getData() {
+    return _objectPool.map((obj) => {
       return obj.getData ? obj.getData() : obj;
     });
+  }
 
-    return JSON.stringify(data);
+  function _clearData() {
+    _objectPool.forEach(obj => obj.dispose());
+    _objectPool = [];
+  }
+
+  function _serialize() {
+    return JSON.stringify(_getData());
   }
 
   return {
@@ -56,7 +63,9 @@ const NodePool = function (errorHandler) {
     addNode: _addNode,
     removeNode: _removeNode,
     getNodes: _getNodes,
-    serialize: _serialize
+    getData: _getData,
+    serialize: _serialize,
+    clearData: _clearData
   };
 };
 

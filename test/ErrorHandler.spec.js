@@ -1,7 +1,16 @@
 'use strict'
-const expect = require('chai').expect;
 const ErrorHandler = require('../src/rpgs/core/ErrorHandler');
 const ErrorCode = require('../src/rpgs/core/ErrorCode');
+
+const chai = require("chai");
+const sinon = require("sinon");
+const sinonChai = require("sinon-chai");
+const NodeFactory = require('../src/rpgs/core/NodeFactory');
+const expect = chai.expect;
+const assert = chai.assert;
+chai.use(sinonChai);
+
+let fake_logger = sinon.stub();
 
 let params;
 let instance;
@@ -11,10 +20,11 @@ describe('Given an instance of ErrorHandler',function () {
   beforeEach(function () {
     instance = new ErrorHandler();
   });
-  describe('#constructor()',function() {
-    it('should initialize without params', () => {
-      instance = new ErrorHandler();
-      expect(instance.showMsg).to.be.instanceof(Function);
+  describe('#setLogger()',function() {
+    it('should set logger handler function', () => {
+      instance.setLogger(fake_logger);
+      instance.showMsg(0,{type:'BaseNode'});
+      expect(fake_logger).have.been.calledWith('Node of type BaseNode is not defined.');
     });
   });
   describe('#showMsg()',function() {
