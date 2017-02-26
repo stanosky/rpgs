@@ -9,8 +9,8 @@ let AnswerNode = (function () {
   let _text = new WeakMap();
 
   return class AnswerNode extends BaseNode {
-    constructor(data) {
-      super(data);
+    constructor(nodePool, data) {
+      super(nodePool, data);
       _text.set(this, data && data.text ? data.text : '');
     }
 
@@ -39,6 +39,7 @@ let AnswerNode = (function () {
     }
 
     dispose() {
+      // console.log('dispose from AnswerNode');
       _text.delete(this);
       super.dispose();
     }

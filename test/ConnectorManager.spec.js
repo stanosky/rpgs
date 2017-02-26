@@ -33,18 +33,18 @@ describe('Given an instance of ConnectorManager', function() {
       expect(cm.getConnector('undefinedType')).to.equal(null);
     });
   });
-  describe('#canAddWireType()', function() {
+  describe('#canRecieveWire()', function() {
     it('should return true if wire can be set', () => {
       let len = type.length;
       for(i=1; i < len; i++) cm.addConnector(type[i],limit[i]);
-      for(i=0; i < len; i++) expect(cm.canAddWireType(type[1])).to.equal(true);
+      for(i=1; i < len; i++) expect(cm.canRecieveWire(type[i])).to.equal(true);
     });
     it('should return false, if wire is not compatible or it has too many connections', () => {
       cm.addConnector(type[0],limit[0]);
       cm.addConnector(type[1],limit[1]);
       cm.getConnector(type[1]).addWire('testWireId');
-      expect(cm.canAddWireType(type[0])).to.equal(false);
-      expect(cm.canAddWireType(type[1])).to.equal(false);
+      expect(cm.canRecieveWire(type[0])).to.equal(false);
+      expect(cm.canRecieveWire(type[1])).to.equal(false);
     });
   });
   describe('#getData()', function() {

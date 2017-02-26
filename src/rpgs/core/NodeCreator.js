@@ -2,30 +2,30 @@
 
 import ErrorCode from './ErrorCode';
 
-const NodeCreator = function(nodePool, nodeFactory, errorHandler) {
+const NodeCreator = function (nodePool, nodeFactory, errorHandler) {
   const _nodePool = nodePool,
     _nodeFactory = nodeFactory,
-    _errorHandler = errorHandle;
+    _errorHandler = errorHandler;
 
   let _lastChild = null,
     _parentHistory = [],
-    _tempWires = [],
-    _self = {};
+    _tempWires = [];
 
   function _setConnection(type, nodeId1, nodeId2) {
     if (nodeId1 === nodeId2) {
       _errorHandler.showMsg(ErrorCode.CONNECTION_TO_ITSELF, {node: nodeId1});
     }
 
-    let node1 = _findNode(nodeId1);
-    let node2 = _findNode(nodeId2);
+    let node1 = _nodePool.findNode(nodeId1);
+    let node2 = _nodePool.findNode(nodeId2);
 
     if (node2 === null) {
       _tempWires.push({type: type, targetNode: nodeId1, referenceNode: nodeId2});
       return;
     }
-    if (node1.canAddWireType(type)) {
-      node1.setWire(type, node2.getId());
+
+    if (node1.canRecieveWire(type) && node2.canBeWiredTo(type)) {
+      node1.addWire(type, node2.getId());
     } else {
       _errorHandler.showMsg(ErrorCode.IMPROPER_CONNECTION, {
         type: type,
@@ -56,11 +56,10 @@ const NodeCreator = function(nodePool, nodeFactory, errorHandler) {
   function _nodeCreator(params, asChild) {
     function createChildNode(nodeParams) {
       // We create a new node, and then set as the last child.
-      _lastChild = _nodeFactory(nodeParams);
+      _lastChild = _nodeFactory.createNode(nodeParams);
       // Then we add our freshly created node to its parent.
       _parentHistory[0].addChild(_lastChild.getId());
       // Finally new node is added to main storage object.
-      //_objectPool.push(_lastChild);
       _nodePool.addNode(_lastChild);
     }
     // Test if node should be added as child or parent.
@@ -69,7 +68,7 @@ const NodeCreator = function(nodePool, nodeFactory, errorHandler) {
       if (_lastChild !== null) {
         // If constructor name of previous child node, is equal to name of class,
         // whose we try to create, it means node should be added to current parent.
-        if (_lastChild.constructor.name === params.class) {
+        if (_lastChild.getData().class === params.class) {
           createChildNode(params);
         // If names of constructors not match, then we must check if new node
         // can be added as child to our previous child.
@@ -92,7 +91,7 @@ const NodeCreator = function(nodePool, nodeFactory, errorHandler) {
         _errorHandler.showMsg(ErrorCode.INCOMPATIBLE_CHILD, {
           child: params.class,
           parent: _parentHistory.length > 0 ?
-                  _parentHistory[0].constructor.name : 'null'
+                  _parentHistory[0].getData().class : 'null'
         });
       }
     } else {
@@ -101,10 +100,9 @@ const NodeCreator = function(nodePool, nodeFactory, errorHandler) {
       _lastChild = null;
       _parentHistory.length = 0;
       // After that, new node is created.
-      let node = _nodeFactory(params);
+      let node = _nodeFactory.createNode(params);
 
       _parentHistory = [node];
-      //_objectPool.push(node);
       _nodePool.addNode(node);
     }
 
@@ -113,10 +111,12 @@ const NodeCreator = function(nodePool, nodeFactory, errorHandler) {
     });
   }
 
-  function _addNode(className, params, asChild) {
-    params.class = className;
-    _nodeCreator(params, asChild);
-    return _self;
+  function _addNode(className, params = {}) {
+    let _params = params;
+
+    _params.class = className;
+    _nodeCreator(_params, false);
+    return this;
   }
 
   function _addDialog(id = _errorHandler.showMsg(ErrorCode.MANDATORY_PARAM,
@@ -127,7 +127,7 @@ const NodeCreator = function(nodePool, nodeFactory, errorHandler) {
     };
 
     _nodeCreator(params, false);
-    return _self;
+    return this;
   }
 
   function _addTalk(id = _errorHandler.showMsg(ErrorCode.MANDATORY_PARAM,
@@ -139,7 +139,7 @@ const NodeCreator = function(nodePool, nodeFactory, errorHandler) {
     };
 
     _nodeCreator(params, true);
-    return _self;
+    return this;
   }
 
   function _addAnswer(text = '') {
@@ -149,10 +149,10 @@ const NodeCreator = function(nodePool, nodeFactory, errorHandler) {
     };
 
     _nodeCreator(params, true);
-    return _self;
+    return this;
   }
 
-  function _setWire(type, referenceNodeId) {
+  function _addWire(type, referenceNodeId) {
     let targetNode = _lastChild;
 
     if (targetNode === null && _parentHistory.length > 0) {
@@ -166,14 +166,17 @@ const NodeCreator = function(nodePool, nodeFactory, errorHandler) {
       });*/
     }
     _setConnection(type, targetNode.getId(), referenceNodeId);
-    return _self;
+    return this;
   }
 
   return {
+    addNode: _addNode,
     addDialog: _addDialog,
     addTalk: _addTalk,
     addAnswer: _addAnswer,
-    setWire: _setWire
+    addWire: _addWire
   };
 
 };
+
+module.exports = NodeCreator;

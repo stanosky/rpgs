@@ -5,6 +5,7 @@ const AnswerNode = require('../src/rpgs/dialogs/AnswerNode');
 let params;
 let instance;
 let keys;
+let nodePool;
 
 describe('Given an instance of AnswerNode',function () {
   beforeEach(function () {
@@ -22,15 +23,12 @@ describe('Given an instance of AnswerNode',function () {
               text:'This is my answer.'
             };
     keys = ['class','uuid','label','wires','params','text','x','y'];
-    instance = new AnswerNode(params);
+    nodePool = {}
+    instance = new AnswerNode(nodePool, params);
   });
   describe('#constructor()',function() {
-    it('should initialize without params', () => {
-      instance = new AnswerNode();
-      expect(instance.getData()).to.have.all.keys(keys);
-    });
     it('should initialize with empty object', () => {
-      instance = new AnswerNode({});
+      instance = new AnswerNode(nodePool, {});
       expect(instance.getData()).to.have.all.keys(keys);
     });
     it('should initialize with data object', () => {
@@ -56,7 +54,7 @@ describe('Given an instance of AnswerNode',function () {
   });
   describe('#getTalk()',function() {
     it('should return id of linked talk node', () => {
-      instance.setWire('goto','talkNodeId');
+      instance.addWire('goto','talkNodeId');
       expect(instance.getTalk()).to.equal('talkNodeId');
     });
   });

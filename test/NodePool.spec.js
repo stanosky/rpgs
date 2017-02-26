@@ -1,93 +1,101 @@
-'use strict'
-const cleanup = require('jsdom-global')() // Saving ass line. It emulates global object from browsers.
-const expect = require('chai').expect
-const NodePool = require('../src/rpgs/NodePool')
-const BaseNode = require('../src/rpgs/core/BaseNode');
-const AnswerNode = require('../src/rpgs/dialogs/AnswerNode');
-const TalkNode = require('../src/rpgs/dialogs/TalkNode');
-const DialogNode = require('../src/rpgs/dialogs/DialogNode');
+'use strict';
 
-let rpgs;
-let testNodeId = 'testNode';
-let serialized = '[{"class":"DialogNode","uuid":"dlg1","label":"","wires":{"visible":[],"enabled":[]},"params":{},"x":0,"y":0,"children":["tlk0"],"startTalk":"tlk0"},{"class":"TalkNode","uuid":"tlk0","label":"","wires":{"visible":[],"enabled":[]},"params":{},"x":0,"y":0,"children":["ad62c1a0-d912-45d4-a0fd-680824c21e22"],"text":"This is talk 0."},{"class":"AnswerNode","uuid":"ad62c1a0-d912-45d4-a0fd-680824c21e22","label":"","wires":{"visible":[],"enabled":[],"goto":[]},"params":{},"x":0,"y":0,"text":"Answer1"}]';
+const chai = require("chai");
+const sinon = require("sinon");
+const sinonChai = require("sinon-chai");
+const NodePool = require('../src/rpgs/core/NodePool');
+const expect = chai.expect;
+const assert = chai.assert;
+chai.use(sinonChai);
+
+let params;
+let instance;
+
+let fake_eh_showMsg;
+let fake_errorHandler;
+
+let fake_bn_getId;
+let fake_bn_dispose;
+let fake_bn_getData;
+let fake_BaseNode;
+
+let fake_an_getId;
+let fake_an_dispose;
+let fake_an_getData;
+let fake_AnswerNode;
 
 describe('Given an instance of NodePool', function () {
   beforeEach(function () {
-    rpgs = new NodePool()
-  });
-  describe('new NodePool()', function () {
-    it('should create new instance even if no parameters has been passed', () => {
-      expect(rpgs.serialize()).to.equal('[]');
-    });
-    it('should create new instance with predefined nodes if serialized string has been passed', () => {
-      rpgs = new NodePool(serialized);
-      expect(rpgs.serialize()).to.equal(serialized);
-    });
+    fake_bn_getId = sinon.stub().returns('bn');
+    fake_bn_dispose = sinon.stub();
+    fake_bn_getData = sinon.stub().returns({class:'BaseNode'});
+    fake_BaseNode = {
+      getId: fake_bn_getId,
+      getData: fake_bn_getData,
+      dispose: fake_bn_dispose
+    };
+
+    fake_an_getId = sinon.stub().returns('an');
+    fake_an_dispose = sinon.stub();
+    fake_an_getData = sinon.stub().returns({class:'AnswerNode'});
+    fake_AnswerNode = {
+      getId: fake_an_getId,
+      getData: fake_an_getData,
+      dispose: fake_an_dispose
+    };
+
+    fake_eh_showMsg = sinon.stub().throws("Error");
+    fake_errorHandler = {showMsg: fake_eh_showMsg};
+    instance = new NodePool(fake_errorHandler);
   });
   describe('#addNode()', function () {
     it('should add node of given type', () => {
-      rpgs.addNode('BaseNode',{uuid:testNodeId},false);
-      expect(rpgs.findNode(testNodeId)).to.be.instanceof(BaseNode)
+      instance.addNode(fake_BaseNode);
+      expect(instance.findNode('bn')).to.equal(fake_BaseNode);
     });
   });
   describe('#findNode()', function () {
     it('should return null if nothing is passed', () => {
-      expect(rpgs.findNode()).to.be.equal(null)
+      expect(instance.findNode()).to.equal(null);
     });
     it('should return null if we pass invalid id', () => {
-      expect(rpgs.findNode('invalid id')).to.be.equal(null)
+      expect(instance.findNode('invalid id')).to.equal(null);
     });
     it('should return BaseNode instance if we pass a valid id', () => {
-      rpgs.addNode('BaseNode',{uuid:testNodeId},false);
-      expect(rpgs.findNode(testNodeId)).to.be.instanceof(BaseNode)
+      instance.addNode(fake_BaseNode);
+      expect(instance.findNode('bn')).to.equal(fake_BaseNode);
     });
   });
   describe('#removeNode()', function () {
     it('should remove node with given id', () => {
-      rpgs.addNode('BaseNode',{uuid:testNodeId},false);
-      expect(rpgs.findNode(testNodeId)).to.be.instanceof(BaseNode)
-      rpgs.removeNode(testNodeId)
-      expect(rpgs.findNode(testNodeId)).to.be.equal(null)
+      instance.addNode(fake_BaseNode);
+      expect(instance.removeNode('bn')).to.equal(true);
+      expect(instance.findNode('bn')).to.equal(null);
+      expect(fake_bn_dispose).have.been.calledOnce;
     });
   });
   describe('#getNodes()',function() {
     it('should return array of available nodes', () => {
-      rpgs.addDialog('dlg1')
-            .addTalk('tlk1')
-            .addTalk('tlk2')
-          .addDialog('dlg2')
-            .addTalk('tlk3')
-            .addTalk('tlk4')
-      let nodes = rpgs.getNodes();
-      nodes.map(n => expect(n).to.be.instanceof(BaseNode));
+      instance.addNode(fake_BaseNode);
+      instance.addNode(fake_AnswerNode);
+      expect(instance.getNodes()).to.deep.equal([fake_BaseNode,fake_AnswerNode]);
     });
     it('should return array of nodes by type', () => {
-      rpgs.addDialog('dlg1')
-            .addTalk('tlk1')
-            .addTalk('tlk2')
-          .addDialog('dlg2')
-            .addTalk('tlk3')
-            .addTalk('tlk4')
-      let nodes = rpgs.getNodes('DialogNode');
-      nodes.map(n => expect(n).to.be.instanceof(DialogNode));
-      nodes = rpgs.getNodes('TalkNode');
-      nodes.map(n => expect(n).to.be.instanceof(TalkNode));
+      instance.addNode(fake_BaseNode);
+      instance.addNode(fake_AnswerNode);
+      expect(instance.getNodes('BaseNode')).to.deep.equal([fake_BaseNode]);
+      expect(instance.getNodes('AnswerNode')).to.deep.equal([fake_AnswerNode]);
     });
   });
 
   describe('#serialize()',function() {
     it('should return "[]" string if no nodes are added', () => {
-      expect(rpgs.serialize()).to.equal('[]');
+      expect(instance.serialize()).to.equal('[]');
     });
-    it('should return serialized data string from all nodes in RPGS instance', () => {
-      rpgs.addDialog('dlg1')
-            .addTalk('tlk0','This is talk 0.')
-              .addAnswer('Answer1')
-      let sd = rpgs.serialize();
-      let rpgs2 = new NodePool(sd);
-      expect(rpgs2.serialize()).to.equal(sd);
+    it('should return serialized data string from all nodes in instance instance', () => {
+      instance.addNode(fake_BaseNode);
+      instance.addNode(fake_AnswerNode);
+      expect(instance.serialize()).to.equal('[{"class":"BaseNode"},{"class":"AnswerNode"}]');
     });
   });
 });
-
-cleanup();

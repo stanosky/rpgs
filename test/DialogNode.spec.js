@@ -1,6 +1,23 @@
 'use strict'
-const expect = require('chai').expect;
 const DialogNode = require('../src/rpgs/dialogs/DialogNode');
+
+const chai = require("chai");
+const sinon = require("sinon");
+const sinonChai = require("sinon-chai");
+const NodeFactory = require('../src/rpgs/core/NodeFactory');
+const expect = chai.expect;
+const assert = chai.assert;
+chai.use(sinonChai);
+
+let fake_findNode = sinon.stub().returns(null);
+let fake_removeNode = sinon.stub().returns(false);
+fake_removeNode.withArgs('child1').returns(true);
+let fake_NodePool = {
+  findNode: fake_findNode,
+  removeNode: fake_removeNode
+};
+
+
 
 let params;
 let instance;
@@ -22,15 +39,15 @@ describe('Given an instance of DialogNode',function () {
               'y': 0
             };
     keys = ['class','uuid','label','wires','params','children','startTalk','x','y'];
-    instance = new DialogNode(params);
+    instance = new DialogNode(fake_NodePool, params);
   });
   describe('#constructor()',function() {
     it('should initialize without params', () => {
-      instance = new DialogNode();
+      instance = new DialogNode(fake_NodePool, {});
       expect(instance.getData()).to.have.all.keys(keys);
     });
     it('should initialize with empty object', () => {
-      instance = new DialogNode({});
+      instance = new DialogNode(fake_NodePool, {});
       expect(instance.getData()).to.have.all.keys(keys);
     });
     it('should initialize with data object', () => {

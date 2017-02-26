@@ -8,8 +8,8 @@ let CompoundNode = (function () {
 
   return class CompoundNode extends BaseNode {
 
-    constructor(data, rpgs) {
-      super(data, rpgs);
+    constructor(nodePool, data) {
+      super(nodePool, data);
       _children.set(this, data && data.children ? data.children : []);
     }
 
@@ -30,6 +30,7 @@ let CompoundNode = (function () {
       let children = _children.get(this);
 
       if (index >= 0 && index < children.length) {
+        this.nodePool.removeNode(children[index]);
         children.splice(index, 1);
         _children.set(this, children);
       }
@@ -46,13 +47,10 @@ let CompoundNode = (function () {
     }
 
     dispose() {
-      if (this.rpgs) {
-        _children.get(this).map(childId => {
-          let nodeObj = this.rpgs.findNode(childId);
-
-          if (nodeObj !== null) nodeObj.dispose();
-        });
-      }
+      // console.log('dispose from CompoundNode');
+      _children.get(this).map(childId => {
+        this.nodePool.removeNode(childId);
+      });
       _children.delete(this);
       super.dispose();
     }

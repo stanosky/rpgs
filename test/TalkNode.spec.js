@@ -1,6 +1,21 @@
 'use strict'
-const expect = require('chai').expect;
 const TalkNode = require('../src/rpgs/dialogs/TalkNode');
+
+const chai = require("chai");
+const sinon = require("sinon");
+const sinonChai = require("sinon-chai");
+const NodeFactory = require('../src/rpgs/core/NodeFactory');
+const expect = chai.expect;
+const assert = chai.assert;
+chai.use(sinonChai);
+
+let fake_findNode = sinon.stub().returns(null);
+let fake_removeNode = sinon.stub().returns(false);
+fake_removeNode.withArgs('child1').returns(true);
+let fake_NodePool = {
+  findNode: fake_findNode,
+  removeNode: fake_removeNode
+};
 
 let params;
 let instance;
@@ -22,15 +37,11 @@ describe('Given an instance of TalkNode',function () {
               'y': 0
             };
     keys = ['class','uuid','label','wires','params','children','text','x','y'];
-    instance = new TalkNode(params)
+    instance = new TalkNode(fake_NodePool, params)
   });
   describe('#constructor()',function() {
-    it('should initialize without params', () => {
-      instance = new TalkNode();
-      expect(instance.getData()).to.have.all.keys(keys);
-    });
     it('should initialize with empty object', () => {
-      instance = new TalkNode({});
+      instance = new TalkNode(fake_NodePool, {});
       expect(instance.getData()).to.have.all.keys(keys);
     });
     it('should initialize with data object', () => {

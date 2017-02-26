@@ -1,17 +1,28 @@
 'use strict'
-const expect = require('chai').expect
 const BaseNode = require('../src/rpgs/core/BaseNode')
+
+const chai = require("chai");
+const sinon = require("sinon");
+const sinonChai = require("sinon-chai");
+const NodeFactory = require('../src/rpgs/core/NodeFactory');
+const expect = chai.expect;
+const assert = chai.assert;
+chai.use(sinonChai);
+
+let fake_findNode = sinon.stub().returns(null);
+let fake_NodePool = {
+  findNode: fake_findNode
+};
 
 let instance;
 let wires;
 let data;
 let pattern = new RegExp(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/);
-let rpgsMock1 = {findNode:function() {return null}};
-let rpgsMock2 = {findNode:function() {return {execute:function() {return true;}};}};
+
 
 describe('Given an instance of BaseNode',function () {
   beforeEach(function () {
-    instance = new BaseNode();
+    instance = new BaseNode(fake_NodePool, {});
     wires = {visible:['id1'],enabled:['id2']};
     data = {wires:wires};
     instance.addParam('cat','boolean',true);
@@ -23,7 +34,7 @@ describe('Given an instance of BaseNode',function () {
     it('should create new instance with predefined data if passed', () => {
       let id = 'custom id';
       data.uuid = id;
-      instance = new BaseNode(data);
+      instance = new BaseNode(fake_NodePool, data);
       expect(instance.getId()).to.be.equal(id);
       expect(instance.getWires('visible')).to.deep.equal(wires.visible);
       expect(instance.getWires('enabled')).to.deep.equal(wires.enabled);
@@ -81,11 +92,11 @@ describe('Given an instance of BaseNode',function () {
 
   describe('#isVisible()', function () {
     it('should return visibility state true if no script was attached', () => {
-      instance = new BaseNode(data,rpgsMock1);
+      instance = new BaseNode(fake_NodePool, data);
       expect(instance.isVisible()).to.be.equal(true);
     });
     it('should return visibility state form script if attached', () => {
-      instance = new BaseNode(data,rpgsMock2);
+      instance = new BaseNode(fake_NodePool, data);
       expect(instance.isVisible()).to.be.equal(true);
     });
   });
@@ -114,11 +125,11 @@ describe('Given an instance of BaseNode',function () {
   });
   describe('#isActive()', function () {
     it('should return activity state true if no script was attached', () => {
-      instance = new BaseNode(data,rpgsMock1);
+      instance = new BaseNode(fake_NodePool, data);
       expect(instance.isActive()).to.be.equal(true);
     });
     it('should return activity state form script if attached', () => {
-      instance = new BaseNode(data,rpgsMock2);
+      instance = new BaseNode(fake_NodePool, data);
       expect(instance.isActive()).to.be.equal(true);
     });
   });
@@ -132,7 +143,7 @@ describe('Given an instance of BaseNode',function () {
     it('should return object with updated data', () => {
       let id = 'test id';
       data.uuid = id;
-      instance = new BaseNode(data);
+      instance = new BaseNode(fake_NodePool, data);
       let output = instance.getData();
       expect(output).to.have.all.keys(['class','uuid','label','wires','params','x','y']);
       expect(output.class).to.equal('BaseNode');
@@ -172,20 +183,20 @@ describe('Given an instance of BaseNode',function () {
       expect(instance.getChildren().length).to.equal(0);
     });
   });
-  describe('#canAddWireType()',function () {
+  describe('#canRecieveWire()',function () {
     it('should return true/false depends on wire type', () => {
       let wireType = ['visible','enabled','action','goto','dialog'];
       let expOutput = [true,true,false,false,false];
       for (var i = 0; i < wireType.length; i++) {
-        expect(instance.canAddWireType(wireType[i])).to.equal(expOutput[i]);
+        expect(instance.canRecieveWire(wireType[i])).to.equal(expOutput[i]);
       }
     });
   });
-  describe('#setWire()',function () {
+  describe('#addWire()',function () {
     it('should attach wire of given type', () => {
         let wireType = 'visible';
         let nodeId = 'testId';
-        instance.setWire(wireType,nodeId);
+        instance.addWire(wireType,nodeId);
         expect(instance.getWires(wireType)[0]).to.equal(nodeId);
     });
   });
@@ -193,8 +204,8 @@ describe('Given an instance of BaseNode',function () {
     it('should return array of attached wires by type (i.e. ids of nodes)', () => {
       let wireType = ['visible','enabled'];
       let ids = ['i0','i1'];
-      instance.setWire(wireType[0],ids[0]);
-      instance.setWire(wireType[1],ids[1]);
+      instance.addWire(wireType[0],ids[0]);
+      instance.addWire(wireType[1],ids[1]);
       expect(instance.getWires(wireType[0])[0]).to.equal(ids[0]);
       expect(instance.getWires(wireType[1])[0]).to.equal(ids[1]);
     });
@@ -203,8 +214,8 @@ describe('Given an instance of BaseNode',function () {
     it('should remove wire by type and id', () => {
       let wireType = ['visible','enabled'];
       let ids = ['i0','i1'];
-      instance.setWire(wireType[0],ids[0]);
-      instance.setWire(wireType[1],ids[1]);
+      instance.addWire(wireType[0],ids[0]);
+      instance.addWire(wireType[1],ids[1]);
       //remove first id from "visibility" wires
       instance.removeWire(wireType[0],ids[0]);
       expect(instance.getWires(wireType[0])[0]).to.equal(undefined);

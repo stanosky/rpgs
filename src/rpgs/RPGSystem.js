@@ -14,13 +14,14 @@ import NodeCreator from './core/NodeCreator';
 
 const RPGSystem = function (data, editor) {
 
+  const _data = data || '[]';
   const _editor = editor || null;
   const _errorHandler = new ErrorHandler(_editor);
-  const _nodePool = new NodePool(data, _errorHandler);
+  const _nodePool = new NodePool(_errorHandler);
   const _nodeFactory = new NodeFactory(_nodePool, _errorHandler);
   const _nodeCreator = new NodeCreator(_nodePool, _nodeFactory, _errorHandler);
 
-  if (data) JSON.parse(data).map((d) => {
+  JSON.parse(_data).map((d) => {
     _nodePool.addNode(_nodeFactory.createNode(d));
   });
 
@@ -30,15 +31,15 @@ const RPGSystem = function (data, editor) {
     addDialog: _nodeCreator.addDialog,
     addTalk: _nodeCreator.addTalk,
     addAnswer: _nodeCreator.addAnswer,
-    setWire: _nodeCreator.setWire,
+    addWire: _nodeCreator.addWire,
+    addNode: _nodeCreator.addNode,
 
     findNode: _nodePool.findNode,
-    addNode: _nodePool.addNode,
     removeNode: _nodePool.removeNode,
     getNodes: _nodePool.getNodes,
 
     serialize: _nodePool.serialize,
-    toString: _nodePool.serialize  // it is just alias of serializeData
+    toString: _nodePool.serialize  // it is just alias of serialize
   };
 };
 

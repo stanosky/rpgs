@@ -6,8 +6,8 @@ let TalkNode = (function () {
   let _text = new WeakMap();
 
   return class TalkNode extends CompoundNode {
-    constructor(data) {
-      super(data);
+    constructor(nodePool, data) {
+      super(nodePool, data);
       _text.set(this, data && data.text ? data.text : '');
     }
 
@@ -30,7 +30,12 @@ let TalkNode = (function () {
       return type === 'AnswerNode';
     }
 
+    canBeWiredTo(type) {
+      return type === 'goto';
+    }
+
     dispose() {
+      // console.log('dispose from TalkNode');
       _text.delete(this);
       super.dispose();
     }

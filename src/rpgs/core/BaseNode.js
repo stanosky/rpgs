@@ -21,16 +21,16 @@ let BaseNode = (function () {
   }*/
 
   return class BaseNode {
-    constructor(data, rpgs) {
+    constructor(nodePool, data) {
       let _data = data || {};
 
-      console.log('rpgs:', rpgs);
+      // console.log('BaseNode', nodePool);
       // If uuid not present, then by default we assign Universally Unique ID.
       _uuid.set(this, _data.uuid ? _data.uuid : Utils.getUUID());
       _label.set(this, _data.label ? _data.label : '');
       _x.set(this, _data.x ? _data.x : 0);
       _y.set(this, _data.y ? _data.y : 0);
-      this.rpgs = rpgs;
+      this.nodePool = nodePool;
       this.pm = new ParamsManager(_data.params || {});
       this.cm = new ConnectorManager();
       this._init();
@@ -95,7 +95,7 @@ let BaseNode = (function () {
      * @return {boolean} Visibility state
      */
     isVisible() {
-      return true;// executeScript(this.rpgs, this.cm.getWiresType(Plug.VISIBLE)[0]);
+      return true;// executeScript(this.rpgs, this.cm.getWires(Plug.VISIBLE)[0]);
     }
 
     /**
@@ -103,7 +103,7 @@ let BaseNode = (function () {
      * @return {boolean} Active state
      */
     isActive() {
-      return true;// executeScript(this.rpgs, this.cm.getWiresType(Plug.ENABLED)[0]);
+      return true;// executeScript(this.rpgs, this.cm.getWires(Plug.ENABLED)[0]);
     }
 
     getData() {
@@ -141,29 +141,37 @@ let BaseNode = (function () {
       return [];
     }
 
-    canAddWireType(type) {
-      return this.cm.canAddWireType(type);
+    canBeWiredTo(type) {
+      return false;
     }
 
-    setWire(type, nodeId) {
-      this.cm.addWireType(type, nodeId);
+    canRecieveWire(type) {
+      return this.cm.canRecieveWire(type);
+    }
+
+    addWire(type, nodeId) {
+      this.cm.addWire(type, nodeId);
     }
 
     getWires(type) {
-      return this.cm.getWiresType(type);
+      return this.cm.getWires(type);
     }
 
     removeWire(type, nodeId) {
-      this.cm.removeWireType(type, nodeId);
+      this.cm.removeWire(type, nodeId);
     }
 
     dispose() {
+      // console.log('dispose from BaseNode');
       this.cm.dispose();
       this.pm.dispose();
       this.cm = null;
       this.pm = null;
-      this.rpgs = null;
+      this.nodePool = null;
       _uuid.delete(this);
+      _label.delete(this);
+      _x.delete(this);
+      _y.delete(this);
     }
   };
 })();

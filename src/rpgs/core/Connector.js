@@ -27,17 +27,17 @@ let Connector = (function () {
 
     canAddWire() {
       let limit = this.getLimit();
-      let wiresLen = this.getWires().length;
+      let wireLen = this.getWires().length;
 
-      return limit === -1 || (limit > 0 && wiresLen < limit);
+      return limit === -1 || (limit > 0 && wireLen < limit);
     }
 
     addWire(nodeId) {
-      let wires = this.getWires();
+      let wire = this.getWires();
 
       if (this.canAddWire()) {
-        wires.push(nodeId);
-        _wires.set(this, wires);
+        wire.push(nodeId);
+        _wires.set(this, wire);
       }
     }
 

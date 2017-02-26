@@ -7,8 +7,8 @@ let DialogNode = (function () {
 
   return class DialogNode extends CompoundNode {
 
-    constructor(data) {
-      super(data);
+    constructor(nodePool, data) {
+      super(nodePool, data);
       _start.set(this, data && data.startTalk ? data.startTalk : '');
     }
 
@@ -50,6 +50,7 @@ let DialogNode = (function () {
     }
 
     dispose() {
+      // console.log('dispose from DialogNode');
       _start.delete(this);
       super.dispose();
     }

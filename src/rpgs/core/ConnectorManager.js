@@ -49,7 +49,7 @@ let ConnectorManager = (function () {
       return connector !== null && connector.length > 0 ? connector[0] : null;
     }
 
-    canAddWireType(type) {
+    canRecieveWire(type) {
       let connectors = _connectors.get(this);
 
       return connectors.filter(c => {
@@ -57,7 +57,7 @@ let ConnectorManager = (function () {
       }).length > 0;
     }
 
-    addWireType(type, nodeId) {
+    addWire(type, nodeId) {
       let connector = this.getConnector(type);
 
       if (connector !== null) {
@@ -65,13 +65,13 @@ let ConnectorManager = (function () {
       }
     }
 
-    getWiresType(type) {
+    getWires(type) {
       let connector = this.getConnector(type);
 
       return connector !== null ? connector.getWires() : [];
     }
 
-    removeWireType(type, nodeId) {
+    removeWire(type, nodeId) {
       let connector = this.getConnector(type);
 
       if (connector !== null) {

@@ -2,7 +2,8 @@
 import Utils from './Utils';
 // import ErrorCode from './core/ErrorCode';
 
-const NodePool = function(data, errorHandler) {
+const NodePool = function (errorHandler) {
+  // const _errorHandler = errorHandler;
   let _objectPool = [];
 
   function _findNode(nodeId) {
@@ -15,8 +16,8 @@ const NodePool = function(data, errorHandler) {
   }
 
   function _addNode(node) {
-    // Todo: duplicate checking
-    _objectPool.push(_lastChild);
+    if (!node.getId) return; // _errorHandler.showMsg();
+    _objectPool.push(node);
   }
 
   function _removeNode(id) {
@@ -33,7 +34,8 @@ const NodePool = function(data, errorHandler) {
 
   function _getNodesByClass(className) {
     return _objectPool.filter((node) => {
-      return node.constructor.name === className;
+      return node.getData().class === className;
+      // return node.constructor.name === className;
     });
   }
 
@@ -57,3 +59,5 @@ const NodePool = function(data, errorHandler) {
     serialize: _serialize
   };
 };
+
+module.exports = NodePool;
