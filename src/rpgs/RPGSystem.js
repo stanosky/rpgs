@@ -21,6 +21,7 @@ const RPGSystem = function () {
 
   function _mergeNodes(data) {
     data.forEach((d) => {
+      _nodePool.removeNode(d.uuid);
       _nodePool.addNode(_nodeFactory.createNode(d));
     });
   }
