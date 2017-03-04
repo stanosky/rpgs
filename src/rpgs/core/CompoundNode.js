@@ -16,7 +16,7 @@ let CompoundNode = (function () {
     getData() {
       let data = super.getData();
 
-      data.children = this.getChildren();
+      data.children = this.getChildren().map(child => child.getId());
       return data;
     }
 
@@ -37,17 +37,23 @@ let CompoundNode = (function () {
     }
 
     getChild(index) {
-      let children = _children.get(this);
+      let children = this.getChildren();
 
       return children.length > index ? children[index] : null;
     }
 
     getChildren() {
-      return _children.get(this);
+      let children = _children.get(this);
+      let ret = [];
+
+      if (children !== undefined) {
+        ret = children.map(childId => this.nodePool.findNode(childId));
+      }
+      return ret;
     }
 
     setChildIndex(childId, newIndex) {
-      let children = this.getChildren();
+      let children = _children.get(this);
       let len = children.length;
       let oldIndex = children.indexOf(childId);
 

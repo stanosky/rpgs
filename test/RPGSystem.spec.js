@@ -15,8 +15,6 @@ const assert = chai.assert;
 chai.use(sinonChai);
 
 let fake_logger = sinon.stub();
-
-
 let instance;
 let testNodeId = 'testNode';
 let serialized = '[{"class":"DialogNode","uuid":"dlg1","label":"Dialog-dlg1","wires":{"visible":[],"enabled":[]},"params":{},"x":0,"y":0,"children":["tlk0"],"startTalk":"tlk0"},{"class":"TalkNode","uuid":"tlk0","label":"Talk-tlk0","wires":{"visible":[],"enabled":[]},"params":{},"x":0,"y":0,"children":["ad62c1a0-d912-45d4-a0fd-680824c21e22"],"text":"This is talk 0."},{"class":"AnswerNode","uuid":"ad62c1a0-d912-45d4-a0fd-680824c21e22","label":"Answer-ad62","wires":{"visible":[],"enabled":[],"goto":[]},"params":{},"x":0,"y":0,"text":"Answer1"}]';
@@ -79,8 +77,8 @@ describe('Given an instance of RPGSystem', function () {
       expect(instance.findNode('tlk0')).to.not.equal(null);
       expect(instance.findNode('tlk1')).to.not.equal(null);
 
-      let ans0 = tlk0.getChild(0);
-      let ans1 = tlk1.getChild(0);
+      let ans0 = tlk0.getChild(0).getId();
+      let ans1 = tlk1.getChild(0).getId();
       expect(instance.findNode(ans0)).to.not.equal(null);
       expect(instance.findNode(ans1)).to.not.equal(null);
     });
@@ -134,7 +132,7 @@ describe('Given an instance of RPGSystem', function () {
             .addTalk('tlk0','This is talk 0.')
               .addAnswer('Answer1').addWire('goto','tlk1')
             .addTalk('tlk1','This is talk 1.')
-      let answerId = instance.findNode('tlk0').getChild(0);
+      let answerId = instance.findNode('tlk0').getChild(0).getId();
       let answer = instance.findNode(answerId);
       expect(answer.getTalk()).to.equal('tlk1');
     });
@@ -163,7 +161,7 @@ describe('Given an instance of RPGSystem', function () {
       instance.addDialog('dlg1')
             .addTalk('tlk0','This is talk 0.')
               .addAnswer('Answer1')
-      let answerId = instance.findNode('tlk0').getChild(0);
+      let answerId = instance.findNode('tlk0').getChild(0).getId();
       let answerNode = instance.findNode(answerId)
       expect(answerNode).to.be.instanceof(AnswerNode);
     });

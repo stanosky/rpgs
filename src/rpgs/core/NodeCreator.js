@@ -57,10 +57,10 @@ const NodeCreator = function (nodePool, nodeFactory, errorHandler) {
     function createChildNode(nodeParams) {
       // We create a new node, and then set as the last child.
       _lastChild = _nodeFactory.createNode(nodeParams);
-      // Then we add our freshly created node to its parent.
-      _parentHistory[0].addChild(_lastChild.getId());
-      // Finally new node is added to main storage object.
+      // Next new node is added to main storage object.
       _nodePool.addNode(_lastChild);
+      // Finally we add our freshly created node to its parent.
+      _parentHistory[0].addChild(_lastChild.getId());
     }
     // Test if node should be added as child or parent.
     if (asChild) {

@@ -40,9 +40,7 @@ let DialogWalker = (function () {
       let children = currTalk ? currTalk.getChildren() : [];
 
       conversation.text = currTalk ? currTalk.getText() : '';
-      conversation.options = children.map((answerId) => {
-        let answer = _rpgs.get(this).findNode(answerId);
-
+      conversation.options = children.map((answer) => {
         return {
           id: answer.getId(),
           text: answer.getText(),
@@ -56,12 +54,12 @@ let DialogWalker = (function () {
     // should return boolean that indicates if there is next talk
     selectOption(id) {
       let children = _currTalk.get(this).getChildren();
-      let answerId = children.filter((currId, index, array) => {
-        return currId === id;
+      let answer = children.filter((child, index, array) => {
+        return child.getId() === id;
       });
 
-      if (answerId[0] !== undefined) {
-        let answerNode = _rpgs.get(this).findNode(answerId[0]);
+      if (answer[0] !== undefined) {
+        let answerNode = answer[0];
         let talkId;
 
         if (answerNode !== null) {

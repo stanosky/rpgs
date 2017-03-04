@@ -48,32 +48,11 @@ let fake_answer3_getTalk;
 describe('Given an instance of DialogWalker',function () {
   beforeEach(function () {
 
-    fake_dialog_getStartTalk = sinon.stub().returns('talk1');
-
-    fake_dialog = {getStartTalk:fake_dialog_getStartTalk};
-
-    fake_talk1_getText = sinon.stub().returns('Talk1 fake text.');
-    fake_talk1_getChildren = sinon.stub().returns(['ans1','ans2','ans3']);
-
-    fake_talk1 = {
-      getText:fake_talk1_getText,
-      getChildren:fake_talk1_getChildren
-    };
-
-    fake_talk2_getText = sinon.stub().returns('Talk2 fake text.');
-    fake_talk2_getChildren = sinon.stub().returns([]);
-
-    fake_talk2 = {
-      getText:fake_talk2_getText,
-      getChildren:fake_talk2_getChildren
-    };
-
     fake_answer1_getId = sinon.stub().returns('ans1');
     fake_answer1_getText = sinon.stub().returns('Answer1 fake text.');
     fake_answer1_isActive = sinon.stub().returns(true);
     fake_answer1_isVisible = sinon.stub().returns(true);
     fake_answer1_getTalk =  sinon.stub().returns('talk2');
-
     fake_answer1 = {
       getId:fake_answer1_getId,
       getText:fake_answer1_getText,
@@ -87,7 +66,6 @@ describe('Given an instance of DialogWalker',function () {
     fake_answer2_isActive = sinon.stub().returns(false);
     fake_answer2_isVisible = sinon.stub().returns(false);
     fake_answer2_getTalk =  sinon.stub().returns('talk3');
-
     fake_answer2 = {
       getId:fake_answer2_getId,
       getText:fake_answer2_getText,
@@ -101,7 +79,6 @@ describe('Given an instance of DialogWalker',function () {
     fake_answer3_isActive = sinon.stub().returns(false);
     fake_answer3_isVisible = sinon.stub().returns(false);
     fake_answer3_getTalk =  sinon.stub().returns(undefined);
-
     fake_answer3 = {
       getId:fake_answer3_getId,
       getText:fake_answer3_getText,
@@ -110,6 +87,23 @@ describe('Given an instance of DialogWalker',function () {
       getTalk:fake_answer3_getTalk
     }
 
+    fake_talk1_getText = sinon.stub().returns('Talk1 fake text.');
+    fake_talk1_getChildren = sinon.stub().returns([fake_answer1,fake_answer2,fake_answer3]);
+    fake_talk1 = {
+      getText:fake_talk1_getText,
+      getChildren:fake_talk1_getChildren
+    };
+
+    fake_talk2_getText = sinon.stub().returns('Talk2 fake text.');
+    fake_talk2_getChildren = sinon.stub().returns([]);
+    fake_talk2 = {
+      getText:fake_talk2_getText,
+      getChildren:fake_talk2_getChildren
+    };
+
+    fake_dialog_getStartTalk = sinon.stub().returns('talk1');
+    fake_dialog = {getStartTalk:fake_dialog_getStartTalk};
+
     fake_rpgs_findNode = sinon.stub().returns(null);
     fake_rpgs_findNode.withArgs('dlg1').returns(fake_dialog);
     fake_rpgs_findNode.withArgs('talk1').returns(fake_talk1);
@@ -117,7 +111,6 @@ describe('Given an instance of DialogWalker',function () {
     fake_rpgs_findNode.withArgs('ans1').returns(fake_answer1);
     fake_rpgs_findNode.withArgs('ans2').returns(fake_answer2);
     fake_rpgs_findNode.withArgs('ans3').returns(fake_answer3);
-
     fake_rpgs = {findNode:fake_rpgs_findNode};
 
     instance = new DialogWalker(fake_rpgs);
@@ -163,9 +156,6 @@ describe('Given an instance of DialogWalker',function () {
       let conv = instance.getConversation();
       expect(fake_talk1_getText).to.have.been.calledOnce;
       expect(fake_talk1_getChildren).to.have.been.calledOnce;
-      expect(fake_rpgs_findNode).to.have.been.calledWith('ans1');
-      expect(fake_rpgs_findNode).to.have.been.calledWith('ans2');
-      expect(fake_rpgs_findNode).to.have.been.calledWith('ans3');
 
       expect(fake_answer1_getId).to.have.been.calledOnce;
       expect(fake_answer1_getText).to.have.been.calledOnce;
@@ -212,7 +202,6 @@ describe('Given an instance of DialogWalker',function () {
       expect(fake_rpgs_findNode).to.have.been.calledWith('talk1');
       expect(instance.selectOption('ans1')).to.equal(true);
       expect(fake_talk1_getChildren).to.have.been.calledOnce;
-      expect(fake_rpgs_findNode).to.have.been.calledWith('ans1');
       expect(fake_answer1_getTalk).to.have.been.calledOnce;
       expect(fake_rpgs_findNode).to.have.been.calledWith('talk2');
     });

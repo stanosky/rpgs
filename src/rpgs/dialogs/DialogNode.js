@@ -1,5 +1,6 @@
 'use strict';
 import CompoundNode from '../core/CompoundNode';
+import Utils from '../core/Utils';
 
 let DialogNode = (function () {
 
@@ -31,7 +32,8 @@ let DialogNode = (function () {
     }
 
     removeChild(index) {
-      let talkId = this.getChild(index);
+      let child = this.getChild(index);
+      let talkId = child !== null ? child.getId() : '';
       let startTalk = this.getStartTalk();
 
       super.removeChild(index);
@@ -43,12 +45,12 @@ let DialogNode = (function () {
     setStartTalk(talkId) {
       // should only add talk nodes from internal children list
       let children = this.getChildren();
-      let childExist = children.indexOf(talkId) > -1;
+      let childExist = Utils.getIndexById(children, talkId) > -1;
 
       if (childExist) {
         _start.set(this, talkId);
       } else if (children[0] !== undefined) {
-        _start.set(this, children[0]);
+        _start.set(this, children[0].getId());
       } else {
         _start.set(this, '');
       }
