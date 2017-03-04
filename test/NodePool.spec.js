@@ -24,6 +24,9 @@ let fake_an_dispose;
 let fake_an_getData;
 let fake_AnswerNode;
 
+let fake_nf_createNode;
+let fake_nodeFactory;
+
 describe('Given an instance of NodePool', function () {
   beforeEach(function () {
     fake_bn_getId = sinon.stub().returns('bn');
@@ -44,14 +47,17 @@ describe('Given an instance of NodePool', function () {
       dispose: fake_an_dispose
     };
 
+    fake_nf_createNode = sinon.stub();
+    fake_nf_createNode.returns(fake_BaseNode);
+    fake_nodeFactory = {createNode: fake_nf_createNode};
+
     fake_eh_showMsg = sinon.stub().throws("Error");
     fake_errorHandler = {showMsg: fake_eh_showMsg};
-    instance = new NodePool(fake_errorHandler);
+    instance = new NodePool(fake_nodeFactory,fake_errorHandler);
   });
   describe('#addNode()', function () {
     it('should add node of given type', () => {
-      instance.addNode(fake_BaseNode);
-      expect(instance.findNode('bn')).to.equal(fake_BaseNode);
+      expect(instance.addNode({uuid:'bn'})).to.equal(fake_BaseNode);
     });
   });
   describe('#findNode()', function () {
@@ -77,14 +83,11 @@ describe('Given an instance of NodePool', function () {
   describe('#getNodes()',function() {
     it('should return array of available nodes', () => {
       instance.addNode(fake_BaseNode);
-      instance.addNode(fake_AnswerNode);
-      expect(instance.getNodes()).to.deep.equal([fake_BaseNode,fake_AnswerNode]);
+      expect(instance.getNodes()).to.deep.equal([fake_BaseNode]);
     });
     it('should return array of nodes by type', () => {
       instance.addNode(fake_BaseNode);
-      instance.addNode(fake_AnswerNode);
       expect(instance.getNodes('BaseNode')).to.deep.equal([fake_BaseNode]);
-      expect(instance.getNodes('AnswerNode')).to.deep.equal([fake_AnswerNode]);
     });
   });
 
@@ -94,8 +97,7 @@ describe('Given an instance of NodePool', function () {
     });
     it('should return serialized data string from all nodes in instance instance', () => {
       instance.addNode(fake_BaseNode);
-      instance.addNode(fake_AnswerNode);
-      expect(instance.serialize()).to.equal('[{"class":"BaseNode"},{"class":"AnswerNode"}]');
+      expect(instance.serialize()).to.equal('[{"class":"BaseNode"}]');
     });
   });
 });

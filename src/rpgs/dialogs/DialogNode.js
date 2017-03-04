@@ -25,10 +25,11 @@ let DialogNode = (function () {
     }
 
     addChild(childId) {
-      super.addChild(childId);
+      let child = super.addChild(childId);
       let children = this.getChildren();
 
       if (children.length === 1) this.setStartTalk(childId);
+      return child;
     }
 
     removeChild(index) {

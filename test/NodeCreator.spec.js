@@ -90,6 +90,7 @@ describe('Given an instance of NodeCreator', function () {
     fake_tn_canAddChild = sinon.stub().returns(true);
     fake_tn_addWire = sinon.stub();
     fake_tn_addChild = sinon.stub();
+    fake_tn_addChild.withArgs(an_params).returns(fake_AnswerNode)
     fake_tn_getData = sinon.stub().returns(tn_params);
     fake_tn_canBeWiredTo = sinon.stub().returns(true);
     fake_TalkNode = {
@@ -105,6 +106,7 @@ describe('Given an instance of NodeCreator', function () {
     fake_tn2_canAddChild = sinon.stub().returns(true);
     fake_tn2_addWire = sinon.stub();
     fake_tn2_addChild = sinon.stub();
+    fake_tn2_addChild.withArgs(an_params).returns(fake_AnswerNode);
     fake_tn2_getData = sinon.stub().returns(tn2_params);
     fake_tn2_canRecieveWire = sinon.stub().returns(true);
     fake_TalkNode2 = {
@@ -119,6 +121,8 @@ describe('Given an instance of NodeCreator', function () {
     fake_dn_canAddChild = sinon.stub().returns(true);
     fake_dn_addWire = sinon.stub();
     fake_dn_addChild = sinon.stub();
+    fake_dn_addChild.withArgs(tn_params).returns(fake_TalkNode);
+    fake_dn_addChild.withArgs(tn2_params).returns(fake_TalkNode2);
     fake_dn_getData = sinon.stub().returns(dn_params);
     fake_DialogNode = {
       getId: fake_dn_getId,
@@ -129,6 +133,11 @@ describe('Given an instance of NodeCreator', function () {
     };
 
     fake_np_addNode = sinon.stub();
+    fake_np_addNode.withArgs(bn_params).returns(fake_BaseNode);
+    fake_np_addNode.withArgs(an_params).returns(fake_AnswerNode);
+    fake_np_addNode.withArgs(tn_params).returns(fake_TalkNode);
+    fake_np_addNode.withArgs(tn2_params).returns(fake_TalkNode2);
+    fake_np_addNode.withArgs(dn_params).returns(fake_DialogNode);
     fake_np_findNode = sinon.stub().returns(null);
     fake_np_findNode.withArgs('bn').returns(fake_BaseNode);
     fake_np_findNode.withArgs('an').returns(fake_AnswerNode);
@@ -151,7 +160,7 @@ describe('Given an instance of NodeCreator', function () {
     fake_eh_showMsg = sinon.stub();
     fake_errorHandler = {showMsg: fake_eh_showMsg};
 
-    instance = new NodeCreator(fake_nodePool, fake_nodeFactory, fake_errorHandler);
+    instance = new NodeCreator(fake_nodePool, fake_errorHandler);
   });
   describe('#addNode()', function () {
     it('should be chainable method', () => {
@@ -159,8 +168,7 @@ describe('Given an instance of NodeCreator', function () {
     });
     it('should add node of given type', () => {
       instance.addNode('BaseNode');
-      expect(fake_nf_createNode).have.been.calledOnce;
-      expect(fake_np_addNode).have.been.calledWith(fake_BaseNode);
+      expect(fake_np_addNode).have.been.calledWith(bn_params);
     });
   });
   describe('#addDialog()',function() {
@@ -169,8 +177,7 @@ describe('Given an instance of NodeCreator', function () {
     });
     it('should add new dialog node', () => {
       instance.addDialog('dn');
-      expect(fake_nf_createNode).have.been.calledOnce;
-      expect(fake_np_addNode).have.been.calledWith(fake_DialogNode);
+      expect(fake_np_addNode).have.been.calledWith(dn_params);
     });
   });
   describe('#addTalk()',function() {
@@ -181,26 +188,20 @@ describe('Given an instance of NodeCreator', function () {
     it('should add new talk node', () => {
       instance.addDialog('dn')
                 .addTalk('tn');
-      expect(fake_nf_createNode).have.been.calledTwice;
-      expect(fake_dn_addChild).have.been.calledWith('tn');
-      expect(fake_np_addNode).have.been.calledWith(fake_DialogNode);
-      expect(fake_np_addNode).have.been.calledWith(fake_TalkNode);
+      expect(fake_dn_addChild).have.been.calledWith(tn_params);
+      expect(fake_np_addNode).have.been.calledWith(dn_params);
     });
   });
   describe('#addAnswer()',function() {
     it('should be chainable method', () => {
-      instance.addDialog('dn');
-      instance.addTalk('tn');
+      instance.addDialog('dn').addTalk('tn');
       expect(instance.addAnswer()).to.equal(instance);
     });
     it('should add new answer node', () => {
       instance.addDialog('dn').addTalk('tn').addAnswer();
-      expect(fake_nf_createNode).have.been.calledThrice;
-      expect(fake_np_addNode).have.been.calledWith(fake_DialogNode);
-      expect(fake_np_addNode).have.been.calledWith(fake_TalkNode);
-      expect(fake_np_addNode).have.been.calledWith(fake_AnswerNode);
-      expect(fake_dn_addChild).have.been.calledWith('tn');
-      expect(fake_tn_addChild).have.been.calledWith('an');
+      expect(fake_np_addNode).have.been.calledWith(dn_params);
+      expect(fake_dn_addChild).have.been.calledWith(tn_params);
+      expect(fake_tn_addChild).have.been.calledWith(an_params);
     });
   });
   describe('#addWire()',function() {

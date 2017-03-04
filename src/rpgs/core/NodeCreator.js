@@ -2,9 +2,8 @@
 
 import ErrorCode from './ErrorCode';
 
-const NodeCreator = function (nodePool, nodeFactory, errorHandler) {
+const NodeCreator = function (nodePool, errorHandler) {
   const _nodePool = nodePool,
-    _nodeFactory = nodeFactory,
     _errorHandler = errorHandler;
 
   let _lastChild = null,
@@ -55,12 +54,8 @@ const NodeCreator = function (nodePool, nodeFactory, errorHandler) {
    */
   function _nodeCreator(params, asChild) {
     function createChildNode(nodeParams) {
-      // We create a new node, and then set as the last child.
-      _lastChild = _nodeFactory.createNode(nodeParams);
-      // Next new node is added to main storage object.
-      _nodePool.addNode(_lastChild);
-      // Finally we add our freshly created node to its parent.
-      _parentHistory[0].addChild(_lastChild.getId());
+      // We create a new child node in parent
+      _lastChild = _parentHistory[0].addChild(nodeParams);
     }
     // Test if node should be added as child or parent.
     if (asChild) {
@@ -100,10 +95,7 @@ const NodeCreator = function (nodePool, nodeFactory, errorHandler) {
       _lastChild = null;
       _parentHistory.length = 0;
       // After that, new node is created.
-      let node = _nodeFactory.createNode(params);
-
-      _parentHistory = [node];
-      _nodePool.addNode(node);
+      _parentHistory = [_nodePool.addNode(params)];
     }
 
     _getWaitingWiresForNode(params.uuid).map((wire) => {
@@ -115,7 +107,8 @@ const NodeCreator = function (nodePool, nodeFactory, errorHandler) {
     let _params = params;
 
     _params.class = className;
-    _nodeCreator(_params, false);
+    _nodePool.addNode(_params);
+    /* _nodeCreator(_params, false);*/
     return this;
   }
 

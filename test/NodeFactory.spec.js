@@ -17,23 +17,34 @@ let instance;
 let fake_eh_showMsg;
 let fake_errorHandler;
 
+let fake_np_addNode;
+let fake_np_findNode;
+let fake_nodePool;
+
 describe('Given an instance of NodeFactory',function () {
   beforeEach(function () {
     fake_eh_showMsg = sinon.stub();
     fake_eh_showMsg.withArgs('').throws("Error");
     fake_errorHandler = {showMsg: fake_eh_showMsg};
 
-    instance = new NodeFactory({},fake_errorHandler);
+    fake_np_addNode = sinon.stub();
+    fake_np_findNode = sinon.stub().returns(null);
+    fake_nodePool = {
+      addNode: fake_np_addNode,
+      findNode: fake_np_findNode
+    };
+
+    instance = new NodeFactory(fake_errorHandler);
   });
   describe('#createNode()',function() {
     it('should create different nodes depends on given class name', () => {
-      expect(instance.createNode({class:'BaseNode'})).to.be.instanceof(BaseNode);
-      expect(instance.createNode({class:'AnswerNode'})).to.be.instanceof(AnswerNode);
-      expect(instance.createNode({class:'DialogNode'})).to.be.instanceof(DialogNode);
-      expect(instance.createNode({class:'TalkNode'})).to.be.instanceof(TalkNode);
+      expect(instance.createNode(fake_nodePool,{class:'BaseNode'})).to.be.instanceof(BaseNode);
+      expect(instance.createNode(fake_nodePool,{class:'AnswerNode'})).to.be.instanceof(AnswerNode);
+      expect(instance.createNode(fake_nodePool,{class:'DialogNode'})).to.be.instanceof(DialogNode);
+      expect(instance.createNode(fake_nodePool,{class:'TalkNode'})).to.be.instanceof(TalkNode);
     });
     it('should throw error if node of given name cannot be created', () => {
-      instance.createNode({class:''});
+      instance.createNode(fake_nodePool,{class:''});
       expect(fake_eh_showMsg).to.have.been.calledWith(1,{class:''});
     });
   });

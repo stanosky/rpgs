@@ -20,10 +20,15 @@ let CompoundNode = (function () {
       return data;
     }
 
-    addChild(childId) {
+    addChild(data) {
+      let child = this.nodePool.addNode(data);
       let children = _children.get(this);
 
-      _children.set(this, Utils.addObjectToArray(children, childId));
+      // console.log('addChild',child.getId());
+      if (child !== null) {
+        _children.set(this, Utils.addObjectToArray(children, child.getId()));
+      }
+      return child;
     }
 
     removeChild(index) {

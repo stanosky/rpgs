@@ -21,6 +21,11 @@ let fake_child3 = {getId:fake_child3_getId};
 let fake_child4_getId = sinon.stub().returns('child4');
 let fake_child4 = {getId:fake_child4_getId};
 
+let fake_addNode = sinon.stub().returns(null);
+fake_addNode.withArgs('child1').returns(fake_child1);
+fake_addNode.withArgs('child2').returns(fake_child2);
+fake_addNode.withArgs('child3').returns(fake_child3);
+fake_addNode.withArgs('child4').returns(fake_child4);
 let fake_findNode = sinon.stub().returns(null);
 fake_findNode.withArgs('child1').returns(fake_child1);
 fake_findNode.withArgs('child2').returns(fake_child2);
@@ -29,6 +34,7 @@ fake_findNode.withArgs('child4').returns(fake_child4);
 let fake_removeNode = sinon.stub().returns(false);
 fake_removeNode.withArgs('child1').returns(true);
 let fake_NodePool = {
+  addNode: fake_addNode,
   findNode: fake_findNode,
   removeNode: fake_removeNode
 };
@@ -86,11 +92,8 @@ describe('Given an instance of DialogNode',function () {
   });
   describe('#addChild()',function() {
     it('should add new child to node and set startTalk if it is first child', () => {
-      instance.addChild('child1');
-      instance.addChild('child2');
-      let children = instance.getChildren();
-      expect(children[0].getId()).to.equal('child1');
-      expect(children[1].getId()).to.equal('child2');
+      expect(instance.addChild('child1').getId()).to.equal('child1');
+      expect(instance.addChild('child2').getId()).to.equal('child2');
       expect(instance.getStartTalk()).to.equal('child1');
     });
   });

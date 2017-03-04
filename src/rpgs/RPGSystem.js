@@ -15,14 +15,14 @@ import NodeCreator from './core/NodeCreator';
 const RPGSystem = function () {
 
   const _errorHandler = new ErrorHandler();
-  const _nodePool = new NodePool(_errorHandler);
-  const _nodeFactory = new NodeFactory(_nodePool, _errorHandler);
-  const _nodeCreator = new NodeCreator(_nodePool, _nodeFactory, _errorHandler);
+  const _nodeFactory = new NodeFactory(_errorHandler);
+  const _nodePool = new NodePool(_nodeFactory, _errorHandler);
+  const _nodeCreator = new NodeCreator(_nodePool, _errorHandler);
 
   function _mergeNodes(data) {
     data.forEach((d) => {
       _nodePool.removeNode(d.uuid);
-      _nodePool.addNode(_nodeFactory.createNode(d));
+      _nodePool.addNode(d);
     });
   }
 

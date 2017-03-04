@@ -2,11 +2,12 @@
 import Utils from './Utils';
 // import ErrorCode from './core/ErrorCode';
 
-const NodePool = function (errorHandler) {
+const NodePool = function (nodeFactory, errorHandler) {
+  const _nodeFactory = nodeFactory;
   // const _errorHandler = errorHandler;
   let _objectPool = [];
 
-  function _findNode(nodeId) {
+  function findNode(nodeId) {
     var i;
 
     for (i = 0; i < _objectPool.length; i++) {
@@ -15,12 +16,14 @@ const NodePool = function (errorHandler) {
     return null;
   }
 
-  function _addNode(node) {
-    if (!node.getId) return; // _errorHandler.showMsg();
-    _objectPool.push(node);
+  function addNode(params) {
+    let node = _nodeFactory.createNode(this, params);
+
+    if (node !== null) _objectPool.push(node);
+    return node;
   }
 
-  function _removeNode(id) {
+  function removeNode(id) {
     let index = Utils.getIndexById(_objectPool, id);
     let isNodeFound = index > -1;
 
@@ -32,40 +35,40 @@ const NodePool = function (errorHandler) {
     return isNodeFound;
   }
 
-  function _getNodesByClass(className) {
+  function getNodesByClass(className) {
     return _objectPool.filter((node) => {
       return node.getData().class === className;
       // return node.constructor.name === className;
     });
   }
 
-  function _getNodes(className = '') {
-    return className === '' ? _objectPool.slice() : _getNodesByClass(className);
+  function getNodes(className = '') {
+    return className === '' ? _objectPool.slice() : getNodesByClass(className);
   }
 
-  function _getData() {
+  function getData() {
     return _objectPool.map((obj) => {
       return obj.getData ? obj.getData() : obj;
     });
   }
 
-  function _clearData() {
+  function clearData() {
     _objectPool.forEach(obj => obj.dispose());
     _objectPool = [];
   }
 
-  function _serialize() {
-    return JSON.stringify(_getData());
+  function serialize() {
+    return JSON.stringify(getData());
   }
 
   return {
-    findNode: _findNode,
-    addNode: _addNode,
-    removeNode: _removeNode,
-    getNodes: _getNodes,
-    getData: _getData,
-    serialize: _serialize,
-    clearData: _clearData
+    findNode: findNode,
+    addNode: addNode,
+    removeNode: removeNode,
+    getNodes: getNodes,
+    getData: getData,
+    serialize: serialize,
+    clearData: clearData
   };
 };
 

@@ -21,6 +21,7 @@ let fake_child3 = {getId:fake_child3_getId};
 let fake_child4_getId = sinon.stub().returns('child4');
 let fake_child4 = {getId:fake_child4_getId};
 
+let fake_addNode = sinon.stub().returns(fake_child4);
 let fake_findNode = sinon.stub().returns(null);
 fake_findNode.withArgs('child1').returns(fake_child1);
 fake_findNode.withArgs('child2').returns(fake_child2);
@@ -29,6 +30,7 @@ fake_findNode.withArgs('child4').returns(fake_child4);
 let fake_removeNode = sinon.stub().returns(false);
 fake_removeNode.withArgs('child1').returns(true);
 let fake_NodePool = {
+  addNode: fake_addNode,
   findNode: fake_findNode,
   removeNode: fake_removeNode
 };
@@ -70,9 +72,7 @@ describe('Given an instance of CompoundNode',function () {
   });
   describe('#addChild()',function() {
     it('should add new child to node', () => {
-      let newChild = 'child4'
-      instance.addChild(newChild);
-      expect(instance.getChildren().pop().getId()).to.equal(newChild);
+      expect(instance.addChild({uuid:'child4',class:'AnswerNode'})).to.equal(fake_child4);
     });
   });
   describe('#removeChild()',function() {
