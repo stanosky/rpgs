@@ -14,6 +14,7 @@ let BaseNode = (function () {
   let _x = new WeakMap();
   let _y = new WeakMap();
 
+  const getRandomLabel = (prefix, id) => prefix + id.substr(0, 4);
   /* function executeScript(rpgs, scriptId) {
     let _script = rpgs.findNode(scriptId);
 
@@ -27,7 +28,12 @@ let BaseNode = (function () {
       // console.log('BaseNode', nodePool);
       // If uuid not present, then by default we assign Universally Unique ID.
       _uuid.set(this, _data.uuid ? _data.uuid : Utils.getUUID());
-      _label.set(this, _data.label ? _data.label : '');
+
+      let className = this.constructor.name;
+      let prefix = className.substr(0, className.indexOf('Node')) + '-';
+
+      _label.set(this, _data.label ?
+        _data.label : getRandomLabel(prefix, _uuid.get(this)));
       _x.set(this, _data.x ? _data.x : 0);
       _y.set(this, _data.y ? _data.y : 0);
       this.nodePool = nodePool;

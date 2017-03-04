@@ -31,7 +31,7 @@ describe('Given an instance of DialogNode',function () {
                 enabled: [],
                 visible: []
               },
-              label: '',
+              label: 'myDialog',
               params:{},
               children:[],
               startTalk:'',
@@ -79,13 +79,19 @@ describe('Given an instance of DialogNode',function () {
     });
   });
   describe('#removeChild()',function() {
-    it('should remove child and unset startTalk if euqals id of removed child', () => {
+    it('should remove child and set startTalk to first available child', () => {
       instance.addChild('newTalkNodeId1');
       instance.addChild('newTalkNodeId2');
       expect(instance.getStartTalk()).to.equal('newTalkNodeId1');
       instance.removeChild(0);
+      expect(instance.getStartTalk()).to.equal('newTalkNodeId2');
+    });
+    it('should remove child and set to empty string if no other child exists', () => {
+      instance.addChild('newTalkNodeId1');
+      instance.addChild('newTalkNodeId2');
+      instance.removeChild(0);
+      instance.removeChild(0);
       expect(instance.getStartTalk()).to.equal('');
-      //expect(instance.getChildren()[0]).to.equal('newTalkNodeId2');
     });
   });
   describe('#setStartTalk()',function() {

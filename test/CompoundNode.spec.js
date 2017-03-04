@@ -77,6 +77,21 @@ describe('Given an instance of CompoundNode',function () {
       expect(instance.getChildren()).to.deep.equal(params.children);
     });
   });
+  describe('#setChildIndex()',function() {
+    it('should set new index for child', () => {
+      instance.setChildIndex('child1',2);
+      expect(instance.getChildren()).to.deep.equal(['child2','child3','child1']);
+      instance.setChildIndex('child3',0);
+      expect(instance.getChildren()).to.deep.equal(['child3','child2','child1']);
+    });
+    it('should adjust new index value if its out of bounds', () => {
+      instance.setChildIndex('child1',999);
+      expect(instance.getChildren()).to.deep.equal(['child2','child3','child1']);
+      instance.setChildIndex('child3',-100);
+      expect(instance.getChildren()).to.deep.equal(['child3','child2','child1']);
+
+    });
+  });
   describe('#dispose()',function() {
     it('should do cleanining and prepare object to garbage collector', () => {
       expect(instance.getChildren()).to.deep.equal(params.children);

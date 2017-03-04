@@ -31,18 +31,27 @@ let DialogNode = (function () {
     }
 
     removeChild(index) {
-      let child = this.getChild(index);
+      let talkId = this.getChild(index);
+      let startTalk = this.getStartTalk();
 
-      if (child === this.getStartTalk()) this.setStartTalk('');
       super.removeChild(index);
+      if (talkId === startTalk) {
+        this.setStartTalk('');
+      }
     }
 
     setStartTalk(talkId) {
       // should only add talk nodes from internal children list
       let children = this.getChildren();
-      let canAdd = children.filter(child => child === talkId)[0] !== undefined;
+      let childExist = children.indexOf(talkId) > -1;
 
-      if (canAdd || talkId === '') _start.set(this, talkId);
+      if (childExist) {
+        _start.set(this, talkId);
+      } else if (children[0] !== undefined) {
+        _start.set(this, children[0]);
+      } else {
+        _start.set(this, '');
+      }
     }
 
     getStartTalk() {

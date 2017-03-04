@@ -46,6 +46,16 @@ let CompoundNode = (function () {
       return _children.get(this);
     }
 
+    setChildIndex(childId, newIndex) {
+      let children = this.getChildren();
+      let len = children.length;
+      let oldIndex = children.indexOf(childId);
+
+      if (oldIndex < 0) return;
+      newIndex = newIndex < 0 ? 0 : (newIndex >= len ? len - 1 : newIndex);
+      children.splice(newIndex, 0, children.splice(oldIndex, 1)[0]);
+    }
+
     dispose() {
       // console.log('dispose from CompoundNode');
       _children.get(this).map(childId => {

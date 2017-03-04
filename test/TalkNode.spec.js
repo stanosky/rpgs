@@ -29,7 +29,7 @@ describe('Given an instance of TalkNode',function () {
                 enabled: [],
                 visible: []
               },
-              label: '',
+              label: 'myTalk',
               params:{},
               children:[],
               text:'',

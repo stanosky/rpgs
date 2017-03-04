@@ -16,7 +16,7 @@ describe('Given an instance of AnswerNode',function () {
                 goto: [],
                 visible: []
               },
-              label: '',
+              label: 'myAnswer',
               params:{},
               'x': 0,
               'y': 0,
