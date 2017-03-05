@@ -66,7 +66,7 @@ describe('Given an instance of RPGSystem', function () {
       instance2.addDialog('dlg2')
             .addTalk('tlk1','This is talk 1.')
               .addAnswer('Answer2 text');
-      instance.mergeNodes(instance2.getData());
+      instance.mergeNodes(JSON.stringify(instance2.getData()));
       expect(instance.getNodes().length).to.equal(6);
       expect(instance.getData().length).to.equal(6);
       expect(instance.findNode('dlg1')).to.not.equal(null);

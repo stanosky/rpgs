@@ -20,14 +20,26 @@ let CompoundNode = (function () {
       return data;
     }
 
-    addChild(data) {
-      let child = this.nodePool.addNode(data);
+    setNodeAsChild(node) {
+      let canSetAsChild = node !== null && this.canAddChild(node.getData().class);
       let children = _children.get(this);
 
       // console.log('addChild',child.getId());
-      if (child !== null) {
-        _children.set(this, Utils.addObjectToArray(children, child.getId()));
+      if (canSetAsChild) {
+        _children.set(this, Utils.addObjectToArray(children, node.getId()));
       }
+      return canSetAsChild;
+    }
+
+    canAddChild(type) {
+      return true;
+    }
+
+    addChild(data) {
+      let canSetAsChild = data && data.class ? this.canAddChild(data.class) : false;
+      let child = canSetAsChild ? this.nodePool.addNode(data) : null;
+
+      if (child !== null) this.setNodeAsChild(child);
       return child;
     }
 

@@ -20,17 +20,17 @@ const RPGSystem = function () {
   const _nodeCreator = new NodeCreator(_nodePool, _errorHandler);
 
   function _mergeNodes(data) {
-    data.forEach((d) => {
+    let _data = data || '[]';
+
+    JSON.parse(_data).forEach((d) => {
       _nodePool.removeNode(d.uuid);
       _nodePool.addNode(d);
     });
   }
 
   function _setData(data) {
-    let _data = data || '[]';
-
     _nodePool.clearData();
-    _mergeNodes(JSON.parse(_data));
+    _mergeNodes(data);
   }
 
   function _setLogger(logger) {

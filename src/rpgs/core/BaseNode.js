@@ -129,7 +129,11 @@ let BaseNode = (function () {
       return false;
     }
 
-    addChild(childId) {
+    addChild(params) {
+      // empty because cannot have children
+    }
+
+    setNodeAsChild(node) {
       // empty because cannot have children
     }
 

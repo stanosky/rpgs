@@ -24,12 +24,12 @@ let DialogNode = (function () {
       return type === 'TalkNode';
     }
 
-    addChild(childId) {
-      let child = super.addChild(childId);
+    setNodeAsChild(node) {
+      let canSetAsChild = super.setNodeAsChild(node);
       let children = this.getChildren();
 
-      if (children.length === 1) this.setStartTalk(childId);
-      return child;
+      if (canSetAsChild && children.length === 1) this.setStartTalk(node.getId());
+      return canSetAsChild;
     }
 
     removeChild(index) {

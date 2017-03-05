@@ -10,16 +10,20 @@ const assert = chai.assert;
 chai.use(sinonChai);
 
 let fake_child1_getId = sinon.stub().returns('child1');
-let fake_child1 = {getId:fake_child1_getId};
+let fake_child1_getData = sinon.stub().returns({class:'BaseNode'});
+let fake_child1 = {getId:fake_child1_getId,getData:fake_child1_getData};
 
 let fake_child2_getId = sinon.stub().returns('child2');
-let fake_child2 = {getId:fake_child2_getId};
+let fake_child2_getData = sinon.stub().returns({class:'BaseNode'});
+let fake_child2 = {getId:fake_child2_getId,getData:fake_child2_getData};
 
 let fake_child3_getId = sinon.stub().returns('child3');
-let fake_child3 = {getId:fake_child3_getId};
+let fake_child3_getData = sinon.stub().returns({class:'BaseNode'});
+let fake_child3 = {getId:fake_child3_getId,getData:fake_child3_getData};
 
 let fake_child4_getId = sinon.stub().returns('child4');
-let fake_child4 = {getId:fake_child4_getId};
+let fake_child4_getData = sinon.stub().returns({class:'BaseNode'});
+let fake_child4 = {getId:fake_child4_getId,getData:fake_child4_getData};
 
 let fake_addNode = sinon.stub().returns(fake_child4);
 let fake_findNode = sinon.stub().returns(null);
@@ -70,9 +74,15 @@ describe('Given an instance of CompoundNode',function () {
       expect(instance.getData().children).to.deep.equal(params.children);
     });
   });
+  describe('#setNodeAsChild()',function() {
+    it('should treat node as child', () => {
+      expect(instance.setNodeAsChild(fake_child4)).to.equal(true);
+      expect(instance.getChildren().length).to.equal(4);
+    });
+  });
   describe('#addChild()',function() {
     it('should add new child to node', () => {
-      expect(instance.addChild({uuid:'child4',class:'AnswerNode'})).to.equal(fake_child4);
+      expect(instance.addChild({uuid:'child4',class:'BaseNode'})).to.equal(fake_child4);
     });
   });
   describe('#removeChild()',function() {
