@@ -31,6 +31,7 @@ const NodePool = function (nodeFactory, errorHandler) {
       let node = _objectPool.splice(index, 1)[0];
 
       node.dispose();
+      _objectPool.forEach(node => node.cm.removeWiresTo(id));
     }
     return isNodeFound;
   }

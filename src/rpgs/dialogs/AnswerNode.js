@@ -34,10 +34,6 @@ let AnswerNode = (function () {
       return _text.get(this);
     }
 
-    getTalk() {
-      return this.getWires(Plug.GOTO)[0];
-    }
-
     dispose() {
       // console.log('dispose from AnswerNode');
       _text.delete(this);

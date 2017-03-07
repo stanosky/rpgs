@@ -167,7 +167,8 @@ const NodeCreator = function (nodePool, errorHandler) {
     addDialog: _addDialog,
     addTalk: _addTalk,
     addAnswer: _addAnswer,
-    addWire: _addWire
+    addWire: _addWire,
+    setConnection: _setConnection
   };
 
 };

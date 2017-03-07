@@ -48,6 +48,7 @@ const RPGSystem = function () {
     addWire: _nodeCreator.addWire,
     addNode: _nodeCreator.addNode,
 
+    setConnection: _nodeCreator.setConnection,
     findNode: _nodePool.findNode,
     removeNode: _nodePool.removeNode,
     getNodes: _nodePool.getNodes,

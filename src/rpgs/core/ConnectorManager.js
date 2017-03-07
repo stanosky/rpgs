@@ -79,6 +79,14 @@ let ConnectorManager = (function () {
       }
     }
 
+    removeWiresTo(nodeId) {
+      let connectors = _connectors.get(this) || null;
+
+      if (connectors !== null) {
+        connectors.forEach(c => c.removeWire(nodeId));
+      }
+    }
+
     getData() {
       let data = {};
       let connectors = _connectors.get(this) || [];

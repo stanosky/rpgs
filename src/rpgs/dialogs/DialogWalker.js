@@ -63,7 +63,7 @@ let DialogWalker = (function () {
         let talkId;
 
         if (answerNode !== null) {
-          talkId = answerNode.getTalk();
+          talkId = answerNode.getWires('goto')[0];
           if (talkId !== undefined) {
             this.setTalk(talkId);
             return true;

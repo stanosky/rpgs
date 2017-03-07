@@ -52,12 +52,6 @@ describe('Given an instance of AnswerNode',function () {
       expect(instance.getText()).to.equal(params.text);
     });
   });
-  describe('#getTalk()',function() {
-    it('should return id of linked talk node', () => {
-      instance.addWire('goto','talkNodeId');
-      expect(instance.getTalk()).to.equal('talkNodeId');
-    });
-  });
   describe('#dispose()',function() {
     it('should do cleanining and prepare object to garbage collector', () => {
       instance.dispose();

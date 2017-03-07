@@ -134,7 +134,7 @@ describe('Given an instance of RPGSystem', function () {
             .addTalk('tlk1','This is talk 1.')
       let answerId = instance.findNode('tlk0').getChild(0).getId();
       let answer = instance.findNode(answerId);
-      expect(answer.getTalk()).to.equal('tlk1');
+      expect(answer.getWires('goto')[0]).to.equal('tlk1');
     });
     it('should throw error if nodes are incompatible', () => {
       instance.addDialog('dlg1')
@@ -164,6 +164,28 @@ describe('Given an instance of RPGSystem', function () {
       let answerId = instance.findNode('tlk0').getChild(0).getId();
       let answerNode = instance.findNode(answerId)
       expect(answerNode).to.be.instanceof(AnswerNode);
+    });
+  });
+  describe('#setConnection()',function() {
+    it('should connect two compatible nodes', () => {
+      instance.addDialog('dlg1')
+            .addTalk('tlk0','This is talk 0.')
+              .addAnswer('Answer1')
+            .addTalk('tlk1','This is talk 1.')
+
+      let answerId = instance.findNode('tlk0').getChild(0).getId();
+      instance.setConnection('goto', answerId, 'tlk1');
+
+      let answer = instance.findNode(answerId);
+      expect(answer.getWires('goto')[0]).to.equal('tlk1');
+    });
+    it('should throw error if nodes are incompatible', () => {
+      instance.addDialog('dlg1').addDialog('dlg2')
+      let fn = function() {
+        instance.setConnection('goto', 'dlg2', 'dlg1');
+      };
+      expect(fn).to.throw(Error);
+
     });
   });
   describe('#getNodes()',function() {

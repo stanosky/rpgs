@@ -29,21 +29,21 @@ let fake_answer1_getId;
 let fake_answer1_getText;
 let fake_answer1_isActive;
 let fake_answer1_isVisible;
-let fake_answer1_getTalk;
+let fake_answer1_getWires;
 
 let fake_answer2;
 let fake_answer2_getId;
 let fake_answer2_getText;
 let fake_answer2_isActive;
 let fake_answer2_isVisible;
-let fake_answer2_getTalk;
+let fake_answer2_getWires;
 
 let fake_answer3;
 let fake_answer3_getId;
 let fake_answer3_getText;
 let fake_answer3_isActive;
 let fake_answer3_isVisible;
-let fake_answer3_getTalk;
+let fake_answer3_getWires;
 
 describe('Given an instance of DialogWalker',function () {
   beforeEach(function () {
@@ -52,39 +52,39 @@ describe('Given an instance of DialogWalker',function () {
     fake_answer1_getText = sinon.stub().returns('Answer1 fake text.');
     fake_answer1_isActive = sinon.stub().returns(true);
     fake_answer1_isVisible = sinon.stub().returns(true);
-    fake_answer1_getTalk =  sinon.stub().returns('talk2');
+    fake_answer1_getWires =  sinon.stub().returns(['talk2']);
     fake_answer1 = {
       getId:fake_answer1_getId,
       getText:fake_answer1_getText,
       isActive:fake_answer1_isActive,
       isVisible:fake_answer1_isVisible,
-      getTalk:fake_answer1_getTalk
+      getWires:fake_answer1_getWires
     }
 
     fake_answer2_getId = sinon.stub().returns('ans2');
     fake_answer2_getText = sinon.stub().returns('Answer2 fake text.');
     fake_answer2_isActive = sinon.stub().returns(false);
     fake_answer2_isVisible = sinon.stub().returns(false);
-    fake_answer2_getTalk =  sinon.stub().returns('talk3');
+    fake_answer2_getWires =  sinon.stub().returns(['talk3']);
     fake_answer2 = {
       getId:fake_answer2_getId,
       getText:fake_answer2_getText,
       isActive:fake_answer2_isActive,
       isVisible:fake_answer2_isVisible,
-      getTalk:fake_answer2_getTalk
+      getWires:fake_answer2_getWires
     }
 
     fake_answer3_getId = sinon.stub().returns('ans3');
     fake_answer3_getText = sinon.stub().returns('Answer3 fake text.');
     fake_answer3_isActive = sinon.stub().returns(false);
     fake_answer3_isVisible = sinon.stub().returns(false);
-    fake_answer3_getTalk =  sinon.stub().returns(undefined);
+    fake_answer3_getWires =  sinon.stub().returns(undefined);
     fake_answer3 = {
       getId:fake_answer3_getId,
       getText:fake_answer3_getText,
       isActive:fake_answer3_isActive,
       isVisible:fake_answer3_isVisible,
-      getTalk:fake_answer3_getTalk
+      getWires:fake_answer3_getWires
     }
 
     fake_talk1_getText = sinon.stub().returns('Talk1 fake text.');
@@ -202,7 +202,7 @@ describe('Given an instance of DialogWalker',function () {
       expect(fake_rpgs_findNode).to.have.been.calledWith('talk1');
       expect(instance.selectOption('ans1')).to.equal(true);
       expect(fake_talk1_getChildren).to.have.been.calledOnce;
-      expect(fake_answer1_getTalk).to.have.been.calledOnce;
+      expect(fake_answer1_getWires).to.have.been.calledOnce;
       expect(fake_rpgs_findNode).to.have.been.calledWith('talk2');
     });
     it('should return boolean value which indicates that answer leads (or not) to another talk', () => {
