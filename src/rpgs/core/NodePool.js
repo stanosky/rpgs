@@ -23,7 +23,7 @@ const NodePool = function (nodeFactory, errorHandler) {
     return node;
   }
 
-  function removeNode(id) {
+  function removeNode(id, clearDeadWires = true) {
     let index = Utils.getIndexById(_objectPool, id);
     let isNodeFound = index > -1;
 
@@ -31,7 +31,9 @@ const NodePool = function (nodeFactory, errorHandler) {
       let node = _objectPool.splice(index, 1)[0];
 
       node.dispose();
-      _objectPool.forEach(node => node.cm.removeWiresTo(id));
+      if (clearDeadWires) {
+        _objectPool.forEach(node => node.cm.removeWiresTo(id));
+      }
     }
     return isNodeFound;
   }
